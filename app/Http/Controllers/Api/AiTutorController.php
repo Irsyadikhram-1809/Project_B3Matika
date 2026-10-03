@@ -108,7 +108,7 @@ SYSTEM;
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", $payload);
+        ])->timeout(30)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={$apiKey}", $payload);
 
         if ($response->successful()) {
             $data = $response->json();
@@ -117,6 +117,11 @@ SYSTEM;
                     'text' => $data['candidates'][0]['content']['parts'][0]['text']
                 ]);
             }
+            // Gemini returned 200 tapi tidak ada teks (bisa karena safety filter)
+            return response()->json([
+                'error' => 'AI tidak dapat memproses permintaan ini.',
+                'details' => $data
+            ], 422);
         }
 
         return response()->json([
