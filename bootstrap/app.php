@@ -21,9 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // CORS: izinkan request dari frontend Vercel (diatur via env FRONTEND_URL)
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
-            'admin' => EnsureAdmin::class,
+            'admin'  => EnsureAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
