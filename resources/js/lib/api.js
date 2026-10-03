@@ -9,7 +9,9 @@
  */
 export const TOKEN_KEY = 'b3_token';
 
-const BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? '/api';
+// API sekarang berjalan di Vercel serverless functions (/api/*)
+// Tidak perlu env variable terpisah — sama-sama di vercel.app
+const BASE_URL = '/api';
 
 export async function api(path, { method = 'GET', body } = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
