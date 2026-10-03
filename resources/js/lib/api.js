@@ -2,8 +2,14 @@
  * Pembungkus fetch untuk API Laravel (/api/*).
  * Token Sanctum disimpan di localStorage dan dikirim sebagai Bearer token.
  * Error API selalu berbentuk { "error": "pesan" }.
+ *
+ * Base URL dikonfigurasi melalui env variable VITE_API_URL.
+ * - Development lokal  : kosongkan (default ke '/api', proxy via Vite atau Laragon)
+ * - Production Vercel  : isi dengan URL backend, misal https://b3matika-api.railway.app/api
  */
 export const TOKEN_KEY = 'b3_token';
+
+const BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? '/api';
 
 export async function api(path, { method = 'GET', body } = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
@@ -14,7 +20,7 @@ export async function api(path, { method = 'GET', body } = {}) {
     ? (typeof body === 'string' ? body : JSON.stringify(body))
     : undefined;
 
-  const res = await fetch('/api' + path, {
+  const res = await fetch(BASE_URL + path, {
     method,
     headers: {
       'Content-Type': 'application/json',
