@@ -88,13 +88,16 @@ export default function TutorChat() {
     try {
       const res = await api('/chat', {
         method: 'POST',
-        body: JSON.stringify({ messages: newMessages.slice(-12) })
+        body: { messages: newMessages.slice(-12) }
       });
       setMessages([...newMessages, { role: 'model', parts: [{ text: res.text }] }]);
-    } catch {
+    } catch (err) {
+      const errText = err?.message && err.message !== 'Terjadi kesalahan.'
+        ? `⚠️ ${err.message}`
+        : '⚠️ Maaf, terjadi kesalahan saat menghubungi AI. Coba lagi dalam beberapa saat.';
       setMessages([...newMessages, {
         role: 'model',
-        parts: [{ text: '⚠️ Maaf, terjadi kesalahan. Pastikan koneksi internet kamu stabil dan coba lagi.' }]
+        parts: [{ text: errText }]
       }]);
     } finally {
       setLoading(false);

@@ -503,11 +503,12 @@ tr:last-child td { border-bottom: 0; }
 .quick-prompt-btn { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 12px; font: 600 .82rem 'Poppins', sans-serif; cursor: pointer; color: var(--navy); text-align: left; transition: .15s; }
 .quick-prompt-btn:hover { border-color: var(--blue-d); background: #f0f8ff; transform: translateY(-1px); }
 
-.chat-window { background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; margin-bottom: 20px; }
-.chat-messages-area { height: 460px; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+.chat-window { background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; margin-bottom: 20px; display: flex; flex-direction: column; }
+.chat-messages-area { flex: 1; height: 460px; min-height: 0; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; overscroll-behavior: contain; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
 .chat-messages-area::-webkit-scrollbar { width: 6px; }
 .chat-messages-area::-webkit-scrollbar-track { background: transparent; }
 .chat-messages-area::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+.chat-messages-area::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 .chat-bubble { display: flex; align-items: flex-start; gap: 10px; }
 .chat-bubble-user { flex-direction: row-reverse; }
@@ -555,7 +556,7 @@ tr:last-child td { border-bottom: 0; }
   .tutor-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .materi-cta { flex-direction: column; }
   .latihan-guide { flex-direction: column; }
-  .chat-messages-area { height: 360px; }
+  .chat-messages-area { height: 340px; min-height: 0; }
 }
 @media (max-width: 480px) {
   .quick-prompts-grid { grid-template-columns: 1fr; }

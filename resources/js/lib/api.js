@@ -7,6 +7,13 @@ export const TOKEN_KEY = 'b3_token';
 
 export async function api(path, { method = 'GET', body } = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
+
+  // Jika body sudah berupa string (sudah di-stringify sebelumnya), kirim apa adanya.
+  // Jika body berupa object, stringify di sini. Ini mencegah double-stringify.
+  const bodyStr = body
+    ? (typeof body === 'string' ? body : JSON.stringify(body))
+    : undefined;
+
   const res = await fetch('/api' + path, {
     method,
     headers: {
@@ -14,7 +21,7 @@ export async function api(path, { method = 'GET', body } = {}) {
       Accept: 'application/json', // wajib agar Laravel membalas JSON, bukan redirect HTML
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: bodyStr,
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
