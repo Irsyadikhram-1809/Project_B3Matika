@@ -93,13 +93,54 @@ Jika pengguna ingin bermain atau melatih otak:
 PENTING: Sambut pengguna dengan hangat di pesan pertama. Perkenalkan diri sebagai MathTutor AI, lalu tawarkan pilihan: belajar materi atau bermain teka-teki.
 SYSTEM;
 
+        // =========================================================
+        // SANITASI MESSAGES untuk Gemini API
+        // Aturan Gemini:
+        //   1. Percakapan HARUS dimulai dengan role 'user'
+        //   2. Role harus bergantian (user → model → user → ...)
+        //   3. Pesan terakhir HARUS role 'user'
+        // =========================================================
+        $rawMessages = $request->messages;
+
+        // Hapus semua pesan 'model' di awal array sampai ketemu 'user' pertama
+        $messages = array_values(array_filter(
+            array_slice($rawMessages, array_search(
+                'user',
+                array_column($rawMessages, 'role')
+            ) ?: 0
+            )
+        ));
+
+        // Pastikan tidak ada dua pesan berturutan dengan role sama (deduplicate)
+        $sanitized = [];
+        foreach ($messages as $msg) {
+            $last = end($sanitized);
+            if ($last && $last['role'] === $msg['role']) {
+                // Gabungkan teks jika role sama berturutan
+                $idx = count($sanitized) - 1;
+                $sanitized[$idx]['parts'][0]['text'] .= "\n" . $msg['parts'][0]['text'];
+            } else {
+                $sanitized[] = $msg;
+            }
+        }
+
+        // Pastikan array tidak kosong dan diawali 'user'
+        if (empty($sanitized) || $sanitized[0]['role'] !== 'user') {
+            return response()->json(['error' => 'Pesan tidak valid. Silakan coba lagi.'], 422);
+        }
+
+        // Pastikan diakhiri 'user' (buang model trailing jika ada)
+        while (!empty($sanitized) && end($sanitized)['role'] !== 'user') {
+            array_pop($sanitized);
+        }
+
         $payload = [
             'system_instruction' => [
                 'parts' => [
                     ['text' => $systemInstruction]
                 ]
             ],
-            'contents' => $request->messages,
+            'contents' => array_values($sanitized),
             'generationConfig' => [
                 'temperature' => 0.75,
                 'maxOutputTokens' => 2048,
@@ -108,7 +149,7 @@ SYSTEM;
 
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-        ])->timeout(30)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={$apiKey}", $payload);
+        ])->timeout(60)->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={$apiKey}", $payload);
 
         if ($response->successful()) {
             $data = $response->json();
@@ -117,16 +158,24 @@ SYSTEM;
                     'text' => $data['candidates'][0]['content']['parts'][0]['text']
                 ]);
             }
-            // Gemini returned 200 tapi tidak ada teks (bisa karena safety filter)
+            // Gemini 200 tapi kosong — biasanya safety filter
+            $finishReason = $data['candidates'][0]['finishReason'] ?? 'UNKNOWN';
             return response()->json([
-                'error' => 'AI tidak dapat memproses permintaan ini.',
-                'details' => $data
+                'error' => "AI tidak dapat merespons (alasan: {$finishReason}). Coba ubah pertanyaan Anda.",
             ], 422);
         }
 
+        // Log detail error untuk debugging
+        $errorBody = $response->json();
+        $errorMsg  = $errorBody['error']['message'] ?? 'Tidak diketahui';
+        \Log::error('Gemini API Error', [
+            'status'  => $response->status(),
+            'message' => $errorMsg,
+            'body'    => $errorBody,
+        ]);
+
         return response()->json([
-            'error' => 'Gagal terhubung ke AI Tutor.',
-            'details' => $response->json()
+            'error' => "Gagal terhubung ke AI Tutor: {$errorMsg}",
         ], 500);
     }
 }

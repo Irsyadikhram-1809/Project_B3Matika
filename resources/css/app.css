@@ -55,6 +55,9 @@ h1 { font-size: 1.9rem; margin: .2rem 0 .4rem; color: var(--navy); }
 h2 { color: var(--navy); } h3 { margin: .4rem 0; color: var(--navy); }
 .container { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 .page { padding-top: 28px; padding-bottom: 56px; min-height: 70vh; }
+/* Khusus halaman AI Tutor — chat mengisi layar, tidak perlu min-height/padding-bottom besar */
+.tutor-page-wrap { padding-bottom: 32px; min-height: unset; }
+
 .center { text-align: center; } .center-row { justify-content: center; }
 .muted { color: var(--muted); } .small { font-size: .85rem; }
 .mb { margin-bottom: 18px; } .mt { margin-top: 14px; }
@@ -287,6 +290,23 @@ tr:last-child td { border-bottom: 0; }
   .game-hub { grid-template-columns: 1fr; }
 }
 
+/* Nav overlay (backdrop saat mobile menu terbuka) */
+.nav-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  z-index: 98;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: fadeOverlay .18s ease;
+}
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.burger-open { color: var(--bad) !important; font-size: 1.4rem !important; }
+
+
 /* ===== LOADING STATE ===== */
 .loading-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; }
 .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--line); border-top-color: var(--blue-d); border-radius: 50%; animation: spin .7s linear infinite; }
@@ -477,8 +497,19 @@ tr:last-child td { border-bottom: 0; }
 .tutorial-tips-list li { font-size: .9rem; color: var(--text); margin-bottom: 4px; }
 
 /* ===== AI TUTOR CHAT ===== */
-.tutor-chat-page { max-width: 860px; margin: 0 auto; }
-.tutor-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: linear-gradient(135deg, #1b2468 0%, #2a74c8 100%); border-radius: var(--radius) var(--radius) 0 0; color: #fff; }
+
+/* Halaman tutor mengisi tinggi layar penuh */
+.tutor-chat-page {
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  /* tinggi = layar dikurangi navbar (±60px) + padding page */
+  height: calc(100dvh - 60px - 28px - 56px);
+  min-height: 540px;
+}
+
+.tutor-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: linear-gradient(135deg, #1b2468 0%, #2a74c8 100%); border-radius: var(--radius) var(--radius) 0 0; color: #fff; flex-shrink: 0; }
 .tutor-header-left { display: flex; align-items: center; gap: 16px; }
 .tutor-avatar-large { width: 56px; height: 56px; background: rgba(255,255,255,.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
 .tutor-title { margin: 0; font-size: 1.5rem; color: #fff; }
@@ -488,7 +519,7 @@ tr:last-child td { border-bottom: 0; }
 @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)} 50%{box-shadow:0 0 0 6px rgba(74,222,128,0)} }
 .status-text { font-size: .82rem; color: #e2e8f0; }
 
-.tutor-skills-strip { display: flex; gap: 8px; padding: 12px 20px; background: rgba(255,255,255,.85); border: 1px solid var(--line); border-top: none; flex-wrap: wrap; }
+.tutor-skills-strip { display: flex; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,.85); border: 1px solid var(--line); border-top: none; flex-wrap: wrap; flex-shrink: 0; }
 .skill-pill { padding: 4px 12px; border-radius: 99px; font-size: .76rem; font-weight: 600; white-space: nowrap; }
 .skill-sd  { background: #dcfce7; color: #166534; }
 .skill-smp { background: #dbeafe; color: #1e40af; }
@@ -497,14 +528,39 @@ tr:last-child td { border-bottom: 0; }
 .skill-guide { background: #fff4e3; color: #92400e; }
 .skill-eval { background: #fce7f3; color: #831843; }
 
-.quick-prompts { padding: 14px 20px; background: rgba(255,255,255,.7); border: 1px solid var(--line); border-top: none; }
-.quick-label { margin: 0 0 8px; font-size: .82rem; color: var(--muted); font-weight: 500; }
+.quick-prompts { padding: 10px 20px; background: rgba(255,255,255,.7); border: 1px solid var(--line); border-top: none; flex-shrink: 0; }
+.quick-label { margin: 0 0 6px; font-size: .82rem; color: var(--muted); font-weight: 500; }
 .quick-prompts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .quick-prompt-btn { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 12px; font: 600 .82rem 'Poppins', sans-serif; cursor: pointer; color: var(--navy); text-align: left; transition: .15s; }
 .quick-prompt-btn:hover { border-color: var(--blue-d); background: #f0f8ff; transform: translateY(-1px); }
 
-.chat-window { background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border: 1px solid var(--line); border-top: none; border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; margin-bottom: 20px; display: flex; flex-direction: column; }
-.chat-messages-area { flex: 1; height: 460px; min-height: 0; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; overscroll-behavior: contain; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+/* Chat window mengisi sisa tinggi yang tersedia */
+.chat-window {
+  flex: 1;
+  min-height: 0;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Area pesan scroll di dalam chat-window */
+.chat-messages-area {
+  flex: 1;
+  min-height: 0;           /* KUNCI: agar flex item bisa menyusut & scroll */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .chat-messages-area::-webkit-scrollbar { width: 6px; }
 .chat-messages-area::-webkit-scrollbar-track { background: transparent; }
 .chat-messages-area::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
@@ -542,23 +598,274 @@ tr:last-child td { border-bottom: 0; }
 .tutor-info-card h3 { margin: 0 0 8px; font-size: 1rem; color: var(--navy); }
 .tutor-info-card p { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.6; }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 800px) {
-  .materi-card { padding: 18px 16px; }
-  .topic-tab { padding: 10px 12px; font-size: .88rem; }
-  .options-grid { grid-template-columns: 1fr; }
-  .topics-grid { grid-template-columns: 1fr; }
-  .grade-page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .level-section-header { flex-direction: column; }
-  .game-tutorial-body { grid-template-columns: 1fr; }
-  .quick-prompts-grid { grid-template-columns: repeat(2, 1fr); }
-  .tutor-info-grid { grid-template-columns: 1fr; }
-  .tutor-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .materi-cta { flex-direction: column; }
-  .latihan-guide { flex-direction: column; }
-  .chat-messages-area { height: 340px; min-height: 0; }
+
+/* ============================================================
+   RESPONSIVE — B3Matika
+   Breakpoints:
+     ≤1024px  → Tablet landscape / small laptop
+     ≤768px   → Tablet portrait
+     ≤600px   → Large phone
+     ≤480px   → Small phone
+   ============================================================ */
+
+/* ── Global & Layout ── */
+html { -webkit-text-size-adjust: 100%; }
+
+@media (max-width: 1024px) {
+  .container { padding: 0 16px; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .profil-wrap { grid-template-columns: 240px 1fr; gap: 18px; }
+  .tutor-chat-page { max-width: 100%; }
+  .tutor-info-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
 }
+
+@media (max-width: 768px) {
+  /* ── Typography ── */
+  h1 { font-size: 1.55rem; }
+  h2 { font-size: 1.25rem; }
+  .page { padding-top: 18px; padding-bottom: 40px; }
+  .container { padding: 0 14px; }
+
+  /* ── Navbar ── */
+  .burger { display: block; }
+  .navbar { position: sticky; top: 0; z-index: 100; }
+  .nav-inner { min-height: 60px; padding: 0 4px; }
+  .nav-links {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0; right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,.97);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px 20px 32px;
+    gap: 4px;
+    overflow-y: auto;
+    z-index: 99;
+    box-shadow: 0 10px 40px rgba(0,0,0,.15);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links > a {
+    width: 100%;
+    padding: 12px 8px;
+    font-size: 1.05rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-links > a:last-of-type { border-bottom: none; }
+  .nav-user { margin: 12px 0 0; flex-wrap: wrap; width: 100%; gap: 8px; }
+  .nav-dropdown-menu { position: static; box-shadow: none; border: 1px solid var(--line); margin-top: 4px; }
+  .logo-name { font-size: 1.5rem; }
+  .logo-tag { font-size: .6rem; }
+
+  /* ── Grids ── */
+  .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  .grades { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+
+  /* ── Logo Big (Home hero) ── */
+  .logo-big { flex-direction: column; text-align: center; gap: 10px; }
+  .logo-big .logo-text { align-items: center; }
+  .hero { padding: 24px 0 32px; gap: 16px; }
+  .hero-sub { font-size: .95rem; }
+
+  /* ── Materi ── */
+  .materi-card { padding: 16px 14px; }
+  .materi-page-hero h1 { font-size: 1.7rem; }
+  .level-section { padding: 18px 14px; }
+  .level-section-header { flex-direction: column; }
+  .level-title { font-size: 1.25rem; }
+  .grade-page-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px 18px; }
+  .grade-page-title { font-size: 1.5rem; }
+  .topics-grid { grid-template-columns: 1fr; }
+  .materi-cta { flex-direction: column; padding: 16px; gap: 12px; }
+  .materi-cta-text { font-size: .9rem; }
+  .topic-title { font-size: 1.6rem; }
+  .topic-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .topic-tab { padding: 10px 12px; font-size: .85rem; white-space: nowrap; }
+
+  /* ── Latihan ── */
+  .latihan-guide { flex-direction: column; padding: 14px; gap: 10px; }
+  .options-grid { grid-template-columns: 1fr; }
+  .question-card { padding: 16px; }
+  .completion-actions { flex-direction: column; align-items: stretch; }
+  .completion-actions .btn { text-align: center; }
+
+  /* ── Games ── */
+  .game-hub { grid-template-columns: 1fr; }
+  .game-tutorial-body { grid-template-columns: 1fr; }
+  .game-2048-wrap { max-width: 100%; }
+  .g2048-grid { gap: 7px; }
+  .sudoku-wrap, .kenken-wrap { flex-direction: column; align-items: stretch; }
+  .sudoku-grid { max-width: 100%; width: 100%; }
+  .kenken-grid { max-width: 100%; }
+  .sudoku-numpad { max-width: 100%; grid-template-columns: repeat(5, 1fr); }
+  .calculords-cards { justify-content: center; }
+
+  /* ── Puzzle ── */
+  .game { max-width: 100%; }
+
+  /* ── AI Tutor ── */
+  .tutor-header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px; }
+  .tutor-title { font-size: 1.25rem; }
+  .tutor-skills-strip { padding: 10px 14px; gap: 6px; }
+  .skill-pill { font-size: .72rem; padding: 3px 10px; }
+  .quick-prompts { padding: 10px 14px; }
+  .quick-prompts-grid { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+  .quick-prompt-btn { font-size: .78rem; padding: 7px 10px; }
+  .chat-messages-area { height: 340px; }
+  .chat-msg-body { max-width: 88%; }
+  .tutor-info-grid { grid-template-columns: 1fr; }
+  .chat-hint { font-size: .7rem; }
+
+  /* ── Profil ── */
+  .profil-wrap { grid-template-columns: 1fr; }
+  .profil-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .profil-tabs button { white-space: nowrap; padding: 10px 12px; }
+  .profil-stats { flex-wrap: wrap; }
+
+  /* ── Riwayat ── */
+  .riwayat-summary { grid-template-columns: repeat(2, 1fr); }
+
+  /* ── Admin ── */
+  .admin-form { max-width: 100%; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  table { font-size: .82rem; }
+  th, td { padding: 9px 8px; }
+
+  /* ── Auth ── */
+  .auth-card { padding: 20px 16px; }
+
+  /* ── Footer ── */
+  .footer { font-size: .78rem; padding: 18px 0; }
+}
+
+/* ── Tablet ── */
+@media (max-width: 600px) {
+  h1 { font-size: 1.35rem; }
+  .container { padding: 0 12px; }
+  .page { padding-top: 14px; padding-bottom: 32px; }
+
+  /* Navbar */
+  .nav-inner { min-height: 56px; }
+  .nav-links { top: 56px; }
+
+  /* Home */
+  .grades { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grade-card { padding: 14px 8px; }
+  .grade-num { font-size: 1.8rem; }
+
+  /* Materi */
+  .materi-card { padding: 14px 12px; }
+  .materi-page-hero h1 { font-size: 1.45rem; }
+  .grade-nav-pill { width: 34px; height: 34px; font-size: .82rem; }
+
+  /* AI Tutor */
+  .tutor-avatar-large { width: 44px; height: 44px; font-size: 1.4rem; }
+  .quick-prompts-grid { grid-template-columns: 1fr 1fr; }
+  .chat-messages-area { height: 300px; }
+  .chat-avatar { width: 30px; height: 30px; font-size: .95rem; }
+  .chat-msg-text { padding: 10px 12px; font-size: .88rem; }
+  .chat-msg-body { max-width: 92%; }
+  .chat-textarea { font-size: .9rem; }
+
+  /* Latihan */
+  .opt-btn { padding: 10px 12px; font-size: .88rem; }
+  .progress-label { font-size: .75rem; }
+
+  /* Games */
+  .crypt { font-size: 1.5rem; letter-spacing: 2px; }
+  .game-q { font-size: 2rem; }
+  .calculords-card { padding: 8px 14px; font-size: 1.2rem; }
+  .g2048-grid { gap: 5px; padding: 8px; }
+
+  /* Profil */
+  .avatar-opt { width: 40px; height: 40px; font-size: 1.25rem; }
+  .profil-stats { gap: 8px; }
+  .profil-stat { padding: 8px 14px; }
+  .stat-val { font-size: 1.1rem; }
+
+  /* Riwayat */
+  .riwayat-stat b { font-size: 1.6rem; }
+
+  /* Table */
+  .table-wrap { margin: 0 -12px; padding: 0 12px; }
+}
+
+/* ── Small phone ── */
 @media (max-width: 480px) {
+  h1 { font-size: 1.2rem; }
+  .container { padding: 0 10px; }
+
+  /* Home */
+  .grades { grid-template-columns: repeat(2, 1fr); }
+  .row.center-row { flex-direction: column; align-items: stretch; }
+  .row.center-row .btn { text-align: center; }
+
+  /* Navbar */
+  .chip { font-size: .72rem; padding: 3px 9px; }
+  .who { font-size: .82rem; }
+
+  /* Materi */
+  .grades-row { gap: 6px; }
+  .grade-card-v2 { padding: 10px 12px; }
+  .grade-card-v2-num { font-size: 1.2rem; }
+  .topics-grid { gap: 10px; }
+  .topic-card-v2 { padding: 14px 14px; }
+  .topic-card-v2-btn { padding: 5px 10px; font-size: .78rem; }
+
+  /* AI Tutor */
   .quick-prompts-grid { grid-template-columns: 1fr; }
-  .grades-row { gap: 8px; }
+  .tutor-skills-strip { gap: 4px; padding: 8px 10px; }
+  .tutor-title { font-size: 1.1rem; }
+  .chat-messages-area { height: 260px; }
+  .chat-input-form { padding: 8px 10px; gap: 7px; }
+  .chat-send-btn { width: 40px; height: 40px; font-size: 1rem; }
+  .tutor-info-card { padding: 14px; }
+  .tutor-info-card h3 { font-size: .9rem; }
+  .info-icon { font-size: 1.6rem; }
+
+  /* Games */
+  .game-card { padding: 12px 14px; gap: 10px; }
+  .game-card-emoji { font-size: 1.9rem; }
+  .sudoku-cell { font-size: .9rem; }
+  .kenken-val { font-size: 1.1rem; }
+  .letter { width: 44px; font-size: 1rem; }
+  .crypt-inputs { gap: 8px; }
+
+  /* Latihan */
+  .question-card { padding: 12px; }
+  .feedback-explanation { font-size: .83rem; }
+  .completion-card { padding: 24px 16px; }
+
+  /* Forms */
+  .auth-card { padding: 16px 12px; }
+  input, select, textarea { font-size: 16px; } /* prevent iOS zoom */
+
+  /* Admin */
+  .admin-nav a { padding: 5px 10px; font-size: .78rem; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stat b { font-size: 1.4rem; }
+
+  /* Riwayat */
+  .riwayat-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+
+/* ── Touch device: remove hover effects ── */
+@media (hover: none) {
+  .game-card:hover { transform: none; box-shadow: var(--shadow); }
+  a.card:hover { transform: none; box-shadow: var(--shadow); }
+  .btn:hover { transform: none; filter: none; }
+  .quick-prompt-btn:hover { transform: none; }
+  .opt-btn:hover:not(:disabled) { transform: none; box-shadow: none; }
+  .topic-card-v2:hover { transform: none; box-shadow: var(--shadow); }
+  .grade-card-v2:hover { transform: none; box-shadow: none; }
+}
+
+/* ── Safe area (iPhone notch / home bar) ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .navbar { padding-top: env(safe-area-inset-top); }
+  .footer { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  .chat-input-form { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 }

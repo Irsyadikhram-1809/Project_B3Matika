@@ -86,9 +86,22 @@ export default function TutorChat() {
     setInput('');
     setLoading(true);
     try {
+      // Filter history sebelum dikirim ke server:
+      // 1. Hapus pesan error (⚠️) agar tidak masuk context AI
+      // 2. Hanya kirim pesan valid (user & model normal)
+      // 3. Pastikan dimulai dari 'user' (skip greeting model awal)
+      const historyToSend = newMessages
+        .filter(m => !m.parts[0].text.startsWith('⚠️'))  // hapus error messages
+        .slice(-12);                                        // max 12 pesan terakhir
+
+      // Hapus leading 'model' messages agar selalu dimulai 'user'
+      while (historyToSend.length > 0 && historyToSend[0].role === 'model') {
+        historyToSend.shift();
+      }
+
       const res = await api('/chat', {
         method: 'POST',
-        body: { messages: newMessages.slice(-12) }
+        body: { messages: historyToSend }
       });
       setMessages([...newMessages, { role: 'model', parts: [{ text: res.text }] }]);
     } catch (err) {
@@ -114,73 +127,77 @@ export default function TutorChat() {
   };
 
   return (
-    <div className="tutor-chat-page">
-      {/* Header */}
-      <div className="tutor-header">
-        <div className="tutor-header-left">
-          <div className="tutor-avatar-large">🤖</div>
-          <div>
-            <h1 className="tutor-title">MathTutor AI</h1>
-            <p className="tutor-subtitle">Tutor Matematika & Game Master Teka-teki Logika</p>
+    <div className="page tutor-page-wrap">
+      {/* ===== CHAT SECTION — mengisi sisa tinggi layar ===== */}
+      <div className="tutor-chat-page">
+
+        {/* Header */}
+        <div className="tutor-header">
+          <div className="tutor-header-left">
+            <div className="tutor-avatar-large">🤖</div>
+            <div>
+              <h1 className="tutor-title">MathTutor AI</h1>
+              <p className="tutor-subtitle">Tutor Matematika &amp; Game Master Teka-teki Logika</p>
+            </div>
+          </div>
+          <div className="tutor-status">
+            <span className="status-dot" />
+            <span className="status-text">Online</span>
           </div>
         </div>
-        <div className="tutor-status">
-          <span className="status-dot" />
-          <span className="status-text">Online</span>
+
+        {/* Skills Strip */}
+        <div className="tutor-skills-strip">
+          <span className="skill-pill skill-sd">🏫 Materi SD</span>
+          <span className="skill-pill skill-smp">🏛️ Materi SMP</span>
+          <span className="skill-pill skill-sma">🎓 Materi SMA</span>
+          <span className="skill-pill skill-game">🎮 Game Teka-teki</span>
+          <span className="skill-pill skill-guide">💡 Panduan Soal</span>
+          <span className="skill-pill skill-eval">📊 Evaluasi &amp; Koreksi</span>
         </div>
-      </div>
 
-      {/* Skills Strip */}
-      <div className="tutor-skills-strip">
-        <span className="skill-pill skill-sd">🏫 Materi SD</span>
-        <span className="skill-pill skill-smp">🏛️ Materi SMP</span>
-        <span className="skill-pill skill-sma">🎓 Materi SMA</span>
-        <span className="skill-pill skill-game">🎮 Game Teka-teki</span>
-        <span className="skill-pill skill-guide">💡 Panduan Soal</span>
-        <span className="skill-pill skill-eval">📊 Evaluasi & Koreksi</span>
-      </div>
+        {/* Quick prompts */}
+        <div className="quick-prompts">
+          <p className="quick-label">💬 Mulai dari sini:</p>
+          <div className="quick-prompts-grid">
+            {QUICK_PROMPTS.map((p, i) => (
+              <button key={i} className="quick-prompt-btn" onClick={() => sendMessage(p.text)}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {/* Quick prompts */}
-      <div className="quick-prompts">
-        <p className="quick-label">💬 Mulai dari sini:</p>
-        <div className="quick-prompts-grid">
-          {QUICK_PROMPTS.map((p, i) => (
-            <button key={i} className="quick-prompt-btn" onClick={() => sendMessage(p.text)}>
-              {p.label}
+        {/* Chat window — flex:1, messages scroll di sini */}
+        <div className="chat-window">
+          <div className="chat-messages-area">
+            {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}
+            {loading && <TypingIndicator />}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input — selalu menempel di bawah */}
+          <form className="chat-input-form" onSubmit={handleSubmit}>
+            <textarea
+              ref={textareaRef}
+              className="chat-textarea"
+              placeholder="Tanyakan materi, minta soal latihan, atau ajak bermain teka-teki…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              rows={1}
+            />
+            <button type="submit" className="chat-send-btn" disabled={loading || !input.trim()} aria-label="Kirim">
+              <span className="send-icon">➤</span>
             </button>
-          ))}
+          </form>
+          <p className="chat-hint">Enter = kirim · Shift+Enter = baris baru</p>
         </div>
       </div>
 
-      {/* Chat area */}
-      <div className="chat-window">
-        <div className="chat-messages-area">
-          {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}
-          {loading && <TypingIndicator />}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <form className="chat-input-form" onSubmit={handleSubmit}>
-          <textarea
-            ref={textareaRef}
-            className="chat-textarea"
-            placeholder="Tanyakan materi, minta soal latihan, atau ajak bermain teka-teki…"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            rows={1}
-          />
-          <button type="submit" className="chat-send-btn" disabled={loading || !input.trim()} aria-label="Kirim">
-            <span className="send-icon">➤</span>
-          </button>
-        </form>
-        <p className="chat-hint">Enter = kirim · Shift+Enter = baris baru</p>
-      </div>
-
-      {/* Info cards */}
-      <div className="tutor-info-grid">
+      {/* Info cards — di bawah chat, bisa diakses dengan scroll halaman */}
+      <div className="tutor-info-grid" style={{ marginTop: '24px' }}>
         <div className="tutor-info-card">
           <div className="info-icon">📖</div>
           <h3>Materi Lengkap</h3>
