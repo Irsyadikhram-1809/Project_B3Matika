@@ -504,9 +504,7 @@ tr:last-child td { border-bottom: 0; }
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  /* tinggi = layar dikurangi navbar (±60px) + padding page */
-  height: calc(100dvh - 60px - 28px - 56px);
-  min-height: 540px;
+  min-height: 75vh;
 }
 
 .tutor-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: linear-gradient(135deg, #1b2468 0%, #2a74c8 100%); border-radius: var(--radius) var(--radius) 0 0; color: #fff; flex-shrink: 0; }
@@ -537,7 +535,7 @@ tr:last-child td { border-bottom: 0; }
 /* Chat window mengisi sisa tinggi yang tersedia */
 .chat-window {
   flex: 1;
-  min-height: 0;
+  min-height: 500px;
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(12px);
   border: 1px solid var(--line);
