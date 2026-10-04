@@ -57,45 +57,43 @@ export default async function handler(req, res) {
   };
 
   try {
-    let response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(55000),
-      }
-    );
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    let data = await response.json();
-
-    if (!response.ok && data?.error?.message?.toLowerCase().includes('high demand')) {
-      // Fallback if needed, though gemini-1.5-flash is usually highly available
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(55000),
+    let textResponse = '';
+    
+    try {
+      // Sesuai permintaan, mencoba model 3.8 (meskipun secara resmi Google belum merilisnya)
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: sanitized,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          temperature: 0.75,
         }
-      );
-      data = await response.json();
+      });
+      textResponse = response.text;
+    } catch (modelErr) {
+      // Fallback ke model 1.5 Flash yang valid dan stabil jika 3.8 gagal
+      console.warn('Fallback ke gemini-1.5-flash karena 3.8 gagal:', modelErr.message);
+      const fallbackResponse = await ai.models.generateContent({
+        model: 'gemini-1.5-flash',
+        contents: sanitized,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          temperature: 0.75,
+        }
+      });
+      textResponse = fallbackResponse.text;
     }
 
-    if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-      return res.status(200).json({ text: data.candidates[0].content.parts[0].text });
+    if (textResponse) {
+      return res.status(200).json({ text: textResponse });
+    } else {
+      return errorResponse(res, 'AI tidak memberikan respons.', 422);
     }
-
-    const finishReason = data?.candidates?.[0]?.finishReason ?? 'UNKNOWN';
-    if (response.ok) {
-      return errorResponse(res, `AI tidak dapat merespons (alasan: ${finishReason}). Coba ubah pertanyaan.`, 422);
-    }
-
-    const errMsg = data?.error?.message ?? 'Tidak diketahui';
-    return errorResponse(res, `Gagal terhubung ke AI Tutor: ${errMsg}`, 500);
   } catch (err) {
-    if (err.name === 'TimeoutError') return errorResponse(res, 'AI Tutor timeout. Coba lagi.', 504);
-    return errorResponse(res, 'Terjadi kesalahan server.', 500);
+    console.error('Gemini API Error:', err);
+    return errorResponse(res, `Gagal terhubung ke AI Tutor: ${err.message || 'Kesalahan internal'}`, 500);
   }
 }
