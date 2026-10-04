@@ -11,13 +11,37 @@ export default async function handler(req, res) {
   if (isNaN(grade) || grade < 1 || grade > 12)
     return errorResponse(res, 'Kelas tidak valid.', 422);
 
-  const { data: topics, error } = await supabase
-    .from('topics')
-    .select('id, grade, title')
-    .eq('grade', grade)
-    .order('id');
+  try {
+    const { data: topics, error } = await supabase
+      .from('topics')
+      .select('id, grade, title')
+      .eq('grade', grade)
+      .order('id');
 
-  if (error) return errorResponse(res, 'Terjadi kesalahan.', 500);
+    if (error) throw error;
 
-  return res.status(200).json({ grade, topics: topics ?? [] });
+    // Ambil semua pertanyaan untuk kelas ini dan hitung per topik
+    const topicIds = (topics || []).map(t => t.id);
+    let questionsCountMap = {};
+    
+    if (topicIds.length > 0) {
+      const { data: questions } = await supabase
+        .from('questions')
+        .select('topic_id')
+        .in('topic_id', topicIds);
+        
+      (questions || []).forEach(q => {
+        questionsCountMap[q.topic_id] = (questionsCountMap[q.topic_id] || 0) + 1;
+      });
+    }
+
+    const topicsWithCount = (topics || []).map(t => ({
+      ...t,
+      questions_count: questionsCountMap[t.id] || 0
+    }));
+
+    return res.status(200).json({ grade, topics: topicsWithCount });
+  } catch {
+    return res.status(200).json({ grade, topics: [] });
+  }
 }

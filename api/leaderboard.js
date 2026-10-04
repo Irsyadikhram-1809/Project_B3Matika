@@ -7,15 +7,25 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return errorResponse(res, 'Method not allowed', 405);
 
-  const { data: leaderboard, error } = await supabase
-    .from('profiles')
-    .select('id, name, points, avatar')
-    .eq('role', 'user')
-    .eq('is_active', true)
-    .order('points', { ascending: false })
-    .limit(20);
+  try {
+    const { data: users, error } = await supabase
+      .from('profiles')
+      .select('id, name, points, avatar')
+      .eq('role', 'user')
+      .eq('is_active', true)
+      .order('points', { ascending: false })
+      .limit(20);
 
-  if (error) return errorResponse(res, 'Terjadi kesalahan.', 500);
+    if (error) throw error;
 
-  return res.status(200).json({ leaderboard: leaderboard ?? [] });
+    // Kalkulasi level: tiap 100 poin = 1 level
+    const formattedUsers = (users || []).map(u => ({
+      ...u,
+      level: Math.floor((u.points || 0) / 100) + 1
+    }));
+
+    return res.status(200).json({ users: formattedUsers });
+  } catch {
+    return res.status(200).json({ users: [] });
+  }
 }
