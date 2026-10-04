@@ -53,12 +53,12 @@ export default async function handler(req, res) {
   const payload = {
     system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
     contents: sanitized,
-    generationConfig: { temperature: 0.75, maxOutputTokens: 2048 },
+    generationConfig: { temperature: 0.75 },
   };
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    let response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,7 +67,20 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
+    let data = await response.json();
+
+    if (!response.ok && data?.error?.message?.toLowerCase().includes('high demand')) {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(55000),
+        }
+      );
+      data = await response.json();
+    }
 
     if (response.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
       return res.status(200).json({ text: data.candidates[0].content.parts[0].text });
