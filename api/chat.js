@@ -58,7 +58,7 @@ export default async function handler(req, res) {
 
   try {
     let response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,8 +70,9 @@ export default async function handler(req, res) {
     let data = await response.json();
 
     if (!response.ok && data?.error?.message?.toLowerCase().includes('high demand')) {
+      // Fallback if needed, though gemini-1.5-flash is usually highly available
       response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
