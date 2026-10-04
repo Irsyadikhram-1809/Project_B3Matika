@@ -6,6 +6,11 @@ import ReactMarkdown from 'react-markdown';
 import { supabase } from '@/lib/supabase';
 import { motion } from 'framer-motion';
 
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
+import { parseVoiceCommand } from '@/utils/voiceCommandParser';
+import VoiceButton from '@/components/VoiceButton';
+
 const QUICK_PROMPTS = [
   { label: '📐 Materi SD', text: 'Saya ingin belajar materi matematika SD kelas 4 tentang pecahan' },
   { label: '📏 Materi SMP', text: 'Jelaskan Teorema Pythagoras untuk kelas 8 SMP' },
@@ -76,6 +81,83 @@ export default function TutorChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [appStatus, setAppStatus] = useState('idle'); // idle, listening, processing, speaking
+  const [currentLang, setCurrentLang] = useState('id-ID');
+
+  const { 
+    isSupported: isTtsSupported, 
+    speak, 
+    stop: stopSpeaking, 
+    isMuted, 
+    toggleMute, 
+    setRate 
+  } = useSpeechSynthesis(currentLang);
+
+  const handleFinalTranscript = async (transcript) => {
+    const command = parseVoiceCommand(transcript);
+    
+    if (command) {
+      handleCommand(command.type);
+      return;
+    }
+
+    sendMessage(transcript);
+  };
+
+  const { 
+    isSupported: isSttSupported, 
+    isListening, 
+    interimTranscript, 
+    errorMessage, 
+    startListening, 
+    stopListening 
+  } = useSpeechRecognition({
+    lang: currentLang,
+    onFinalTranscript: handleFinalTranscript,
+    onError: () => setAppStatus('idle')
+  });
+
+  useEffect(() => {
+    if (isListening) setAppStatus('listening');
+    else if (appStatus === 'listening') setAppStatus('idle');
+  }, [isListening, appStatus]);
+
+  const handleCommand = (type) => {
+    switch (type) {
+      case 'REPEAT':
+        const lastAiMessage = [...messages].reverse().find(m => m.role === 'model');
+        if (lastAiMessage) speak(lastAiMessage.parts[0].text);
+        break;
+      case 'SLOWER':
+        setRate(0.8);
+        speak("Baik, saya akan bicara lebih pelan.");
+        break;
+      case 'STOP_SPEAKING':
+        stopSpeaking();
+        break;
+      case 'CLEAR_CHAT':
+        setMessages([]);
+        break;
+      case 'NEXT_TOPIC':
+        sendMessage('Mari kita lanjut ke materi berikutnya.');
+        break;
+      default:
+        break;
+    }
+    setAppStatus('idle');
+  };
+
+  const handleMicClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      if (appStatus === 'speaking') {
+         stopSpeaking();
+      }
+      startListening();
+    }
+  };
+
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -126,6 +208,7 @@ export default function TutorChat() {
     setMessages(newMessages);
     setInput('');
     setLoading(true);
+    setAppStatus('processing');
 
     if (user) {
       await supabase.from('chat_messages').insert({
@@ -165,6 +248,8 @@ export default function TutorChat() {
       }
       
       setMessages([...newMessages, { role: 'model', parts: [{ text: modelText }] }]);
+      setAppStatus('speaking');
+      speak(modelText);
     } catch (err) {
       const errText = err?.message && err.message !== 'Terjadi kesalahan.'
         ? `⚠️ ${err.message}`
@@ -173,6 +258,7 @@ export default function TutorChat() {
         role: 'model',
         parts: [{ text: errText }]
       }]);
+      setAppStatus('idle');
     } finally {
       setLoading(false);
     }
@@ -237,23 +323,59 @@ export default function TutorChat() {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Status Bar VUI */}
+          <div style={{ minHeight: '24px', padding: '0 16px', fontSize: '14px', marginBottom: '8px' }}>
+            {errorMessage ? (
+               <span style={{ color: 'var(--red, red)' }}>{errorMessage}</span>
+            ) : isListening && interimTranscript ? (
+               <span style={{ fontStyle: 'italic', color: '#666' }}>Mendengar: "{interimTranscript}"...</span>
+            ) : appStatus === 'processing' ? (
+               <span style={{ color: '#f59e0b' }}>AI sedang berpikir...</span>
+            ) : null}
+          </div>
+
           {/* Input — selalu menempel di bawah */}
-          <form className="chat-input-form" onSubmit={handleSubmit}>
-            <textarea
-              ref={textareaRef}
-              className="chat-textarea"
-              placeholder="Tanyakan materi, minta soal latihan, atau ajak bermain teka-teki…"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-              rows={1}
-            />
-            <button type="submit" className="chat-send-btn" disabled={loading || !input.trim()} aria-label="Kirim">
-              <span className="send-icon">➤</span>
-            </button>
+          <form className="chat-input-form" style={{ display: 'flex', gap: '10px', alignItems: 'center' }} onSubmit={handleSubmit}>
+            {isSttSupported && isTtsSupported && (
+              <VoiceButton 
+                status={appStatus}
+                onClick={handleMicClick}
+                isMuted={isMuted}
+                onToggleMute={toggleMute}
+              />
+            )}
+            
+            <div style={{ flex: 1, display: 'flex', gap: '8px' }}>
+              <textarea
+                ref={textareaRef}
+                className="chat-textarea"
+                placeholder="Tanyakan materi, minta soal latihan, atau ajak bermain teka-teki…"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={loading}
+                rows={1}
+                style={{ flex: 1, resize: 'none' }}
+              />
+              <button type="submit" className="chat-send-btn" disabled={loading || !input.trim()} aria-label="Kirim">
+                <span className="send-icon">➤</span>
+              </button>
+            </div>
           </form>
-          <p className="chat-hint">Enter = kirim · Shift+Enter = baris baru</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 16px', alignItems: 'center' }}>
+            <p className="chat-hint">Enter = kirim · Shift+Enter = baris baru</p>
+            {isSttSupported && (
+              <select 
+                 value={currentLang} 
+                 onChange={(e) => setCurrentLang(e.target.value)} 
+                 style={{ fontSize: '12px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #ccc', outline: 'none' }}
+                 aria-label="Pilih Bahasa"
+              >
+                <option value="id-ID">ID</option>
+                <option value="en-US">EN</option>
+              </select>
+            )}
+          </div>
         </div>
       </div>
 
