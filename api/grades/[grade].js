@@ -18,7 +18,10 @@ export default async function handler(req, res) {
       .eq('grade', grade)
       .order('id');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase topics error:', error);
+      throw error;
+    }
 
     // Ambil semua pertanyaan untuk kelas ini dan hitung per topik
     const topicIds = (topics || []).map(t => t.id);
@@ -41,7 +44,8 @@ export default async function handler(req, res) {
     }));
 
     return res.status(200).json({ grade, topics: topicsWithCount });
-  } catch {
+  } catch (err) {
+    console.error('Catch block in grades API:', err);
     return res.status(200).json({ grade, topics: [] });
   }
 }
