@@ -31,18 +31,18 @@ export default function PuzzleDetail() {
     <>
       <Link to="/puzzle" className="back">← Semua puzzle</Link>
       <h1>{p.title}</h1>
-      <div className="card mb" style={{ background: 'rgba(240, 248, 255, 0.85)', borderColor: '#cce5ff', backdropFilter: 'blur(10px)' }}>
+      <div className="card tutorial-box mb">
         <h3 style={{ margin: '0 0 6px 0', color: 'var(--blue-d)', fontSize: '1.1rem' }}>ℹ️ Cara Mengerjakan</h3>
         <p style={{ margin: 0, fontSize: '0.95rem' }}>{p.description}</p>
-        {p.type === 'cryptarithm' && <p style={{ margin: '8px 0 0', fontSize: '0.9rem', color: '#555' }}>Setiap huruf mewakili angka unik (0-9). Substitusikan angka yang tepat agar persamaan matematikanya bernilai benar.</p>}
-        {p.type === 'riddle' && <p style={{ margin: '8px 0 0', fontSize: '0.9rem', color: '#555' }}>Pecahkan pola atau teka-teki logika yang diberikan lalu tulis jawaban akhir di kolom jawaban.</p>}
+        {p.type === 'cryptarithm' && <p style={{ margin: '8px 0 0', fontSize: '0.9rem', color: 'var(--muted)' }}>Setiap huruf mewakili angka unik (0-9). Substitusikan angka yang tepat agar persamaan matematikanya bernilai benar.</p>}
+        {p.type === 'riddle' && <p style={{ margin: '8px 0 0', fontSize: '0.9rem', color: 'var(--muted)' }}>Pecahkan pola atau teka-teki logika yang diberikan lalu tulis jawaban akhir di kolom jawaban.</p>}
       </div>
       <form className="card game" onSubmit={submit}>
         {p.type === 'cryptarithm' ? (
           <>
             <div className="crypt">{p.data.equation}</div>
             <div className="row wrap mb">
-              {p.letters.map((l) => (
+              {(p.letters || Array.from(new Set(p.data.equation.replace(/[^A-Z]/g, '').split('')))).map((l) => (
                 <label key={l} className="letter">{l}
                   <input type="number" min="0" max="9" required value={map[l] ?? ''} onChange={(e) => setMap({ ...map, [l]: e.target.value })} />
                 </label>
