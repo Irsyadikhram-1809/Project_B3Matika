@@ -36,8 +36,11 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return errorResponse(res, 'API Key Gemini belum dikonfigurasi.', 500);
+  const apiKeyStr = process.env.GEMINI_API_KEY;
+  if (!apiKeyStr) return errorResponse(res, 'API Key Gemini belum dikonfigurasi.', 500);
+  
+  // Memisahkan key berdasarkan koma untuk sistem rotasi (multi-key)
+  const apiKeys = apiKeyStr.split(',').map(k => k.trim()).filter(k => k);
 
   const { messages } = req.body;
   if (!Array.isArray(messages) || messages.length === 0)
@@ -58,35 +61,56 @@ export default async function handler(req, res) {
 
   try {
     const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    // Format chat history into a single string since the user's example uses a single 'input' string
+    // Format chat history into a single string
     let promptText = `SYSTEM INSTRUCTION:\n${SYSTEM_INSTRUCTION}\n\nCHAT HISTORY:\n`;
     sanitized.forEach(msg => {
       promptText += `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.parts[0].text}\n`;
     });
     promptText += 'AI:';
 
-    const stream = await ai.interactions.create({
-      model: "gemini-3.8-flash",
-      input: promptText,
-      stream: true,
-    });
-
     let fullText = "";
-    for await (const event of stream) {
-      // Menggabungkan potongan (chunk) teks yang masuk
-      if (event && event.output_text) {
-        fullText += event.output_text;
-      } else if (typeof event === 'string') {
-        fullText += event;
+    let lastError = null;
+
+    // Loop mencoba setiap API Key yang tersedia satu per satu
+    for (const currentKey of apiKeys) {
+      try {
+        const ai = new GoogleGenAI({ apiKey: currentKey });
+        const stream = await ai.interactions.create({
+          model: "gemini-3.8-flash",
+          input: promptText,
+          stream: true,
+        });
+
+        fullText = ""; // reset untuk key ini
+        for await (const event of stream) {
+          if (event && event.output_text) {
+            fullText += event.output_text;
+          } else if (typeof event === 'string') {
+            fullText += event;
+          }
+        }
+        
+        // Jika berhasil mendapat teks, keluar dari loop (tidak perlu coba key lain)
+        if (fullText) break;
+      } catch (err) {
+        lastError = err;
+        // Jika error adalah karena limit/quota, lanjutkan mencoba API key berikutnya
+        if (err.message && err.message.toLowerCase().includes('quota')) {
+          console.warn('Quota exceeded pada satu API Key. Mencoba API Key berikutnya...');
+          continue;
+        } else {
+          // Jika error lain (misalnya model tidak ada), berhenti mencoba
+          break;
+        }
       }
     }
 
     if (fullText) {
       return res.status(200).json({ text: fullText });
     } else {
-      return errorResponse(res, 'AI tidak memberikan respons.', 422);
+      const errMsg = lastError?.message || 'AI tidak memberikan respons.';
+      return errorResponse(res, `Gagal terhubung ke AI Tutor: ${errMsg}`, errMsg.toLowerCase().includes('quota') ? 429 : 500);
     }
   } catch (err) {
     console.error('API Error:', err);
