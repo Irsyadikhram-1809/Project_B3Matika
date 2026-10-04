@@ -60,40 +60,25 @@ export default async function handler(req, res) {
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    let textResponse = '';
-    
-    try {
-      // Sesuai permintaan, mencoba model 3.8 (meskipun secara resmi Google belum merilisnya)
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: sanitized,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.75,
-        }
-      });
-      textResponse = response.text;
-    } catch (modelErr) {
-      // Fallback ke model 1.5 Flash yang valid dan stabil jika 3.8 gagal
-      console.warn('Fallback ke gemini-1.5-flash karena 3.8 gagal:', modelErr.message);
-      const fallbackResponse = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: sanitized,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.75,
-        }
-      });
-      textResponse = fallbackResponse.text;
-    }
+    // Format chat history into a single string since the user's example uses a single 'input' string
+    let promptText = `SYSTEM INSTRUCTION:\n${SYSTEM_INSTRUCTION}\n\nCHAT HISTORY:\n`;
+    sanitized.forEach(msg => {
+      promptText += `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.parts[0].text}\n`;
+    });
+    promptText += 'AI:';
 
-    if (textResponse) {
-      return res.status(200).json({ text: textResponse });
+    const interaction = await ai.interactions.create({
+      model: "gemini-3.8-flash",
+      input: promptText,
+    });
+
+    if (interaction && interaction.output_text) {
+      return res.status(200).json({ text: interaction.output_text });
     } else {
       return errorResponse(res, 'AI tidak memberikan respons.', 422);
     }
   } catch (err) {
-    console.error('Gemini API Error:', err);
+    console.error('API Error:', err);
     return errorResponse(res, `Gagal terhubung ke AI Tutor: ${err.message || 'Kesalahan internal'}`, 500);
   }
 }
