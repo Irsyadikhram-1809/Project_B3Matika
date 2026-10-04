@@ -95,12 +95,13 @@ export default async function handler(req, res) {
         if (fullText) break;
       } catch (err) {
         lastError = err;
-        // Jika error adalah karena limit/quota, lanjutkan mencoba API key berikutnya
-        if (err.message && err.message.toLowerCase().includes('quota')) {
-          console.warn('Quota exceeded pada satu API Key. Mencoba API Key berikutnya...');
+        // Jika error adalah karena limit/quota (429 atau pesan mengandung 'quota' / 'exhausted'), coba API key berikutnya
+        const msg = err.message ? err.message.toLowerCase() : '';
+        if (err.status === 429 || msg.includes('quota') || msg.includes('exhausted') || msg.includes('too many requests') || msg.includes('limit')) {
+          console.warn('⚠️ Quota exceeded / Limit API Key terdeteksi. Mencoba API Key berikutnya...');
           continue;
         } else {
-          // Jika error lain (misalnya model tidak ada), berhenti mencoba
+          // Jika error lain (misalnya API key tidak valid sama sekali), berhenti mencoba
           break;
         }
       }
