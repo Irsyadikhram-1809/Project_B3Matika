@@ -22,7 +22,18 @@ export default function Grade() {
   const { g } = useParams();
   const [data, setData] = useState(null);
   const [err, setErr] = useState(false);
-  useEffect(() => { setData(null); api(`/grades/${g}`).then(setData).catch(() => setErr(true)); }, [g]);
+  useEffect(() => {
+    setData(null);
+    api(`/grades/detail?grade=${g}`)
+      .then(res => {
+        if (!res || !res.topics) {
+          setData({ grade: parseInt(g), topics: [] });
+        } else {
+          setData(res);
+        }
+      })
+      .catch(() => setErr(true));
+  }, [g]);
 
   if (err) return <NotFound />;
   if (!data) return (

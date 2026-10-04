@@ -14,12 +14,22 @@ export default function PuzzleDetail() {
   const [answer, setAnswer] = useState('');
   const [fb, setFb] = useState(null);
 
-  useEffect(() => { api(`/puzzles/${id}`).then((d) => setP(d.puzzle)).catch(() => setErr(true)); }, [id]);
+  useEffect(() => {
+    api(`/puzzles/detail?puzzle=${id}`)
+      .then((d) => {
+        if (d && d.puzzle) {
+          setP(d.puzzle);
+        } else {
+          setErr(true);
+        }
+      })
+      .catch(() => setErr(true));
+  }, [id]);
 
   async function submit(e) {
     e.preventDefault();
     if (!user) return nav('/masuk');
-    const d = await api(`/puzzles/${id}/check`, { method: 'POST', body: p.type === 'cryptarithm' ? { map } : { answer } });
+    const d = await api(`/puzzles/detail?puzzle=${id}`, { method: 'POST', body: p.type === 'cryptarithm' ? { answer: map } : { answer } });
     if (!d.correct) return setFb({ ok: false, text: 'Belum tepat, coba lagi!' });
     setUser(d.user);
     setFb({ ok: true, text: d.awarded ? `Benar! +${d.awarded} poin 🎉` : 'Benar! (sudah pernah diselesaikan, tanpa poin tambahan)' });
