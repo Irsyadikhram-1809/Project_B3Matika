@@ -23,7 +23,8 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({ counts });
-  } catch {
+  } catch (err) {
+    console.error('🚨 Error di api/home.js:', err);
     // Jika Supabase belum setup, return empty counts agar halaman tidak crash
     return res.status(200).json({ counts: {} });
   }
