@@ -504,7 +504,8 @@ tr:last-child td { border-bottom: 0; }
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 75vh;
+  height: 80vh;
+  min-height: 650px;
 }
 
 .tutor-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: linear-gradient(135deg, #1b2468 0%, #2a74c8 100%); border-radius: var(--radius) var(--radius) 0 0; color: #fff; flex-shrink: 0; }
