@@ -1,6 +1,6 @@
 // api/grades/[grade].js  →  GET /api/grades/:grade
-import { supabase } from '../../_lib/supabase.js';
-import { setCors, errorResponse } from '../../_lib/auth.js';
+import { supabase } from '../_lib/supabase.js';
+import { setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   setCors(res);

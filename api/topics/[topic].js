@@ -1,6 +1,6 @@
 // api/topics/[topic].js  →  GET /api/topics/:id
-import { supabase } from '../../_lib/supabase.js';
-import { setCors, errorResponse } from '../../_lib/auth.js';
+import { supabase } from '../_lib/supabase.js';
+import { setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   setCors(res);

@@ -1,6 +1,6 @@
 // api/puzzles/[puzzle].js  →  GET /api/puzzles/:id  &  POST /api/puzzles/:id/check
-import { supabase } from '../../_lib/supabase.js';
-import { requireAuth, setCors, errorResponse } from '../../_lib/auth.js';
+import { supabase } from '../_lib/supabase.js';
+import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   setCors(res);
