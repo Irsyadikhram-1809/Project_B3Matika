@@ -67,13 +67,24 @@ export default async function handler(req, res) {
     });
     promptText += 'AI:';
 
-    const interaction = await ai.interactions.create({
+    const stream = await ai.interactions.create({
       model: "gemini-3.8-flash",
       input: promptText,
+      stream: true,
     });
 
-    if (interaction && interaction.output_text) {
-      return res.status(200).json({ text: interaction.output_text });
+    let fullText = "";
+    for await (const event of stream) {
+      // Menggabungkan potongan (chunk) teks yang masuk
+      if (event && event.output_text) {
+        fullText += event.output_text;
+      } else if (typeof event === 'string') {
+        fullText += event;
+      }
+    }
+
+    if (fullText) {
+      return res.status(200).json({ text: fullText });
     } else {
       return errorResponse(res, 'AI tidak memberikan respons.', 422);
     }
