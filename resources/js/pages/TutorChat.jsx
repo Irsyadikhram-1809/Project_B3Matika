@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import ReactMarkdown from 'react-markdown';
+import { supabase } from '@/lib/supabase';
+import { motion } from 'framer-motion';
 
 const QUICK_PROMPTS = [
   { label: '📐 Materi SD', text: 'Saya ingin belajar materi matematika SD kelas 4 tentang pecahan' },
@@ -13,7 +15,6 @@ const QUICK_PROMPTS = [
   { label: '🎯 Sudoku Mini', text: 'Saya ingin bermain Sudoku Mini 4x4, tolong buatkan soalnya' },
 ];
 
-import { motion } from 'framer-motion';
 
 function TypingIndicator() {
   return (
@@ -85,10 +86,37 @@ export default function TutorChat() {
   useEffect(() => { scrollToBottom(); }, [messages]);
 
   useEffect(() => {
-    setMessages([{
-      role: 'model',
-      parts: [{ text: `Halo ${user ? user.name : 'Siswa'}! 👋 Saya **MathTutor AI** — tutor matematika dan *Game Master* teka-teki logikamu.\n\nAku bisa membantu kamu dengan:\n- 📚 **Belajar materi** matematika SD, SMP, hingga SMA/SMK\n- 🧩 **Bermain teka-teki** seperti Cryptarithm, Math Riddles, Sudoku Mini, dan lainnya\n- 💡 **Memandu penyelesaian soal** langkah demi langkah\n\nMau mulai dari mana? Pilih topik di bawah atau ketik pertanyaanmu!` }]
-    }]);
+    const fetchHistory = async () => {
+      const defaultGreeting = {
+        role: 'model',
+        parts: [{ text: `Halo ${user ? user.name : 'Siswa'}! 👋 Saya **MathTutor AI** — tutor matematika dan *Game Master* teka-teki logikamu.\n\nAku bisa membantu kamu dengan:\n- 📚 **Belajar materi** matematika SD, SMP, hingga SMA/SMK\n- 🧩 **Bermain teka-teki** seperti Cryptarithm, Math Riddles, Sudoku Mini, dan lainnya\n- 💡 **Memandu penyelesaian soal** langkah demi langkah\n\nMau mulai dari mana? Pilih topik di bawah atau ketik pertanyaanmu!` }]
+      };
+
+      if (!user) {
+        setMessages([defaultGreeting]);
+        return;
+      }
+
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (error || !data || data.length === 0) {
+        setMessages([defaultGreeting]);
+      } else {
+        const history = data.map(row => ({
+          role: row.role,
+          parts: [{ text: row.text }]
+        }));
+        setMessages([defaultGreeting, ...history]);
+      }
+      setLoading(false);
+    };
+
+    fetchHistory();
   }, [user]);
 
   const sendMessage = async (text) => {
@@ -98,6 +126,15 @@ export default function TutorChat() {
     setMessages(newMessages);
     setInput('');
     setLoading(true);
+
+    if (user) {
+      await supabase.from('chat_messages').insert({
+        user_id: user.id,
+        role: 'user',
+        text: text
+      });
+    }
+
     try {
       // Filter history sebelum dikirim ke server:
       // 1. Hapus pesan error (⚠️) agar tidak masuk context AI
@@ -116,7 +153,18 @@ export default function TutorChat() {
         method: 'POST',
         body: { messages: historyToSend }
       });
-      setMessages([...newMessages, { role: 'model', parts: [{ text: res.text }] }]);
+      
+      const modelText = res.text;
+      
+      if (user) {
+        await supabase.from('chat_messages').insert({
+          user_id: user.id,
+          role: 'model',
+          text: modelText
+        });
+      }
+      
+      setMessages([...newMessages, { role: 'model', parts: [{ text: modelText }] }]);
     } catch (err) {
       const errText = err?.message && err.message !== 'Terjadi kesalahan.'
         ? `⚠️ ${err.message}`
