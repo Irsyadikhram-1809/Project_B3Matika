@@ -13,7 +13,12 @@ export default async function handler(req, res) {
       .select('id, type, title, description, points')
       .order('id');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase puzzles error:', error);
+      throw error;
+    }
+    
+    console.log(`[DEBUG] Puzzles API: Supabase merespons dengan ${puzzles?.length || 0} baris untuk tabel puzzles.`);
 
     // Cek auth secara opsional untuk melihat puzzle yang sudah di-solve
     let solved = [];

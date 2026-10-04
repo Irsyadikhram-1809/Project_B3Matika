@@ -15,6 +15,8 @@ export default async function handler(req, res) {
       .select('grade');
 
     if (error) throw error;
+    
+    console.log(`[DEBUG] Supabase merespons dengan ${topics?.length || 0} baris untuk tabel topics.`);
 
     // Hitung jumlah topik per grade, persis seperti Laravel pluck('total', 'grade')
     const counts = {};

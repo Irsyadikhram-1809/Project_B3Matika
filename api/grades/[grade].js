@@ -22,6 +22,8 @@ export default async function handler(req, res) {
       console.error('Supabase topics error:', error);
       throw error;
     }
+    
+    console.log(`[DEBUG] Grades API: Supabase merespons dengan ${topics?.length || 0} baris untuk grade ${grade}.`);
 
     // Ambil semua pertanyaan untuk kelas ini dan hitung per topik
     const topicIds = (topics || []).map(t => t.id);

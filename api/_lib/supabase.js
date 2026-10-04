@@ -11,6 +11,7 @@ if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
   console.warn('⚠️ SUPABASE_URL dan VITE_SUPABASE_URL tidak ditemukan di environment variables!');
 } else {
   console.log('✅ Supabase URL berhasil dibaca oleh Backend:', supabaseUrl);
+  console.log('🔑 Key prefix yang dipakai:', supabaseKey.substring(0, 45) + '...');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
