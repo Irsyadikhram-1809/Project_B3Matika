@@ -13,23 +13,36 @@ const QUICK_PROMPTS = [
   { label: '🎯 Sudoku Mini', text: 'Saya ingin bermain Sudoku Mini 4x4, tolong buatkan soalnya' },
 ];
 
+import { motion } from 'framer-motion';
+
 function TypingIndicator() {
   return (
-    <div className="chat-bubble chat-bubble-ai">
+    <motion.div 
+      className="chat-bubble chat-bubble-ai"
+      initial={{ opacity: 0, y: 10, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="chat-avatar chat-avatar-ai">🤖</div>
       <div className="chat-msg-body">
         <div className="typing-dots">
           <span /><span /><span />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function ChatMessage({ msg }) {
   const isUser = msg.role === 'user';
   return (
-    <div className={`chat-bubble ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`}>
+    <motion.div 
+      className={`chat-bubble ${isUser ? 'chat-bubble-user' : 'chat-bubble-ai'}`}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+    >
       {!isUser && <div className="chat-avatar chat-avatar-ai">🤖</div>}
       <div className="chat-msg-body">
         {isUser ? (
@@ -53,7 +66,7 @@ function ChatMessage({ msg }) {
         )}
       </div>
       {isUser && <div className="chat-avatar chat-avatar-user">👤</div>}
-    </div>
+    </motion.div>
   );
 }
 
