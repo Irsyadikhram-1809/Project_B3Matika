@@ -50,7 +50,12 @@ async function loadRoutes() {
         // Daftarkan route ke Express
         app.all(routePath, async (req, res) => {
           // Vercel menggabungkan params ke dalam req.query
-          Object.assign(req.query, req.params);
+          Object.defineProperty(req, 'query', {
+            value: { ...req.query, ...req.params },
+            writable: true,
+            configurable: true,
+            enumerable: true
+          });
           
           try {
             await handler(req, res);
