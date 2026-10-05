@@ -8,7 +8,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-height: 9999;
   z-index: 9999;
   transition: opacity 0.5s ease-out;
   opacity: 1;
