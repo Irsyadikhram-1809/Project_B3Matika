@@ -1,9 +1,8 @@
 import express from 'express';
 import cors from 'cors';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import dotenv from 'dotenv';
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
@@ -16,12 +15,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Auto-load semua file di dalam folder api/ sebagai route Express
+// Auto-load semua file di dalam folder ../routes sebagai route Express
 async function loadRoutes() {
-  const apiDir = resolve(__dirname, 'api');
+  const routesDir = resolve(__dirname, '../routes');
   
   // Fungsi rekursif untuk membaca semua file
   function getFiles(dir, prefix = '') {
+    if (!fs.existsSync(dir)) return [];
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     let files = [];
     for (const entry of entries) {
@@ -35,7 +35,7 @@ async function loadRoutes() {
     return files;
   }
 
-  const files = getFiles(apiDir);
+  const files = getFiles(routesDir);
 
   for (const file of files) {
     let routePath = `/api${file.route}`.replace(/\/index$/, '');
@@ -66,7 +66,7 @@ async function loadRoutes() {
             if (!res.headersSent) res.status(500).json({ error: 'Internal Server Error' });
           }
         });
-        console.log(`✓ Terhubung: ${routePath}`);
+        console.log(`Terhubung: ${routePath}`);
       }
     } catch (e) {
       console.error(`Gagal memuat route ${routePath}:`, e);
@@ -74,11 +74,16 @@ async function loadRoutes() {
   }
 }
 
-loadRoutes().then(() => {
-  const PORT = 3000;
+// Load routes secara sinkron/async
+await loadRoutes();
+
+// Hanya jalankan app.listen jika dijalankan secara lokal (bukan oleh Vercel)
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`\n🚀 Backend lokal berjalan di http://localhost:${PORT}`);
-    console.log(`API URL yang bisa diakses: http://localhost:${PORT}/api/home`);
-    console.log(`\nPastikan di vite.config.js proxy mengarah ke http://localhost:${PORT}\n`);
+    console.log(`\nBackend lokal berjalan di http://localhost:${PORT}`);
+    console.log(`API URL yang bisa diakses: http://localhost:${PORT}/api/home\n`);
   });
-});
+}
+
+export default app;

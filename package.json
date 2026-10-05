@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "dev:api": "node server.js",
+    "dev:api": "node api/index.js",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "build": "vite build",
     "preview": "vite preview"
