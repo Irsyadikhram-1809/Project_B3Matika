@@ -52,7 +52,7 @@ export default function AnimatedLogo({ size = 320, src = logo, clickToReplay = t
 
       <g className="b3-breath">
         <g className="b3-tile" clipPath={ref("tile")}>
-          <rect width="1254" height="1254" fill="#fff" />
+          <rect width="1254" height="1254" fill="transparent" />
           <g mask={ref("holes")}>
             <g mask={ref("rev")}>
               <use href={`#${id("img")}`} />

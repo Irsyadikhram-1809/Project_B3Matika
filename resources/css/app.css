@@ -146,7 +146,9 @@ h2 { color: var(--navy); } h3 { margin: .4rem 0; color: var(--navy); }
 .btn-lg { padding: 13px 28px; font-size: 1rem; }
 .btn-block { width: 100%; }
 .btn-sm { padding: 5px 12px; font-size: .8rem; }
-.btn-outline { background: #fff; color: var(--blue-d); box-shadow: inset 0 0 0 2px var(--blue-d); }
+.btn-outline { background: var(--surface); color: var(--blue-d); box-shadow: inset 0 0 0 2px var(--blue-d); }
+[data-theme="dark"] .btn { color: #131314; }
+[data-theme="dark"] .btn-outline { background: transparent; color: var(--blue-d); }
 .btn-ghost { background: transparent; color: var(--muted); padding: 6px 10px; }
 .btn-danger { background: var(--bad); }
 label { display: block; font-size: .85rem; font-weight: 500; margin-bottom: 12px; text-transform: none; }
@@ -177,9 +179,9 @@ a.card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 28px 
 .grade-num { font-size: 2.2rem; font-weight: 700; color: var(--orange); line-height: 1.1; }
 .grade-label { font-weight: 600; color: var(--navy); font-size: .85rem; }
 .topic-card h3 { margin-bottom: 2px; }
-.tag { background: #e8f2ff; color: var(--blue-d); padding: 2px 10px; border-radius: 99px; font-size: .75rem; font-weight: 600; }
-.tag-ok { background: #e7f7ec; color: var(--ok); }
-.pts { color: #b86a00; font-size: .75rem; font-weight: 600; }
+.tag { background: var(--ai-sys-bg); color: var(--blue-d); padding: 2px 10px; border-radius: 99px; font-size: .75rem; font-weight: 600; }
+.tag-ok { background: var(--ok-bg); color: var(--ok-text); }
+.pts { color: var(--warn-text); font-size: .75rem; font-weight: 600; }
 
 /* Materi & soal */
 .prose { white-space: pre-line; font-size: 1.02rem; margin-top: 14px; }
@@ -427,8 +429,10 @@ tr:last-child td { border-bottom: 0; }
 /* Materi CTA */
 .materi-cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--primary-gradient); border-radius: var(--radius); padding: 20px 24px; flex-wrap: wrap; }
 .materi-cta-text { display: flex; align-items: center; gap: 10px; color: #fff; font-size: .95rem; font-weight: 500; }
-.materi-cta-btn { background: #fff; color: var(--blue-d); font-weight: 700; }
-.materi-cta-btn:hover { background: #f0f8ff; }
+.materi-cta-btn { background: var(--surface); color: var(--blue-d); font-weight: 700; }
+.materi-cta-btn:hover { background: var(--surface-hover); }
+[data-theme="dark"] .materi-cta-btn { background: var(--blue-d); color: #131314; }
+[data-theme="dark"] .materi-cta-btn:hover { background: var(--blue); }
 
 /* ===== LATIHAN SOAL ===== */
 .latihan-wrap { display: flex; flex-direction: column; gap: 18px; }
@@ -459,9 +463,9 @@ tr:last-child td { border-bottom: 0; }
 .question-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .question-num { font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 .difficulty-badge { padding: 2px 9px; border-radius: 99px; font-size: .72rem; font-weight: 700; }
-.badge-easy { background: #e7f7ec; color: var(--ok); }
-.badge-med  { background: #fff8e1; color: #b86a00; }
-.badge-hard { background: #fdecec; color: var(--bad); }
+.badge-easy { background: var(--ok-bg); color: var(--ok-text); }
+.badge-med  { background: var(--warn-bg); color: var(--warn-text); }
+.badge-hard { background: var(--bad-bg); color: var(--bad-text); }
 
 /* Options */
 .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
@@ -511,7 +515,7 @@ tr:last-child td { border-bottom: 0; }
 .grade-card-v2-num { font-size: 1.4rem; font-weight: 800; color: var(--orange); }
 .grade-card-v2-label { font-size: .88rem; }
 .grade-card-v2-arrow { color: var(--blue-d); opacity: .7; }
-.learning-tip { display: flex; align-items: flex-start; gap: 12px; background: #fffbf0; border: 1.5px solid #ffe099; border-radius: 12px; padding: 16px 20px; margin-top: 8px; font-size: .92rem; line-height: 1.6; }
+.learning-tip { display: flex; align-items: flex-start; gap: 12px; background: var(--warn-bg); border: 1.5px solid var(--warn-border); color: var(--warn-text); border-radius: 12px; padding: 16px 20px; margin-top: 8px; font-size: .92rem; line-height: 1.6; }
 .tip-icon { font-size: 1.3rem; flex-shrink: 0; }
 
 /* ===== GRADE PAGE ===== */
