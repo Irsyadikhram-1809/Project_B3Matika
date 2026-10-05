@@ -7,6 +7,11 @@
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "routes/**"
+    }
+  },
   "headers": [
     {
       "source": "/assets/(.*)",
