@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     const { data: question, error } = await supabase
       .from('questions')
-      .select('id, answer, points, explanation')
+      .select('id, answer, points')
       .eq('id', id)
       .single();
 

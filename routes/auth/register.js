@@ -15,11 +15,12 @@ export default async function handler(req, res) {
     return errorResponse(res, 'Password minimal 8 karakter.', 422);
 
   // Buat user di Supabase Auth
-  const { data, error } = await supabase.auth.admin.createUser({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    email_confirm: true, // langsung aktif tanpa verifikasi email
-    user_metadata: { name },
+    options: {
+      data: { name },
+    }
   });
 
   if (error) {

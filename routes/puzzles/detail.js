@@ -46,16 +46,20 @@ export default async function handler(req, res) {
           .eq('puzzle_id', id)
           .single();
 
+        let awarded = 0;
         if (!existing) {
           await supabase.from('puzzle_solves').insert({ user_id: user.id, puzzle_id: id });
+          awarded = puzzle.points;
+          profile.points = (profile.points ?? 0) + awarded;
           await supabase
             .from('profiles')
-            .update({ points: (profile.points ?? 0) + puzzle.points })
+            .update({ points: profile.points })
             .eq('id', user.id);
         }
+        return res.status(200).json({ correct, awarded, points: awarded, user: { ...user, ...profile } });
       }
 
-      return res.status(200).json({ correct, points: correct ? puzzle.points : 0 });
+      return res.status(200).json({ correct: false });
     } catch (err) {
       return errorResponse(res, err.message, err.status || 500);
     }

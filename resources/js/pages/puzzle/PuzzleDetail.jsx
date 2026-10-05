@@ -29,10 +29,15 @@ export default function PuzzleDetail() {
   async function submit(e) {
     e.preventDefault();
     if (!user) return nav('/masuk');
-    const d = await api(`/puzzles/detail?puzzle=${id}`, { method: 'POST', body: p.type === 'cryptarithm' ? { answer: map } : { answer } });
-    if (!d.correct) return setFb({ ok: false, text: 'Belum tepat, coba lagi!' });
-    setUser(d.user);
-    setFb({ ok: true, text: d.awarded ? `Benar! +${d.awarded} poin 🎉` : 'Benar! (sudah pernah diselesaikan, tanpa poin tambahan)' });
+    try {
+      const d = await api(`/puzzles/detail?puzzle=${id}`, { method: 'POST', body: p.type === 'cryptarithm' ? { answer: map } : { answer } });
+      if (!d.correct) return setFb({ ok: false, text: 'Belum tepat, coba lagi!' });
+      if (d.user) setUser(d.user);
+      setFb({ ok: true, text: d.awarded ? `Benar! +${d.awarded} poin 🎉` : 'Benar! (sudah pernah diselesaikan, tanpa poin tambahan)' });
+    } catch (e) {
+      if (e.status === 401) return nav('/masuk');
+      setFb({ ok: false, text: e.message || 'Terjadi kesalahan.' });
+    }
   }
 
   if (err) return <NotFound />;

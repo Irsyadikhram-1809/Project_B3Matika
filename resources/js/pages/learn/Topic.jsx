@@ -135,8 +135,11 @@ export default function Topic() {
     try {
       const d = await api(`/questions/answer?id=${q.id}`, { method: 'POST', body: { choice: i } });
       setRes((r) => ({ ...r, [q.id]: { ...d, chosen: i } }));
-      setUser(d.user);
-    } catch (e) { if (e.status === 401) nav('/masuk'); }
+      if (d.user) setUser(d.user);
+    } catch (e) { 
+      if (e.status === 401) return nav('/masuk'); 
+      alert(e.message || 'Terjadi kesalahan jaringan.');
+    }
   }
 
   if (err) return <NotFound />;
