@@ -6,7 +6,7 @@ export default function AdminGuard({ children }) {
   const { user, logout } = useAuth();
   const nav = useNavigate();
 
-  if (!user || user.role !== 'admin') return <NotFound />;
+  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f4f6fa' }}>

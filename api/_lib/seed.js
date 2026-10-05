@@ -21,15 +21,14 @@ export async function ensureSuperAdmin() {
       console.log("Super admin dibuat.");
     } else {
       const user = rows[0];
-      if (user.role !== "superadmin" || user.is_blocked || !user.is_verified) {
-        await db.query(
-          "UPDATE users SET role = 'superadmin', is_blocked = false, is_verified = true WHERE email = $1",
-          [email]
-        );
-        console.log("Super admin diperbarui.");
-      }
+      const hash = await bcrypt.hash(password, 12);
+      await db.query(
+        "UPDATE users SET password_hash = $1, role = 'superadmin', is_blocked = false, is_verified = true WHERE email = $2",
+        [hash, email]
+      );
+      console.log("Super admin diperbarui (termasuk password).");
     }
   } catch (err) {
-    console.error("Error ensureSuperAdmin:", err.message);
+    console.error("Error ensureSuperAdmin:", err);
   }
 }
