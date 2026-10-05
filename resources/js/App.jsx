@@ -1,7 +1,9 @@
 import { Route, Routes, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import NotFound from '@/components/NotFound';
+import SplashScreen from '@/components/SplashScreen';
 import Home from '@/pages/Home';
 import Games from '@/pages/Games';
 import Board from '@/pages/Board';
@@ -26,12 +28,14 @@ import MathBackground from '@/components/MathBackground';
 export default function App() {
   const { ready } = useAuth();
   const loc = useLocation();
+  const [showSplash, setShowSplash] = useState(true);
   const isAdminPath = loc.pathname.startsWith('/panel-rahasia');
 
   if (!ready) return <div className="container page center muted">Memuat…</div>;
 
   return (
     <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
       {!isAdminPath && <MathBackground />}
       {!isAdminPath && <Navbar />}
       <main className={isAdminPath ? "" : "container page"}>
