@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   // Buat profil di tabel profiles
-  await supabase.from('profiles').insert({
+  const { error: profileError } = await supabase.from('profiles').insert({
     id: data.user.id,
     name,
     email,
@@ -37,6 +37,10 @@ export default async function handler(req, res) {
     points: 0,
     is_active: true,
   });
+
+  if (profileError) {
+    return errorResponse(res, `Gagal membuat profil: ${profileError.message}`, 500);
+  }
 
   // Login otomatis setelah register
   const { data: session } = await supabase.auth.signInWithPassword({ email, password });
