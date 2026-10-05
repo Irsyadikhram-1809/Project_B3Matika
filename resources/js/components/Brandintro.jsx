@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import logo from "../assets/logo-b3.jpeg"; // sesuaikan path-nya
 import "@fontsource/poppins/700.css"; // npm i @fontsource/poppins
-import "./BrandIntro.css";
+import "./Brandintro.css";
 
 // [x, y, lebar, tinggi] tiap simbol di kanvas 1254x1254
 const SYMBOLS = [
