@@ -22,26 +22,25 @@ app.use(cors());
 app.use(express.json());
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 menit
-  max: 20, // 20 request per IP
+  windowMs: 15 * 60 * 1000,
+  max: 20,
   message: { error: 'Terlalu banyak permintaan, coba lagi nanti.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use('/api/auth', authLimiter);
 
-// Auto-load semua file di dalam folder ../routes sebagai route Express
+let loadedRoutesCount = 0;
+const routesDir = resolve(__dirname, '../routes');
+
 async function loadRoutes() {
-  const routesDir = resolve(__dirname, '../routes');
-  
-  // Fungsi rekursif untuk membaca semua file
   function getFiles(dir, prefix = '') {
     if (!fs.existsSync(dir)) return [];
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     let files = [];
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        if (entry.name === '_lib') continue; // abaikan folder _lib
+        if (entry.name === '_lib') continue;
         files = files.concat(getFiles(resolve(dir, entry.name), `${prefix}/${entry.name}`));
       } else if (entry.isFile() && entry.name.endsWith('.js')) {
         files.push({ path: resolve(dir, entry.name), route: `${prefix}/${entry.name.replace('.js', '')}` });
@@ -54,19 +53,15 @@ async function loadRoutes() {
 
   for (const file of files) {
     let routePath = `/api${file.route}`.replace(/\/index$/, '');
-    
-    // Ganti /[param] menjadi /:param untuk Express
     routePath = routePath.replace(/\[(.*?)\]/g, ':$1');
 
     try {
-      // Import handler Vercel
       const module = await import(`file://${file.path}`);
       const handler = module.default;
 
       if (handler) {
-        // Daftarkan route ke Express
+        loadedRoutesCount++;
         app.all(routePath, async (req, res) => {
-          // Vercel menggabungkan params ke dalam req.query
           Object.defineProperty(req, 'query', {
             value: { ...req.query, ...req.params },
             writable: true,
@@ -78,7 +73,7 @@ async function loadRoutes() {
             await handler(req, res);
           } catch (err) {
             console.error(`Error di route ${routePath}:`, err);
-            if (!res.headersSent) res.status(500).json({ error: 'Internal Server Error' });
+            if (!res.headersSent) res.status(500).json({ error: err.message || 'Internal Server Error' });
           }
         });
         console.log(`Terhubung: ${routePath}`);
@@ -89,10 +84,16 @@ async function loadRoutes() {
   }
 }
 
-// Load routes secara sinkron/async
 await loadRoutes();
 
-// Hanya jalankan app.listen jika dijalankan secara lokal (bukan oleh Vercel)
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: `API Route Not Found. Loaded ${loadedRoutesCount} routes.`, 
+    path: req.path,
+    debug: routesDir
+  });
+});
+
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
