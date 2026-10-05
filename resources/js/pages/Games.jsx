@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import KilatHitung from './games/KilatHitung';
@@ -123,7 +123,8 @@ const GAMES = [
 export default function Games() {
   const { user, setUser } = useAuth();
   const nav = useNavigate();
-  const [selected, setSelected] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selected = searchParams.get('game');
   const [myScores, setMyScores] = useState({});
   const [filter, setFilter] = useState('Semua');
 
@@ -154,7 +155,7 @@ export default function Games() {
         <button
           className="back btn-ghost"
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--blue-d)', fontWeight: 600 }}
-          onClick={() => setSelected(null)}
+          onClick={() => setSearchParams({})}
         >
           ← Semua Game
         </button>
@@ -200,7 +201,7 @@ export default function Games() {
 
       <div className="game-hub">
         {shown.map(g => (
-          <button key={g.id} className="game-card" onClick={() => setSelected(g.id)}>
+          <button key={g.id} className="game-card" onClick={() => setSearchParams({ game: g.id })}>
             <span className="game-card-emoji">{g.emoji}</span>
             <div className="game-card-info">
               <h3>{g.label}</h3>
