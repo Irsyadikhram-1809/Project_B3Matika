@@ -121,7 +121,7 @@ export default function Topic() {
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    api(`/topics/${id}`).then(setData).catch(() => setErr(true));
+    api(`/topics/detail?topic=${id}`).then(setData).catch(() => setErr(true));
   }, [id]);
 
   function switchTab(t) {
@@ -133,7 +133,7 @@ export default function Topic() {
   async function pick(q, i) {
     if (!user) return nav('/masuk');
     try {
-      const d = await api(`/questions/${q.id}/answer`, { method: 'POST', body: { choice: i } });
+      const d = await api(`/questions/answer?id=${q.id}`, { method: 'POST', body: { choice: i } });
       setRes((r) => ({ ...r, [q.id]: { ...d, chosen: i } }));
       setUser(d.user);
     } catch (e) { if (e.status === 401) nav('/masuk'); }
