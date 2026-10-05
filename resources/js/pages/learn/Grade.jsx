@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import NotFound from '@/components/NotFound';
 
@@ -20,6 +20,7 @@ const GRADE_INFO = {
 
 export default function Grade() {
   const { g } = useParams();
+  const nav = useNavigate();
   const [data, setData] = useState(null);
   const [err, setErr] = useState(false);
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function Grade() {
   return (
     <>
       <div className="breadcrumb-nav">
-        <Link to="/materi" className="back">← Semua Kelas</Link>
+        <Link to="/materi" className="back" onClick={(e) => { e.preventDefault(); nav(-1); }}>← Semua Kelas</Link>
       </div>
 
       <div className={`grade-page-header ${levelColor}`}>

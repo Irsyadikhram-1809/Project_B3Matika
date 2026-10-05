@@ -44,7 +44,7 @@ export default function PuzzleDetail() {
   if (!p) return <p className="muted">Memuat…</p>;
   return (
     <>
-      <Link to="/puzzle" className="back">← Semua puzzle</Link>
+      <Link to="/puzzle" className="back" onClick={(e) => { e.preventDefault(); nav(-1); }}>← Semua puzzle</Link>
       <h1>{p.title}</h1>
       <div className="card tutorial-box mb">
         <h3 style={{ margin: '0 0 6px 0', color: 'var(--blue-d)', fontSize: '1.1rem' }}>ℹ️ Cara Mengerjakan</h3>

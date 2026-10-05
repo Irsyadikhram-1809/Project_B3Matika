@@ -155,7 +155,7 @@ export default function Games() {
         <button
           className="back btn-ghost"
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--blue-d)', fontWeight: 600 }}
-          onClick={() => setSearchParams({})}
+          onClick={(e) => { e.preventDefault(); nav(-1); }}
         >
           ← Semua Game
         </button>

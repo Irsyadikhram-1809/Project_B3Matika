@@ -157,9 +157,9 @@ export default function Topic() {
   return (
     <>
       <div className="topic-breadcrumb">
-        <Link to="/materi" className="back">← Semua Kelas</Link>
+        <Link to="/materi" className="back" onClick={(e) => { e.preventDefault(); nav(-1); }}>← Semua Kelas</Link>
         <span className="breadcrumb-sep">›</span>
-        <Link to={`/kelas/${topic.grade}`} className="back">Kelas {topic.grade}</Link>
+        <Link to={`/kelas/${topic.grade}`} className="back" onClick={(e) => { e.preventDefault(); nav(-1); }}>Kelas {topic.grade}</Link>
         <span className="breadcrumb-sep">›</span>
         <span className="breadcrumb-current">{topic.title}</span>
       </div>

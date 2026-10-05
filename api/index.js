@@ -1,19 +1,34 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import { resolve, dirname } from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import dns from 'dns';
+import { ensureSuperAdmin } from './_lib/seed.js';
+
 dns.setDefaultResultOrder('ipv4first');
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Pastikan superadmin ter-seed
+ensureSuperAdmin().catch(console.error);
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 menit
+  max: 20, // 20 request per IP
+  message: { error: 'Terlalu banyak permintaan, coba lagi nanti.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/auth', authLimiter);
 
 // Auto-load semua file di dalam folder ../routes sebagai route Express
 async function loadRoutes() {
