@@ -1,0 +1,20 @@
+.b3-logo{display:block;overflow:visible;cursor:pointer;
+  filter:drop-shadow(0 26px 38px rgba(0,110,255,.28)) drop-shadow(0 8px 14px rgba(255,140,0,.2))}
+.b3-tile,.b3-breath,.b3-reveal{transform-origin:627px 622px}
+.b3-sym{transform-origin:var(--x) var(--y)}
+.b3-shine{transform:translateX(0) skewX(-20deg)}
+
+.b3-play .b3-tile{animation:b3TileIn 1s cubic-bezier(.2,.9,.25,1.2) both}
+.b3-play .b3-reveal{animation:b3Rev 1.3s cubic-bezier(.3,.7,.2,1) .45s both}
+.b3-play .b3-pop{animation:b3Pop .9s cubic-bezier(.2,.9,.3,1.2) calc(1.3s + var(--i)*.12s) both}
+.b3-float{animation:b3Float var(--t) ease-in-out calc(2.4s + var(--i)*.2s) infinite alternate}
+.b3-play .b3-shine{animation:b3Shine 5.5s ease-in-out 2.4s infinite}
+.b3-play .b3-breath{animation:b3Breathe 5s ease-in-out 2.6s infinite alternate}
+
+@keyframes b3TileIn{from{opacity:0;transform:scale(.55) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes b3Rev{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes b3Pop{0%{opacity:0;transform:scale(0) rotate(-120deg)}60%{opacity:1;transform:scale(1.25) rotate(10deg)}100%{opacity:1;transform:none}}
+@keyframes b3Float{from{transform:translate(0,0) rotate(-3deg)}to{transform:translate(0,-9px) rotate(3deg)}}
+@keyframes b3Shine{0%{transform:translateX(0) skewX(-20deg)}24%,100%{transform:translateX(2100px) skewX(-20deg)}}
+@keyframes b3Breathe{to{transform:scale(1.018)}}
+@media (prefers-reduced-motion:reduce){.b3-logo *{animation:none!important}}
