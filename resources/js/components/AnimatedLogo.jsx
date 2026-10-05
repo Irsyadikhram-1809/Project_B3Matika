@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import logo from "../../../public/images/logo.png"; // disesuaikan dengan folder yang ada
+import logo from "../assets/logo-b3.jpeg"; // sesuaikan path-nya
 import "./AnimatedLogo.css";
 
 // [x, y, lebar, tinggi] tiap simbol di kanvas 1254x1254
@@ -52,7 +52,7 @@ export default function AnimatedLogo({ size = 320, src = logo, clickToReplay = t
 
       <g className="b3-breath">
         <g className="b3-tile" clipPath={ref("tile")}>
-          <rect width="1254" height="1254" fill="transparent" />
+          <rect width="1254" height="1254" fill="#fff" />
           <g mask={ref("holes")}>
             <g mask={ref("rev")}>
               <use href={`#${id("img")}`} />
