@@ -1,0 +1,39 @@
+/* BrandIntro: logo B3 lalu tulisan B3Matika. Semua waktu dikali --k (pace). */
+.bi{display:flex;flex-direction:column;align-items:center;cursor:default}
+.bi-logo{display:block;overflow:visible;width:var(--bi-size);height:var(--bi-size);filter:drop-shadow(0 26px 38px rgba(0,110,255,.28)) drop-shadow(0 8px 14px rgba(255,140,0,.2))}
+.bi-tile,.bi-breath,.bi-reveal{transform-origin:627px 622px}
+.bi-sym{transform-origin:var(--x) var(--y)}
+.bi-shine{transform:translateX(0) skewX(-20deg)}
+
+/* Tahap 1: logo (0 - 4.3 dtk) */
+.bi-play .bi-tile{animation:biTileIn calc(1.4s*var(--k)) cubic-bezier(.2,.9,.25,1.15) calc(.3s*var(--k)) both}
+.bi-play .bi-reveal{animation:biRev calc(1.9s*var(--k)) cubic-bezier(.3,.7,.2,1) calc(.9s*var(--k)) both}
+.bi-play .bi-pop{animation:biPop calc(1.1s*var(--k)) cubic-bezier(.2,.9,.3,1.2) calc((2.1s + var(--i)*.18s)*var(--k)) both}
+.bi-float{animation:biFloat var(--t) ease-in-out calc((4.3s + var(--i)*.2s)*var(--k)) infinite alternate}
+.bi-play .bi-shine{animation:biShine 6s ease-in-out calc(4.2s*var(--k)) infinite}
+.bi-play .bi-breath{animation:biBreathe 5s ease-in-out calc(4.4s*var(--k)) infinite alternate}
+
+/* Tahap 2: tulisan di bawah logo (3.5 - 5.8 dtk) */
+.bi-word{display:inline-flex;perspective:700px;font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.1;font-size:calc(var(--bi-size)*.24);margin-top:calc(var(--bi-size)*.02);user-select:none}
+.bi-c{display:inline-block;transform-origin:50% 100%;--c:var(--bi-text,#e6e6e6);--hi:#fff}
+.bi-three{--c:#f7931e;--hi:#ffd9a0}
+.bi-l{display:inline-block;color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(105deg,var(--c) 40%,var(--hi) 50%,var(--c) 60%) 100% 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:biTextShine 4.5s ease-in-out calc((6s + var(--i)*.09s)*var(--k)) infinite}
+.bi-three .bi-l{animation:biTextShine 4.5s ease-in-out calc((6s + var(--i)*.09s)*var(--k)) infinite,biGlow 2.8s ease-in-out calc(5.8s*var(--k)) infinite alternate}
+.bi-play .bi-c{animation:biIn calc(1s*var(--k)) cubic-bezier(.16,1,.3,1) calc((3.5s + var(--i)*.09s)*var(--k)) both}
+.bi-play .bi-three{animation:biThree calc(1.2s*var(--k)) cubic-bezier(.2,.9,.3,1.2) calc(4.6s*var(--k)) both}
+
+/* Mode splash: menutupi halaman lalu memudar halus */
+.bi-splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bi-bg,#050507);opacity:1;transition:opacity var(--fade,.9s) ease}
+.bi-splash.bi-out{opacity:0;pointer-events:none}
+
+@keyframes biTileIn{from{opacity:0;transform:scale(.55) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes biRev{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes biPop{0%{opacity:0;transform:scale(0) rotate(-120deg)}60%{opacity:1;transform:scale(1.25) rotate(10deg)}100%{opacity:1;transform:none}}
+@keyframes biFloat{from{transform:translate(0,0) rotate(-3deg)}to{transform:translate(0,-9px) rotate(3deg)}}
+@keyframes biShine{0%{transform:translateX(0) skewX(-20deg)}24%,100%{transform:translateX(2100px) skewX(-20deg)}}
+@keyframes biBreathe{to{transform:scale(1.018)}}
+@keyframes biIn{0%{opacity:0;transform:translateY(.7em) rotateX(-70deg) scale(.9);filter:blur(8px)}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes biThree{0%{opacity:0;transform:scale(.2) rotateY(-180deg);filter:blur(8px)}60%{opacity:1;transform:scale(1.3) rotateY(12deg);filter:blur(0)}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes biTextShine{0%{background-position:100% 0}35%,100%{background-position:0 0}}
+@keyframes biGlow{from{filter:drop-shadow(0 0 0 rgba(247,147,30,0))}to{filter:drop-shadow(0 0 .2em rgba(247,147,30,.75))}}
+@media (prefers-reduced-motion:reduce){.bi *{animation:none!important}}

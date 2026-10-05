@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import NotFound from '@/components/NotFound';
-import SplashScreen from '@/components/SplashScreen';
+import BrandIntro from '@/components/Brandintro';
 import Home from '@/pages/Home';
 import Games from '@/pages/Games';
 import Board from '@/pages/Board';
@@ -35,7 +35,7 @@ export default function App() {
 
   return (
     <>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      {showSplash && <BrandIntro splash once onFinish={() => setShowSplash(false)} />}
       {!isAdminPath && <MathBackground />}
       {!isAdminPath && <Navbar />}
       <main className={isAdminPath ? "" : "container page"}>
