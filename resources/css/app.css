@@ -691,7 +691,7 @@ html { -webkit-text-size-adjust: 100%; }
   h1 { font-size: 1.55rem; }
   h2 { font-size: 1.25rem; }
   .page { padding-top: 18px; padding-bottom: 40px; }
-  .container { padding: 0 14px; }
+  .container { padding: 0 24px; }
 
   /* ── Navbar ── */
   .burger { display: block; }
@@ -703,7 +703,7 @@ html { -webkit-text-size-adjust: 100%; }
     top: 60px;
     left: 0; right: 0;
     bottom: 0;
-    background: rgba(255,255,255,.97);
+    background: var(--card-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     flex-direction: column;
