@@ -1,5 +1,5 @@
-// api/puzzles/[puzzle].js  →  GET /api/puzzles/:id  &  POST /api/puzzles/:id/check
 import { supabase } from '../_lib/supabase.js';
+import db from '../_lib/db.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -44,17 +44,15 @@ export default async function handler(req, res) {
           .select('id')
           .eq('user_id', user.id)
           .eq('puzzle_id', id)
-          .single();
+          .maybeSingle();
 
         let awarded = 0;
         if (!existing) {
           await supabase.from('puzzle_solves').insert({ user_id: user.id, puzzle_id: id });
           awarded = puzzle.points;
           profile.points = (profile.points ?? 0) + awarded;
-          await supabase
-            .from('profiles')
-            .update({ points: profile.points })
-            .eq('id', user.id);
+          
+          await db.query("UPDATE users SET points = $1 WHERE id = $2", [profile.points, user.id]);
         }
         return res.status(200).json({ correct, awarded, points: awarded, user: { ...user, ...profile } });
       }

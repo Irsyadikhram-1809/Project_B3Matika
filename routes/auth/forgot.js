@@ -1,53 +1,48 @@
-import { supabase } from '../_lib/supabase.js';
+import db from '../_lib/db.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 import { hmac, buatOTP, kirimOTP } from '../_lib/otp.js';
+
+const norm = (v) => String(v || "").toLowerCase().trim();
 
 export default async function handler(req, res) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  let { email } = req.body;
-  email = String(email || "").toLowerCase().trim();
-  if (!email) return errorResponse(res, 'Email wajib diisi', 400);
+  const email = norm(req.body.email);
+  if (!email) return errorResponse(res, 'Email wajib diisi.', 400);
 
-  // Cek apakah user ada dan aktif
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, is_active')
-    .eq('email', email)
-    .single();
+  try {
+    const { rows } = await db.query(
+      "SELECT 1 FROM users WHERE email=$1 AND is_verified=true AND is_blocked=false", 
+      [email]
+    );
 
-  if (profile && profile.is_active) {
-    // Cek spam
-    const { data: lastOtp } = await supabase
-      .from('otps')
-      .select('created_at')
-      .eq('email', email)
-      .eq('purpose', 'reset')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    if (rows.length) {
+      // Sama seperti register, pastikan rate limit
+      const { rows: otpRows } = await db.query(
+        "SELECT created_at FROM otps WHERE email=$1 AND purpose='reset' ORDER BY created_at DESC LIMIT 1",
+        [email]
+      );
 
-    let canSend = true;
-    if (lastOtp) {
-      const elapsed = Date.now() - new Date(lastOtp.created_at).getTime();
-      if (elapsed < 60 * 1000) canSend = false;
-    }
+      if (otpRows[0] && Date.now() - new Date(otpRows[0].created_at).getTime() < 60 * 1000) {
+        return errorResponse(res, 'Tunggu 1 menit sebelum meminta kode baru.', 429);
+      }
 
-    if (canSend) {
-      await supabase.from('otps').delete().eq('email', email).eq('purpose', 'reset');
+      await db.query("DELETE FROM otps WHERE email=$1 AND purpose='reset'", [email]);
+      
       const otp = buatOTP();
-      await supabase.from('otps').insert({
-        email,
-        purpose: 'reset',
-        code_hash: hmac(otp),
-        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
-      });
-      kirimOTP(email, otp, "Reset Sandi").catch(console.error);
-    }
-  }
+      await db.query(
+        "INSERT INTO otps (email, purpose, code_hash, expires_at) VALUES ($1, 'reset', $2, $3)",
+        [email, hmac(otp), new Date(Date.now() + 10 * 60 * 1000)]
+      );
 
-  // Selalu respons sukses agar tidak membocorkan email
-  res.status(200).json({ msg: "Jika data valid, kode verifikasi telah dikirim ke email." });
+      await kirimOTP(email, otp, "Reset Sandi");
+    }
+
+    return res.status(200).json({ message: "Jika email terdaftar, kode reset telah dikirim." });
+  } catch (error) {
+    console.error("Error forgot password:", error);
+    return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
+  }
 }

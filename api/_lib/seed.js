@@ -1,55 +1,35 @@
-import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcrypt';
+import db from '../../routes/_lib/db.js';
 import dotenv from 'dotenv';
 dotenv.config();
-
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 export async function ensureSuperAdmin() {
   try {
     const email = (process.env.SUPERADMIN_EMAIL || '').toLowerCase().trim();
     const password = process.env.SUPERADMIN_PASSWORD;
 
-    if (!email || !password) return; // Skip jika tidak di-set di .env
+    if (!email || !password) return;
 
-    // Cari user di tabel profiles
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (!profile) {
-      // Buat akun baru via auth.admin
-      const { data: userData, error } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { name: 'Super Admin' }
-      });
-      if (error) {
-        if (!error.message.includes('already')) {
-          console.error("Gagal membuat super admin auth:", error.message);
-        }
-      } else {
-        // Buat profil
-        await supabaseAdmin.from('profiles').insert({
-          id: userData.user.id,
-          name: 'Super Admin',
-          email,
-          role: 'superadmin',
-          points: 0,
-          is_active: true
-        });
-        console.log("Super admin dibuat.");
+    const { rows } = await db.query("SELECT role, is_blocked, is_verified FROM users WHERE email = $1", [email]);
+    
+    if (rows.length === 0) {
+      const hash = await bcrypt.hash(password, 12);
+      await db.query(
+        "INSERT INTO users (email, password_hash, role, is_verified) VALUES ($1, $2, 'superadmin', true)",
+        [email, hash]
+      );
+      console.log("Super admin dibuat.");
+    } else {
+      const user = rows[0];
+      if (user.role !== "superadmin" || user.is_blocked || !user.is_verified) {
+        await db.query(
+          "UPDATE users SET role = 'superadmin', is_blocked = false, is_verified = true WHERE email = $1",
+          [email]
+        );
+        console.log("Super admin diperbarui.");
       }
-    } else if (profile.role !== 'superadmin' || !profile.is_active) {
-      await supabaseAdmin.from('profiles').update({ role: 'superadmin', is_active: true }).eq('id', profile.id);
-      console.log("Super admin di-update.");
     }
   } catch (err) {
-    console.error("Error ensureSuperAdmin:", err);
+    console.error("Error ensureSuperAdmin:", err.message);
   }
 }

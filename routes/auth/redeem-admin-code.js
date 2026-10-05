@@ -1,5 +1,5 @@
-import { supabase } from '../_lib/supabase.js';
-import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
+import db from '../_lib/db.js';
+import { setCors, errorResponse, requireAuth } from '../_lib/auth.js';
 import { hmac } from '../_lib/otp.js';
 
 export default async function handler(req, res) {
@@ -8,40 +8,40 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
   try {
-    const { user, profile } = await requireAuth(req);
-    const code = String(req.body.code || "").toUpperCase().trim();
+    const { user } = await requireAuth(req);
+    const { code } = req.body;
 
-    if (!code) return errorResponse(res, 'Kode wajib diisi', 400);
+    if (!code) return errorResponse(res, 'Kode wajib diisi.', 400);
 
-    // Cari invite code yang valid
-    const codeHash = hmac(code);
-    const { data: inv } = await supabase
-      .from('admin_invites')
-      .select('*')
-      .eq('code_hash', codeHash)
-      .is('used_by', null)
-      .gt('expires_at', new Date().toISOString())
-      .single();
+    const codeHash = hmac(String(code).toUpperCase());
 
-    if (!inv || (inv.for_email && inv.for_email.toLowerCase() !== user.email)) {
-      return errorResponse(res, 'Kode tidak valid atau kedaluwarsa', 400);
+    const { rows } = await db.query(
+      "SELECT * FROM admin_invites WHERE code_hash=$1 AND used_by IS NULL AND expires_at > NOW()",
+      [codeHash]
+    );
+    const inv = rows[0];
+
+    if (!inv || (inv.for_email && inv.for_email !== user.email)) {
+      return errorResponse(res, 'Kode tidak valid atau kedaluwarsa.', 400);
     }
 
-    // Jika berhasil, update role
-    if (profile.role === 'user') {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ role: 'admin' })
-        .eq('id', user.id);
-        
-      if (updateError) return errorResponse(res, 'Gagal update role', 500);
+    const { rows: usedRows } = await db.query(
+      "UPDATE admin_invites SET used_by=$1 WHERE id=$2 AND used_by IS NULL RETURNING id",
+      [user.id, inv.id]
+    );
+
+    if (!usedRows.length) {
+      return errorResponse(res, 'Kode sudah dipakai.', 400);
     }
 
-    // Tandai invite sudah dipakai
-    await supabase.from('admin_invites').update({ used_by: user.id }).eq('id', inv.id);
+    if (user.role === "user") {
+      await db.query("UPDATE users SET role='admin' WHERE id=$1", [user.id]);
+    }
 
-    res.status(200).json({ msg: "Kamu sekarang admin" });
-  } catch (err) {
-    return errorResponse(res, err.message, err.status || 500);
+    return res.status(200).json({ message: "Kamu sekarang admin." });
+  } catch (error) {
+    if (error.status) return errorResponse(res, error.message, error.status);
+    console.error("Error redeem admin code:", error);
+    return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
   }
 }

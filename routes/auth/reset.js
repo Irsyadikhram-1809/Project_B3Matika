@@ -1,56 +1,47 @@
-import { supabase } from '../_lib/supabase.js';
+import bcrypt from 'bcrypt';
+import db from '../_lib/db.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 import { hmac, safeEqual } from '../_lib/otp.js';
-import { createClient } from '@supabase/supabase-js';
+
+const norm = (v) => String(v || "").toLowerCase().trim();
+
+async function cekOtp(email, purpose, code) {
+  const { rows } = await db.query(
+    "SELECT * FROM otps WHERE email=$1 AND purpose=$2 LIMIT 1", 
+    [email, purpose]
+  );
+  const rec = rows[0];
+  if (!rec || new Date(rec.expires_at) < new Date() || rec.attempts >= 5) return null;
+  if (!safeEqual(rec.code_hash, hmac(String(code || "")))) {
+    await db.query("UPDATE otps SET attempts = attempts + 1 WHERE id = $1", [rec.id]);
+    return null;
+  }
+  return rec;
+}
 
 export default async function handler(req, res) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  let { email, code, newPassword } = req.body;
-  email = String(email || "").toLowerCase().trim();
+  const email = norm(req.body.email);
+  const { code, password: newPassword } = req.body;
 
   if (!email || !code || !newPassword || newPassword.length < 8) {
-    return errorResponse(res, 'Email, kode, dan sandi baru (min. 8 karakter) wajib diisi', 400);
+    return errorResponse(res, 'Data tidak valid (sandi minimal 8 karakter).', 400);
   }
 
-  // Cari OTP
-  const { data: rec } = await supabase
-    .from('otps')
-    .select('*')
-    .eq('email', email)
-    .eq('purpose', 'reset')
-    .single();
+  try {
+    const rec = await cekOtp(email, "reset", code);
+    if (!rec) return errorResponse(res, 'Kode salah atau kedaluwarsa.', 400);
 
-  if (!rec || new Date(rec.expires_at) < new Date() || rec.attempts >= 5) {
-    return errorResponse(res, 'Kode salah atau kedaluwarsa', 400);
+    const hash = await bcrypt.hash(newPassword, 12);
+    await db.query("UPDATE users SET password_hash=$1 WHERE email=$2", [hash, email]);
+    await db.query("DELETE FROM otps WHERE id=$1", [rec.id]);
+
+    return res.status(200).json({ message: "Sandi berhasil diubah." });
+  } catch (error) {
+    console.error("Error reset password:", error);
+    return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
   }
-
-  // Verifikasi hash
-  if (!safeEqual(rec.code_hash, hmac(code))) {
-    await supabase.from('otps').update({ attempts: rec.attempts + 1 }).eq('id', rec.id);
-    return errorResponse(res, 'Kode salah atau kedaluwarsa', 400);
-  }
-
-  // Cari user id di auth.users lewat profiles
-  const { data: profile } = await supabase.from('profiles').select('id').eq('email', email).single();
-  if (!profile) return errorResponse(res, 'User tidak ditemukan', 404);
-
-  // Update password via Supabase Admin API
-  const adminAuth = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  ).auth.admin;
-
-  const { error: updateError } = await adminAuth.updateUserById(profile.id, { password: newPassword });
-
-  if (updateError) {
-    return errorResponse(res, 'Gagal mengubah sandi: ' + updateError.message, 500);
-  }
-
-  // Hapus OTP yang sudah dipakai
-  await supabase.from('otps').delete().eq('id', rec.id);
-
-  res.status(200).json({ msg: "Sandi berhasil diubah" });
 }

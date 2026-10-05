@@ -1,5 +1,5 @@
-// api/questions/answer.js  →  POST /api/questions/answer?id=123
 import { supabase } from '../_lib/supabase.js';
+import db from '../_lib/db.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -26,25 +26,23 @@ export default async function handler(req, res) {
     let pointsAwarded = 0;
     let counted = false;
 
-    // Cek apakah sudah pernah dijawab (jika ada tabel question_solves)
-    // Untuk saat ini kita asumsikan ada tabel question_solves atau kita tambahkan point langsung
-    // Untuk amannya karena kita tidak tahu struktur DB pastinya, kita tambahkan point
+    // Cek apakah sudah pernah dijawab
     const { data: existing } = await supabase
       .from('question_solves')
       .select('id')
       .eq('user_id', user.id)
       .eq('question_id', id)
-      .maybeSingle(); // gunakan maybeSingle agar tidak error jika tidak ada atau tabel tidak ada
+      .maybeSingle();
 
     if (!existing && correct) {
       pointsAwarded = question.points || 10;
       counted = true;
-      // Coba masukkan ke question_solves (kalau tabelnya ada)
+      // Masukkan ke question_solves
       await supabase.from('question_solves').insert({ user_id: user.id, question_id: id }).catch(() => {});
       
-      // Update points di profile
+      // Update points di users tabel dengan Postgres agar bypass RLS
       const newPoints = (profile.points || 0) + pointsAwarded;
-      await supabase.from('profiles').update({ points: newPoints }).eq('id', user.id);
+      await db.query("UPDATE users SET points = $1 WHERE id = $2", [newPoints, user.id]);
       profile.points = newPoints;
     }
 
@@ -54,7 +52,7 @@ export default async function handler(req, res) {
       points: pointsAwarded,
       explanation: question.explanation || '',
       counted,
-      user: { ...user, ...profile } // Mengembalikan object user yg diperbarui
+      user: { ...user, ...profile } 
     });
   } catch (err) {
     return errorResponse(res, err.message, err.status || 500);

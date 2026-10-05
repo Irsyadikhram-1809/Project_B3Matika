@@ -1,78 +1,53 @@
-import { supabase } from '../../_lib/supabase.js';
+import bcrypt from 'bcrypt';
+import db from '../../_lib/db.js';
 import { setCors, errorResponse } from '../../_lib/auth.js';
-import { hmac, buatOTP, kirimOTP, encryptPassword } from '../../_lib/otp.js';
+import { hmac, buatOTP, kirimOTP } from '../../_lib/otp.js';
+
+const norm = (v) => String(v || "").toLowerCase().trim();
 
 export default async function handler(req, res) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  let { name, email, password } = req.body;
-  email = String(email || "").toLowerCase().trim();
-  
-  if (!name || !email || !password || password.length < 8) {
-    return errorResponse(res, 'Nama, email, dan sandi (min. 8 karakter) wajib diisi', 400);
+  const email = norm(req.body.email);
+  const { password } = req.body;
+
+  if (!email || !password || password.length < 8) {
+    return errorResponse(res, 'Email/sandi tidak valid (min. 8 karakter)', 400);
   }
 
-  // Cek apakah user sudah terdaftar di auth.users (kalau pakai Supabase Auth)
-  // Cara paling aman cek profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('email', email)
-    .single();
-
-  if (profile) {
-    // Kita jalankan pura-pura agar tidak membocorkan email yang terdaftar,
-    // tapi kalau sudah ada, biarkan saja response berhasil.
-    // Tapi user tidak akan pernah dapat OTP registrasi jika emailnya sudah ada.
-    return res.status(200).json({ msg: "Jika data valid, kode verifikasi telah dikirim ke email." });
-  }
-
-  // Cek spam OTP (jeda 60 detik)
-  const { data: lastOtp } = await supabase
-    .from('otps')
-    .select('created_at')
-    .eq('email', email)
-    .eq('purpose', 'register')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
-
-  if (lastOtp) {
-    const elapsed = Date.now() - new Date(lastOtp.created_at).getTime();
-    if (elapsed < 60 * 1000) {
-      return res.status(200).json({ msg: "Jika data valid, kode verifikasi telah dikirim ke email." });
+  try {
+    const { rows } = await db.query("SELECT 1 FROM users WHERE email=$1 AND is_verified=true", [email]);
+    if (rows.length) {
+      // Walau sudah terdaftar, demi keamanan tetap kirim 200 OK untuk menghindari email enumeration
+      return res.status(200).json({ message: "Jika data valid, kode verifikasi telah dikirim ke email." });
     }
+
+    const { rows: otpRows } = await db.query(
+      "SELECT created_at FROM otps WHERE email=$1 AND purpose='register' ORDER BY created_at DESC LIMIT 1",
+      [email]
+    );
+
+    if (otpRows[0] && Date.now() - new Date(otpRows[0].created_at).getTime() < 60 * 1000) {
+      return errorResponse(res, 'Tunggu 1 menit sebelum meminta kode baru.', 429);
+    }
+
+    await db.query("DELETE FROM otps WHERE email=$1 AND purpose='register'", [email]);
+
+    const otp = buatOTP();
+    const pendingHash = await bcrypt.hash(password, 12);
+    
+    await db.query(
+      "INSERT INTO otps (email, purpose, code_hash, pending_password_hash, expires_at) VALUES ($1, 'register', $2, $3, $4)",
+      [email, hmac(otp), pendingHash, new Date(Date.now() + 10 * 60 * 1000)]
+    );
+
+    await kirimOTP(email, otp, "Pendaftaran");
+    
+    return res.status(200).json({ message: "Jika data valid, kode verifikasi telah dikirim ke email." });
+  } catch (error) {
+    console.error("Error register request:", error);
+    return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
   }
-
-  // Hapus OTP lama
-  await supabase.from('otps').delete().eq('email', email).eq('purpose', 'register');
-
-  // Buat OTP baru
-  const otp = buatOTP();
-  const encryptedPassword = encryptPassword(password);
-  
-  // Karena kita ingin menyimpan "name" juga, kita simpan name & encryptedPassword di JSON/text.
-  // Tapi untuk mempermudah, kita simpan name:encryptedPassword dengan delimiter, atau hanya encryptedPassword.
-  // Wait, Supabase `pending_password_hash` adalah tipe text. Kita simpan JSON string saja.
-  const pendingData = JSON.stringify({ name, password: encryptedPassword });
-
-  const { error } = await supabase.from('otps').insert({
-    email,
-    purpose: 'register',
-    code_hash: hmac(otp),
-    pending_password_hash: pendingData,
-    expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
-  });
-
-  if (error) {
-    console.error("Gagal insert OTP:", error);
-    return errorResponse(res, "Gagal membuat OTP", 500);
-  }
-
-  // Kirim email (asinkron)
-  kirimOTP(email, otp, "Pendaftaran").catch(console.error);
-
-  return res.status(200).json({ msg: "Jika data valid, kode verifikasi telah dikirim ke email." });
 }

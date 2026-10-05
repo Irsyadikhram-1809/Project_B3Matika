@@ -1,5 +1,4 @@
-// api/leaderboard.js  →  GET /api/leaderboard
-import { supabase } from './_lib/supabase.js';
+import db from './_lib/db.js';
 import { setCors, errorResponse } from './_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -8,24 +7,22 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return errorResponse(res, 'Method not allowed', 405);
 
   try {
-    const { data: users, error } = await supabase
-      .from('profiles')
-      .select('id, name, points, avatar')
-      .eq('role', 'user')
-      .eq('is_active', true)
-      .order('points', { ascending: false })
-      .limit(20);
-
-    if (error) throw error;
+    const { rows } = await db.query(
+      "SELECT id, email, points FROM users WHERE role='user' AND is_blocked=false ORDER BY points DESC LIMIT 20"
+    );
 
     // Kalkulasi level: tiap 100 poin = 1 level
-    const formattedUsers = (users || []).map(u => ({
-      ...u,
+    const formattedUsers = rows.map(u => ({
+      id: u.id,
+      name: u.email.split('@')[0], // Extract name from email as fallback
+      points: u.points || 0,
+      avatar: null, // Jika butuh avatar, bisa ditambahkan kolomnya
       level: Math.floor((u.points || 0) / 100) + 1
     }));
 
     return res.status(200).json({ users: formattedUsers });
-  } catch {
+  } catch (error) {
+    console.error("Leaderboard error:", error);
     return res.status(200).json({ users: [] });
   }
 }
