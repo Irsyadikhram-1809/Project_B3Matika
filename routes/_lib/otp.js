@@ -48,12 +48,12 @@ export async function kirimOTP(to, otp, tujuan) {
       </div>
     `;
 
-    const text = \`Halo!\n\nIni adalah kode verifikasi untuk \${tujuan} akun B3Matika kamu.\n\nKode verifikasi: \${otp}\n\nKode ini berlaku selama 10 menit. Jangan bagikan kode ini ke siapa pun.\nAbaikan email ini jika kamu tidak merasa mendaftar.\n\nB3 : Belajar, Berlatih, Bermain\`;
+    const text = `Halo!\n\nIni adalah kode verifikasi untuk ${tujuan} akun B3Matika kamu.\n\nKode verifikasi: ${otp}\n\nKode ini berlaku selama 10 menit. Jangan bagikan kode ini ke siapa pun.\nAbaikan email ini jika kamu tidak merasa mendaftar.\n\nB3 : Belajar, Berlatih, Bermain`;
 
     await transporter.sendMail({
-      from: \`"B3Matika" <\${process.env.EMAIL_USER}>\`,
+      from: `"B3Matika" <${process.env.EMAIL_USER}>`,
       to,
-      subject: \`Kode Verifikasi Pendaftaran B3Matika\`,
+      subject: `Kode Verifikasi Pendaftaran B3Matika`,
       text,
       html,
     });
