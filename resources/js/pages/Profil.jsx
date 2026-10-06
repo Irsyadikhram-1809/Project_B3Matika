@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import AvatarUploader from '@/components/AvatarUploader';
 
 const AVATARS = ['🎓', '🦊', '🐧', '🦁', '🐉', '🚀', '🌟', '🎯', '🧠', '⚡', '🔥', '🌈'];
 
@@ -96,41 +97,11 @@ export default function Profil() {
               <label>Nama Pengguna (Username)<input value={f.username} onChange={set('username')} required maxLength={20} minLength={3} pattern="[a-zA-Z0-9_.]+" title="Hanya huruf, angka, titik, dan underscore" /></label>
               <label>Email<input type="email" value={f.email} onChange={set('email')} required /></label>
               <label>Avatar
-                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
-                    {f.avatar?.startsWith('http') || f.avatar?.startsWith('data:') ? (
-                      <img src={f.avatar} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      f.avatar || '🎓'
-                    )}
-                  </div>
-                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    if (file.size > 2 * 1024 * 1024) return setErr('Ukuran file maksimal 2 MB.');
-                    if (file.type.includes('svg')) return setErr('Format SVG tidak diizinkan.');
-                    
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      const img = new Image();
-                      img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = 512;
-                        canvas.height = 512;
-                        
-                        const size = Math.min(img.width, img.height);
-                        const sx = (img.width - size) / 2;
-                        const sy = (img.height - size) / 2;
-                        
-                        ctx.drawImage(img, sx, sy, size, size, 0, 0, 512, 512);
-                        setF({ ...f, avatar: canvas.toDataURL('image/webp', 0.8) });
-                      };
-                      img.src = ev.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                  }} />
-                </div>
+                <AvatarUploader 
+                  currentAvatar={f.avatar}
+                  onAvatarSelect={(av) => setF({ ...f, avatar: av })}
+                  onError={setErr}
+                />
                 <div className="small muted mb">Atau pilih avatar default:</div>
                 <div className="avatar-picker">
                   {AVATARS.map(av => (

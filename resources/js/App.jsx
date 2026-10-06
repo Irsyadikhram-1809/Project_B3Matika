@@ -20,6 +20,7 @@ import PuzzleDetail from '@/pages/puzzle/PuzzleDetail';
 import AdminLogin from '@/pages/admin/AdminLogin';
 import AdminDashboard from '@/pages/admin/Dashboard';
 import AdminUsers from '@/pages/admin/Users';
+import AdminRequests from '@/pages/admin/Requests';
 import AdminList from '@/pages/admin/ResourceList';
 import AdminForm from '@/pages/admin/ResourceForm';
 import TutorChat from '@/pages/TutorChat';
@@ -60,6 +61,7 @@ export default function App() {
           <Route path="/panel-rahasia/login" element={<AdminLogin />} />
           <Route path="/panel-rahasia" element={<AdminDashboard />} />
           <Route path="/panel-rahasia/users" element={<AdminUsers />} />
+          <Route path="/panel-rahasia/requests" element={<AdminRequests />} />
           <Route path="/panel-rahasia/:res" element={<AdminList />} />
           <Route path="/panel-rahasia/:res/create" element={<AdminForm />} />
           <Route path="/panel-rahasia/:res/:id/edit" element={<AdminForm />} />

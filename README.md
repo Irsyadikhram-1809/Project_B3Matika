@@ -51,13 +51,49 @@ php artisan serve               # terminal 2
 ```
 Isi ulang data awal: `php artisan migrate:fresh --seed`. Jalankan test: `composer test`.
 
-## Produksi
+## Setup Environment Variables
+Sebelum menjalankan aplikasi secara lokal atau di *production* (Vercel), Anda wajib mengonfigurasi *Environment Variables*.
+1. Salin `.env.example` menjadi `.env.local` (untuk pengembangan lokal).
+2. DILARANG memasukkan nilai asli ke dalam `.env.example` atau melakukan *commit* file `.env`.
+3. Jalankan `npm run check:env` untuk memvalidasi konfigurasi.
+
+### Tabel Konfigurasi (Server-side)
+| Nama Variabel | Wajib? | Penjelasan & Cara Membuat |
+|---|---|---|
+| `SUPERADMIN_EMAIL` | Ya | Email login superadmin utama. Format email valid. |
+| `SUPERADMIN_USERNAME` | Ya | Username superadmin (3-20 karakter alfanumerik). |
+| `SUPERADMIN_PASSWORD` | Ya | Password untuk seeder (tidak dibaca langsung saat login). Minimal 12 karakter. |
+| `SUPERADMIN_NOTIFY_EMAIL` | Opsional | Email untuk menerima notif persetujuan admin. Default ke `SUPERADMIN_EMAIL`. |
+| `ADMIN_TOKEN_SECRET` | Ya | Secret (HMAC) untuk token & link persetujuan. Generate dgn: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+| `ADMIN_TOKEN_TTL_HOURS` | Opsional | Umur token setelah disetujui (default: 24). |
+| `ADMIN_REQUEST_EXPIRY_DAYS`| Opsional | Umur pengajuan admin sebelum kadaluarsa (default: 7). |
+| `ADMIN_APPROVAL_LINK_TTL_HOURS`| Opsional| Umur link persetujuan admin via email (default: 48). |
+| `APP_BASE_URL` | Ya | Base URL aplikasi (contoh: `http://localhost:3000` atau `https://b3matika.vercel.app`). Tidak boleh ada slash di akhir. |
+| `JWT_SECRET` | Ya | Secret untuk sesi JWT login. Minimal 16 karakter. |
+| `EMAIL_USER` | Ya | Alamat email (Gmail) untuk mengirimkan kode OTP & Notifikasi. |
+| `EMAIL_PASS` | Ya | **App Password** Gmail (bukan password login biasa). |
+| `OTP_SECRET` | Ya | Secret untuk hash OTP. |
+| `SUPABASE_URL` | Ya | URL REST API Supabase. |
+| `SUPABASE_SERVICE_ROLE_KEY`| Ya | Secret key Supabase (bisa membypass RLS) untuk admin di backend. |
+| `DATABASE_URL` | Ya | URL koneksi langsung ke database PostgreSQL Supabase (Transaction Pooler). |
+| `SUPABASE_AVATAR_BUCKET` | Opsional | Nama bucket Supabase Storage (default: `avatars`). |
+| `GEMINI_API_KEY` | Ya | API Key untuk fitur MathTutor AI. (Boleh lebih dari satu dipisah koma untuk rotasi). |
+
+### Tabel Konfigurasi (Client-side)
+*Variabel ini terekspos ke browser (aman).*
+| Nama Variabel | Wajib? | Penjelasan |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Ya | Sama dengan `SUPABASE_URL`. |
+| `VITE_SUPABASE_ANON_KEY` | Ya | Anon (public) key Supabase untuk interaksi basic di client-side. |
+
+## Produksi (Vercel)
 ```bash
 npm run build                                   # hasil di public/build
-php artisan migrate --force
-php artisan config:cache route:cache view:cache
 ```
-Set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, dan database di `.env`. Arahkan web server ke folder `public/`.
+1. Masukkan semua Environment Variables wajib di tab **Project > Settings > Environment Variables** pada dashboard Vercel. Gunakan opsi *Sensitive* untuk variabel keamanan. (Sangat disarankan memakai `SUPERADMIN_PASSWORD` dan `ADMIN_TOKEN_SECRET` yang berbeda di Preview dan Production).
+2. Lakukan Deploy ulang (*Redeploy*) agar variabel baru terbaca.
+3. Jalankan migrasi SQL Supabase (bila belum).
+4. Jalankan seeder superadmin melalui terminal lokal (dengan env production): `npm run seed:superadmin`.
 
 ## Akun awal (ganti segera!)
 - Admin: `admin@b3matika.test` / `admin12345` → `/panel-rahasia/login`

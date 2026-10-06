@@ -2,6 +2,7 @@
 // Proxy ke Gemini API — API key aman di server, tidak terekspos ke browser
 
 import { setCors, errorResponse } from './_lib/auth.js';
+import env from './_lib/env.js';
 
 const SYSTEM_INSTRUCTION = `IDENTITAS & PERAN
 Anda adalah **MathTutor AI**, seorang pendidik matematika ahli dan "Game Master" teka-teki logika di platform B3Matika.
@@ -36,7 +37,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  const apiKeyStr = process.env.GEMINI_API_KEY;
+  const apiKeyStr = env.GEMINI_API_KEY;
   if (!apiKeyStr) return errorResponse(res, 'API Key Gemini belum dikonfigurasi.', 500);
   
   // Memisahkan key berdasarkan koma untuk sistem rotasi (multi-key)

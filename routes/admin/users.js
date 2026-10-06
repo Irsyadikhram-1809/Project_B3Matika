@@ -12,6 +12,14 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
+      let queryCond = "";
+      let queryParams = [];
+
+      // Jika yang request adalah admin biasa, sembunyikan semua superadmin
+      if (user.role === 'admin') {
+        queryCond = "WHERE u.role != 'superadmin'";
+      }
+
       const { rows } = await db.query(`
         SELECT u.id, u.email, u.role, u.is_verified, u.is_blocked, u.created_at,
                COALESCE(p.name, split_part(u.email, '@', 1)) as name,
@@ -19,8 +27,9 @@ export default async function handler(req, res) {
                p.last_seen
         FROM users u
         LEFT JOIN profiles p ON u.email = p.email
+        ${queryCond}
         ORDER BY u.created_at DESC
-      `);
+      `, queryParams);
       
       const formatted = rows.map(u => ({
         id: u.id,

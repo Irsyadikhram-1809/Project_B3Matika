@@ -1,16 +1,17 @@
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import env from './env.js';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: env.EMAIL_USER,
+    pass: env.EMAIL_PASS,
   },
 });
 
 export const hmac = (v) =>
-  crypto.createHmac('sha256', process.env.OTP_SECRET || 'secret123').update(String(v)).digest('hex');
+  crypto.createHmac('sha256', env.OTP_SECRET).update(String(v)).digest('hex');
 
 export const safeEqual = (a, b) => {
   const x = Buffer.from(a);
@@ -51,7 +52,7 @@ export async function kirimOTP(to, otp, tujuan) {
     const text = `Halo!\n\nIni adalah kode verifikasi untuk ${tujuan} akun B3Matika kamu.\n\nKode verifikasi: ${otp}\n\nKode ini berlaku selama 10 menit. Jangan bagikan kode ini ke siapa pun.\nAbaikan email ini jika kamu tidak merasa mendaftar.\n\nB3 : Belajar, Berlatih, Bermain`;
 
     await transporter.sendMail({
-      from: `"B3Matika" <${process.env.EMAIL_USER}>`,
+      from: `"B3Matika" <${env.EMAIL_USER}>`,
       to,
       subject: `Kode Verifikasi Pendaftaran B3Matika`,
       text,
@@ -60,5 +61,33 @@ export async function kirimOTP(to, otp, tujuan) {
   } catch (error) {
     console.error("Gagal mengirim email SMTP:", error);
     throw new Error("Gagal mengirim email. Periksa kredensial .env (EMAIL_USER, EMAIL_PASS).");
+  }
+}
+
+export async function kirimEmailNotifikasi(to, subject, htmlContent, textContent) {
+  try {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #2563eb; padding: 20px; text-align: center;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">B3Matika</h1>
+        </div>
+        <div style="padding: 30px; background-color: #ffffff; color: #334155;">
+          ${htmlContent}
+        </div>
+        <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #94a3b8;">
+          B3 : Belajar, Berlatih, Bermain &copy; ${new Date().getFullYear()} B3Matika
+        </div>
+      </div>
+    `;
+
+    await transporter.sendMail({
+      from: `"B3Matika" <${env.EMAIL_USER}>`,
+      to,
+      subject,
+      text: textContent,
+      html,
+    });
+  } catch (error) {
+    console.error("Gagal mengirim email notifikasi:", error);
   }
 }

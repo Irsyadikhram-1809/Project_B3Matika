@@ -1,5 +1,6 @@
 // api/debug.js
 import { supabase } from './_lib/supabase.js';
+import env from './_lib/env.js';
 
 export default async function handler(req, res) {
   try {
@@ -13,10 +14,8 @@ export default async function handler(req, res) {
       topicsEq1Num: eq1Num?.length,
       topicsEq1Str: eq1Str?.length,
       totalPuzzles: allPuzzles?.length,
-      envUrl: !!process.env.SUPABASE_URL,
-      envKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      envViteUrl: !!process.env.VITE_SUPABASE_URL,
-      envViteKey: !!process.env.VITE_SUPABASE_ANON_KEY,
+      envUrl: !!env.SUPABASE_URL,
+      envKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

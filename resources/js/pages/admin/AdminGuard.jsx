@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import NotFound from '@/components/NotFound';
 import { useState, useEffect } from 'react';
 import './AdminGuard.css';
@@ -9,41 +10,11 @@ export default function AdminGuard({ children }) {
   const nav = useNavigate();
   const loc = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [themeMode, setThemeMode] = useState('system'); // light, dark, system
-
-  useEffect(() => {
-    const saved = localStorage.getItem('theme-mode') || 'system';
-    setThemeMode(saved);
-
-    if (saved === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', saved);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (themeMode !== 'system') return;
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [themeMode]);
+  const { theme, setTheme } = useTheme();
 
   const cycleTheme = () => {
-    const next = themeMode === 'system' ? 'dark' : themeMode === 'dark' ? 'light' : 'system';
-    setThemeMode(next);
-    localStorage.setItem('theme-mode', next);
-    
-    if (next === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', next);
-    }
+    const next = theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system';
+    setTheme(next);
   };
 
   if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
@@ -74,6 +45,11 @@ export default function AdminGuard({ children }) {
           <Link to="/panel-rahasia/users" className={`admin-nav-item ${isActive('/panel-rahasia/users')}`}>
             👥 Pengguna
           </Link>
+          {user?.role === 'superadmin' && (
+            <Link to="/panel-rahasia/requests" className={`admin-nav-item ${isActive('/panel-rahasia/requests')}`}>
+              📨 Pengajuan
+            </Link>
+          )}
         </nav>
       </aside>
 
@@ -91,8 +67,8 @@ export default function AdminGuard({ children }) {
           </div>
           
           <div className="admin-topbar-right">
-            <button className="theme-toggle-btn" onClick={cycleTheme} title={`Tema: ${themeMode}`}>
-              {themeMode === 'system' ? '💻' : themeMode === 'dark' ? '🌙' : '☀️'}
+            <button className="theme-toggle-btn" onClick={cycleTheme} title={`Tema: ${theme}`}>
+              {theme === 'system' ? '💻' : theme === 'dark' ? '🌙' : '☀️'}
             </button>
             
             <div className="admin-user-info">

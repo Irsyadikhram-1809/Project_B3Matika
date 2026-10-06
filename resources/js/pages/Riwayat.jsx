@@ -77,9 +77,10 @@ export default function Riwayat() {
 
   if (!data) return null;
 
-  const { topics, games } = data;
-  const totalCorrect = topics.reduce((s, t) => s + t.correct, 0);
-  const totalWrong   = topics.reduce((s, t) => s + t.wrong, 0);
+  const topics = data.topics || [];
+  const games = data.games || [];
+  const totalCorrect = topics.reduce((s, t) => s + (t.correct || 0), 0);
+  const totalWrong   = topics.reduce((s, t) => s + (t.wrong || 0), 0);
   const accuracy     = totalCorrect + totalWrong > 0
     ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
 

@@ -15,8 +15,8 @@ export default async function handler(req, res) {
       return errorResponse(res, 'Tidak punya izin', 403);
     }
 
-    // Hitung total pengguna
-    const usersRes = await db.query("SELECT COUNT(*) FROM users");
+    // Hitung total pengguna (kecuali superadmin)
+    const usersRes = await db.query("SELECT COUNT(*) FROM users WHERE role != 'superadmin'");
     const totalUsers = parseInt(usersRes.rows[0].count, 10);
 
     // Hitung total pertanyaan/soal

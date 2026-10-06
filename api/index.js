@@ -6,15 +6,12 @@ import { resolve, dirname } from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dns from 'dns';
-import { ensureSuperAdmin } from './_lib/seed.js';
+import env from '../routes/_lib/env.js';
 
 dns.setDefaultResultOrder('ipv4first');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Pastikan superadmin ter-seed
-ensureSuperAdmin().catch(console.error);
 
 const app = express();
 app.use(cors());
@@ -90,8 +87,8 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Rute API tidak ditemukan.' });
 });
 
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-  const PORT = process.env.PORT || 3000;
+if (env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  const PORT = env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`\nBackend lokal berjalan di http://localhost:${PORT}`);
     console.log(`API URL yang bisa diakses: http://localhost:${PORT}/api/home\n`);

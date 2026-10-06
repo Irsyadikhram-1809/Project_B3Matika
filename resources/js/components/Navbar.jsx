@@ -3,20 +3,21 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
 
+import { useTheme } from '@/context/ThemeContext';
+
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  const { theme, setTheme } = useTheme();
   const nav = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
+  const toggleTheme = () => {
+    if (theme === 'light') setTheme('dark');
+    else if (theme === 'dark') setTheme('system');
+    else setTheme('light');
+  };
 
   // Tutup menu saat route berubah
   useEffect(() => { setOpen(false); setDropOpen(false); }, [location.pathname]);
@@ -49,8 +50,8 @@ export default function Navbar() {
             <NavLink to="/puzzle" onClick={close}>Puzzle</NavLink>
             <NavLink to="/ai-tutor" onClick={close}>AI Tutor</NavLink>
             <NavLink to="/papan-skor" onClick={close}>Papan Skor</NavLink>
-            <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Dark Mode">
-              {theme === 'light' ? '🌙' : '☀️'}
+            <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme">
+              {theme === 'light' ? '🌙' : theme === 'dark' ? '☀️' : '💻'}
             </button>
             <div className="nav-user">
               {user ? (
@@ -77,9 +78,19 @@ export default function Navbar() {
                          <span className="chip" style={{ margin: 0 }}>🏆 Lv {user.level}</span>
                       </div>
                       <div style={{ height: '1px', background: 'var(--line)', margin: '4px 0' }}></div>
-                      <Link to="/profil" onClick={close}>👤 Profil Saya</Link>
-                      <Link to="/riwayat" onClick={close}>📚 Riwayat Belajar</Link>
-                      <button className="danger" onClick={() => { logout(); close(); nav('/'); }}>🚪 Keluar</button>
+                      <Link to="/profil" onClick={close} className="dropdown-item">
+                        <span className="dropdown-icon">👤</span> Profil Saya
+                      </Link>
+                      <Link to="/profil?tab=password" onClick={close} className="dropdown-item">
+                        <span className="dropdown-icon">🔒</span> Ubah Sandi
+                      </Link>
+                      <Link to="/riwayat" onClick={close} className="dropdown-item">
+                        <span className="dropdown-icon">📚</span> Riwayat Belajar
+                      </Link>
+                      <div className="dropdown-divider"></div>
+                      <button className="dropdown-item danger" onClick={() => { logout(); close(); nav('/'); }}>
+                        <span className="dropdown-icon">🚪</span> Keluar
+                      </button>
                     </div>
                   </div>
                 </>

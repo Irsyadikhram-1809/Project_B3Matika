@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import db from './db.js';
+import env from './env.js';
 
 /**
  * Validasi token JWT dan kembalikan { user, profile }
@@ -17,7 +18,7 @@ export async function requireAuth(req) {
   }
 
   try {
-    const { id } = jwt.verify(token, process.env.JWT_SECRET);
+    const { id } = jwt.verify(token, env.JWT_SECRET);
     
     // Ambil user dan profile dari database
     const { rows } = await db.query(`
@@ -68,7 +69,7 @@ export function errorResponse(res, message, status = 500) {
 
 /** Helper: CORS headers untuk semua response */
 export function setCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
+  res.setHeader('Access-Control-Allow-Origin', env.FRONTEND_URL);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');

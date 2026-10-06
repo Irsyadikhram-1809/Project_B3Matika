@@ -70,53 +70,66 @@ export default function Dashboard() {
       ) : data ? (
         <>
           <div className="dashboard-stats-grid">
-            {Object.entries(data.stats).map(([k, v]) => (
-              <div key={k} className="admin-card stat-card">
-                <div className="stat-card-icon" style={{ background: 'var(--primary-gradient)', color: '#fff' }}>
-                  {getIconForStat(k)}
+            {Object.entries(data.stats).map(([k, v], i) => {
+              const gradients = [
+                'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+                'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)'
+              ];
+              const bg = gradients[i % gradients.length];
+              return (
+                <div key={k} className="admin-card stat-card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '24px' }}>
+                  <div>
+                    <div className="stat-card-title">{k.replace(/_/g, ' ')}</div>
+                    <div className="stat-card-value" style={{ marginTop: '8px' }}>{v}</div>
+                  </div>
+                  <div className="stat-card-icon" style={{ background: bg, color: '#fff', width: '64px', height: '64px', borderRadius: '16px', fontSize: '2rem', margin: 0, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+                    {getIconForStat(k)}
+                  </div>
                 </div>
-                <div className="stat-card-title">{k.replace(/_/g, ' ')}</div>
-                <div className="stat-card-value">{v}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="admin-card">
-            <h2 style={{ fontSize: '1.25rem', marginTop: 0, marginBottom: '8px' }}>Evaluasi Tingkat Kesulitan Soal</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Berdasarkan persentase jawaban benar pada percobaan pertama (minimal 3 jawaban per soal).
-            </p>
+          <div className="admin-card" style={{ padding: '0', overflow: 'hidden' }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid var(--line)' }}>
+              <h2 style={{ fontSize: '1.25rem', marginTop: 0, marginBottom: '8px' }}>Evaluasi Tingkat Kesulitan Soal</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0' }}>
+                Berdasarkan persentase jawaban benar pada percobaan pertama (minimal 3 jawaban per soal).
+              </p>
+            </div>
             
             <div style={{ overflowX: 'auto' }}>
-              <table>
-                <thead>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ background: 'var(--surface)' }}>
                   <tr>
-                    <th>Soal</th>
-                    <th>Total Jawaban</th>
-                    <th>% Benar</th>
-                    <th>Penilaian Sistem</th>
+                    <th style={{ padding: '16px 24px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Soal</th>
+                    <th style={{ padding: '16px 24px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Jawaban</th>
+                    <th style={{ padding: '16px 24px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tingkat Keberhasilan</th>
+                    <th style={{ padding: '16px 24px', textAlign: 'left', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Penilaian</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.evaluation.length > 0 ? (
                     data.evaluation.map((r) => (
-                      <tr key={r.id}>
-                        <td style={{ maxWidth: '300px' }}>
-                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <tr key={r.id} style={{ borderBottom: '1px solid var(--line)' }}>
+                        <td style={{ padding: '16px 24px', maxWidth: '300px' }}>
+                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: '500' }}>
                             {r.text}
                           </div>
                         </td>
-                        <td>{r.total}</td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div style={{ width: '60px', height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${r.rate}%`, background: r.rate > 70 ? 'var(--ok)' : r.rate < 40 ? 'var(--bad)' : 'var(--warn)' }}></div>
+                        <td style={{ padding: '16px 24px', textAlign: 'center', fontWeight: '600' }}>{r.total}</td>
+                        <td style={{ padding: '16px 24px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ flex: 1, height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${r.rate}%`, background: r.rate > 70 ? '#10b981' : r.rate < 40 ? '#ef4444' : '#f59e0b', transition: 'width 1s ease-in-out' }}></div>
                             </div>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{r.rate}%</span>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700, minWidth: '40px', textAlign: 'right' }}>{r.rate}%</span>
                           </div>
                         </td>
-                        <td>
-                          <span className={`badge ${r.verdict === 'Terlalu Mudah' ? 'badge-ok' : r.verdict === 'Terlalu Sulit' ? 'badge-bad' : 'badge-warn'}`}>
+                        <td style={{ padding: '16px 24px' }}>
+                          <span className={`badge ${r.verdict === 'Terlalu Mudah' ? 'badge-ok' : r.verdict === 'Terlalu Sulit' ? 'badge-bad' : 'badge-warn'}`} style={{ padding: '6px 12px' }}>
                             {r.verdict}
                           </span>
                         </td>
@@ -125,7 +138,7 @@ export default function Dashboard() {
                   ) : (
                     <tr>
                       <td colSpan="4">
-                        <div className="admin-empty-state" style={{ padding: '24px 0' }}>
+                        <div className="admin-empty-state" style={{ padding: '48px 24px' }}>
                           <p style={{ margin: 0 }}>Belum cukup data jawaban dari pengguna untuk dievaluasi.</p>
                         </div>
                       </td>

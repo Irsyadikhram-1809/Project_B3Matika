@@ -10,7 +10,9 @@
     "dev:api": "node api/index.js",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:api\"",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:env": "node scripts/check-env.js",
+    "seed:superadmin": "node scripts/seed-superadmin.js"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.3.0",

@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import db from '../_lib/db.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
+import env from '../_lib/env.js';
 
 const norm = (v) => String(v || "").toLowerCase().trim();
 
@@ -38,7 +39,7 @@ export default async function handler(req, res) {
       return errorResponse(res, 'Nama pengguna/email atau password salah.', 422);
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: '7d' });
 
     delete user.password_hash;
     
@@ -63,6 +64,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Error login:", error);
-    return errorResponse(res, `[DEBUG] DB_URL set? ${!!process.env.DATABASE_URL}. Error: ${error.message}`, 500);
+    return errorResponse(res, `Internal Server Error: ${error.message}`, 500);
   }
 }
