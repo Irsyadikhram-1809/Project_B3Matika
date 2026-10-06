@@ -14,6 +14,21 @@ export default function AuthForm({ mode, admin = false }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   
   const [otpMode, setOtpMode] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  // Helper to start the resend timer
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
   
   if (user) return <Navigate to={admin ? '/panel-rahasia' : '/'} replace />;
 
@@ -27,6 +42,7 @@ export default function AuthForm({ mode, admin = false }) {
       try {
         await api('/auth/register/request', { method: 'POST', body: { email: f.email, password: f.password } });
         setOtpMode(true);
+        startResendTimer();
         setErr('');
       } catch (e2) { setErr(e2.message); }
       setBusy(false);
@@ -41,6 +57,20 @@ export default function AuthForm({ mode, admin = false }) {
       login(d.token, d.user);
       nav(admin ? '/panel-rahasia' : '/');
     } catch (e2) { setErr(e2.message); }
+    setBusy(false);
+  }
+
+  async function resendOtp() {
+    if (resendTimer > 0) return;
+    setBusy(true);
+    setErr('');
+    try {
+      await api('/auth/register/request', { method: 'POST', body: { email: f.email, password: f.password } });
+      startResendTimer();
+      setErr('Kode OTP baru telah dikirim.');
+    } catch (e2) {
+      setErr(e2.message);
+    }
     setBusy(false);
   }
 
@@ -91,9 +121,31 @@ export default function AuthForm({ mode, admin = false }) {
           </p>
         )}
         {otpMode && (
-          <p className="center small muted mt">
-            <button type="button" className="link-button" onClick={() => setOtpMode(false)}>Kembali</button>
-          </p>
+          <div className="center mt mb" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center' }}>
+            <button 
+              type="button" 
+              className="btn btn-outline" 
+              onClick={resendOtp} 
+              disabled={busy || resendTimer > 0}
+              style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', width: '100%' }}
+            >
+              {resendTimer > 0 ? `Tunggu ${resendTimer}s untuk kirim ulang` : 'Kirim Ulang Kode OTP'}
+            </button>
+            <button 
+              type="button" 
+              onClick={() => setOtpMode(false)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted, #a0aec0)',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontSize: '0.9rem'
+              }}
+            >
+              Kembali
+            </button>
+          </div>
         )}
       </form>
     </div>
