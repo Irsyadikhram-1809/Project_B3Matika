@@ -10,21 +10,32 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  const email = norm(req.body.email);
+  const identifier = norm(req.body.email); // Frontend might send 'email' field containing username
   const password = req.body.password;
 
-  if (!email || !password) return errorResponse(res, 'Email dan password wajib diisi.', 422);
+  if (!identifier || !password) return errorResponse(res, 'Nama pengguna/email dan password wajib diisi.', 422);
 
   try {
-    const { rows } = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    const user = rows[0];
+    const isEmail = identifier.includes('@');
+    let user;
+    if (isEmail) {
+      const { rows } = await db.query("SELECT * FROM users WHERE email = $1", [identifier]);
+      user = rows[0];
+    } else {
+      const { rows } = await db.query(`
+        SELECT u.* FROM users u 
+        JOIN profiles p ON u.id = p.id 
+        WHERE p.username = $1
+      `, [identifier]);
+      user = rows[0];
+    }
 
     const valid = user && user.is_verified && !user.is_blocked &&
       (await bcrypt.compare(password, user.password_hash));
 
     if (!valid) {
       if (user && user.is_blocked) return errorResponse(res, 'Akun dinonaktifkan oleh admin.', 403);
-      return errorResponse(res, 'Email atau password salah.', 422);
+      return errorResponse(res, 'Nama pengguna/email atau password salah.', 422);
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -38,6 +49,7 @@ export default async function handler(req, res) {
       id: user.id,
       email: user.email,
       name: profileData.name || user.email.split('@')[0],
+      username: profileData.username,
       role: user.role,
       points: profileData.points || 0,
       avatar: profileData.avatar || '🎓',

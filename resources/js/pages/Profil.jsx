@@ -10,7 +10,12 @@ export default function Profil() {
   if (!user) return <Navigate to="/masuk" replace />;
 
   const [tab, setTab] = useState('profil'); // profil | password
-  const [f, setF] = useState({ name: user.name, email: user.email, avatar: user.avatar || '🎓' });
+  const [f, setF] = useState({ 
+    name: user.name, 
+    username: user.username || '',
+    email: user.email, 
+    avatar: user.avatar || '🎓' 
+  });
   const [pw, setPw] = useState({ current_password: '', password: '', password_confirmation: '' });
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
@@ -54,8 +59,15 @@ export default function Profil() {
         {/* Kartu Info */}
         <div className="card profil-summary">
           <div className="center mb">
-            <div className="avatar-display">{user.avatar || '🎓'}</div>
+            <div className="avatar-display">
+              {user.avatar?.startsWith('http') || user.avatar?.startsWith('data:') ? (
+                <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                user.avatar || '🎓'
+              )}
+            </div>
             <h2 style={{ margin: '8px 0 2px' }}>{user.name}</h2>
+            <p className="muted small" style={{ fontWeight: 600 }}>@{user.username}</p>
             <p className="muted small">{user.email}</p>
           </div>
           <div className="profil-stats">
@@ -80,9 +92,46 @@ export default function Profil() {
 
           {tab === 'profil' && (
             <form onSubmit={saveProfile}>
-              <label>Nama<input value={f.name} onChange={set('name')} required maxLength={60} /></label>
+              <label>Nama Lengkap<input value={f.name} onChange={set('name')} required maxLength={60} /></label>
+              <label>Nama Pengguna (Username)<input value={f.username} onChange={set('username')} required maxLength={20} minLength={3} pattern="[a-zA-Z0-9_.]+" title="Hanya huruf, angka, titik, dan underscore" /></label>
               <label>Email<input type="email" value={f.email} onChange={set('email')} required /></label>
               <label>Avatar
+                <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+                    {f.avatar?.startsWith('http') || f.avatar?.startsWith('data:') ? (
+                      <img src={f.avatar} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      f.avatar || '🎓'
+                    )}
+                  </div>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) return setErr('Ukuran file maksimal 2 MB.');
+                    if (file.type.includes('svg')) return setErr('Format SVG tidak diizinkan.');
+                    
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const img = new Image();
+                      img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = 512;
+                        canvas.height = 512;
+                        
+                        const size = Math.min(img.width, img.height);
+                        const sx = (img.width - size) / 2;
+                        const sy = (img.height - size) / 2;
+                        
+                        ctx.drawImage(img, sx, sy, size, size, 0, 0, 512, 512);
+                        setF({ ...f, avatar: canvas.toDataURL('image/webp', 0.8) });
+                      };
+                      img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                  }} />
+                </div>
+                <div className="small muted mb">Atau pilih avatar default:</div>
                 <div className="avatar-picker">
                   {AVATARS.map(av => (
                     <button

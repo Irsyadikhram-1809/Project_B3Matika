@@ -13,7 +13,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     setErr(''); setBusy(true);
     try {
-      await api('/auth/forgot-password', { method: 'POST', body: { email } });
+      await api('/auth/forgot', { method: 'POST', body: { email } });
       setOk(true);
     } catch (ex) { setErr(ex.message); }
     setBusy(false);

@@ -7,7 +7,7 @@ import Logo from '@/components/Logo';
 export default function AuthForm({ mode, admin = false }) {
   const { user, login } = useAuth();
   const nav = useNavigate();
-  const [f, setF] = useState({ name: '', email: '', password: '', password2: '' });
+  const [f, setF] = useState({ name: '', username: '', email: '', password: '', password2: '' });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
@@ -46,7 +46,7 @@ export default function AuthForm({ mode, admin = false }) {
       if (f.password.length < 8) return setErr('Password minimal 8 karakter.');
       setBusy(true);
       try {
-        await api('/auth/register/request', { method: 'POST', body: { email: f.email, password: f.password } });
+        await api('/auth/register/request', { method: 'POST', body: { email: f.email, username: f.username, password: f.password } });
         setOtpMode(true);
         startResendTimer();
         setErr('');
@@ -71,7 +71,7 @@ export default function AuthForm({ mode, admin = false }) {
     setBusy(true);
     setErr('');
     try {
-      await api('/auth/register/request', { method: 'POST', body: { email: f.email, password: f.password } });
+      await api('/auth/register/request', { method: 'POST', body: { email: f.email, username: f.username, password: f.password } });
       startResendTimer();
       setErr('Kode OTP baru telah dikirim.');
     } catch (e2) {
@@ -87,8 +87,9 @@ export default function AuthForm({ mode, admin = false }) {
         <h2 className="center">{admin ? 'Masuk Admin' : mode === 'login' ? 'Masuk' : otpMode ? 'Verifikasi OTP' : 'Daftar Akun'}</h2>
         {err && <div className="alert">{err}</div>}
         
-        {!otpMode && mode === 'register' && <label>Nama<input value={f.name} onChange={set('name')} required maxLength={60} /></label>}
-        {!otpMode && <label>Email<input type="email" value={f.email} onChange={set('email')} required /></label>}
+        {!otpMode && mode === 'register' && <label>Nama Lengkap<input value={f.name} onChange={set('name')} required maxLength={60} /></label>}
+        {!otpMode && mode === 'register' && <label>Nama Pengguna (Username)<input value={f.username} onChange={set('username')} required maxLength={20} minLength={3} pattern="[a-zA-Z0-9_.]+" title="Hanya huruf, angka, titik, dan underscore" /></label>}
+        {!otpMode && <label>{mode === 'login' && !admin ? 'Nama Pengguna atau Email' : 'Email'}<input type={mode === 'login' && !admin ? 'text' : 'email'} value={f.email} onChange={set('email')} required /></label>}
         
         {!otpMode && (
           <label>

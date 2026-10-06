@@ -26,7 +26,7 @@ export default function ResetPassword() {
       return;
     }
     try {
-      await api('/auth/reset-password', { method: 'POST', body: f });
+      await api('/auth/reset', { method: 'POST', body: f });
       setOk(true);
       setTimeout(() => nav('/masuk'), 2000);
     } catch (ex) { setErr(ex.message); }

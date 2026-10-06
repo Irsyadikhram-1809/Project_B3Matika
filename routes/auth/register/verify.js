@@ -45,12 +45,13 @@ export default async function handler(req, res) {
     const userRes = await db.query("SELECT id FROM users WHERE email=$1", [email]);
     if (userRes.rows.length > 0) {
       const userId = userRes.rows[0].id;
+      const username = rec.pending_username || name;
       // Upsert profiles
       await db.query(
-        `INSERT INTO profiles (id, email, name, role, points, is_active, avatar) 
-         VALUES ($1, $2, $3, 'user', 0, true, '🎓')
+        `INSERT INTO profiles (id, email, name, role, points, is_active, avatar, username) 
+         VALUES ($1, $2, $3, 'user', 0, true, '🎓', $4)
          ON CONFLICT (id) DO NOTHING`,
-        [userId, email, name]
+        [userId, email, name, username]
       );
     }
 

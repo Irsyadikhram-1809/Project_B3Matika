@@ -56,12 +56,27 @@ export default function Navbar() {
               {user ? (
                 <>
                   {user.role === 'admin' && <Link to="/panel-rahasia" className="chip chip-admin" onClick={close}>Admin</Link>}
-                  <span className="chip">⭐ {user.points} · Lv {user.level}</span>
                   <div className={`nav-dropdown ${dropOpen ? 'open' : ''}`}>
                     <button className="nav-dropdown-trigger" onClick={() => setDropOpen(d => !d)}>
-                      <span className="who">{user.avatar || '🎓'} {user.name}</span>&nbsp;▾
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)', fontSize: '1.2rem' }}>
+                        {user.avatar?.startsWith('http') || user.avatar?.startsWith('data:') ? (
+                          <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          user.avatar || '🎓'
+                        )}
+                      </div>
+                      <span className="who">{user.username || user.name}</span>&nbsp;▾
                     </button>
                     <div className="nav-dropdown-menu">
+                      <div className="nav-dropdown-header">
+                        <span className="name">{user.name}</span>
+                        <span className="username">@{user.username || 'user'}</span>
+                      </div>
+                      <div className="nav-dropdown-header" style={{ display: 'flex', gap: '8px', borderBottom: 'none', paddingBottom: '4px' }}>
+                         <span className="chip" style={{ margin: 0 }}>⭐ {user.points}</span>
+                         <span className="chip" style={{ margin: 0 }}>🏆 Lv {user.level}</span>
+                      </div>
+                      <div style={{ height: '1px', background: 'var(--line)', margin: '4px 0' }}></div>
                       <Link to="/profil" onClick={close}>👤 Profil Saya</Link>
                       <Link to="/riwayat" onClick={close}>📚 Riwayat Belajar</Link>
                       <button className="danger" onClick={() => { logout(); close(); nav('/'); }}>🚪 Keluar</button>

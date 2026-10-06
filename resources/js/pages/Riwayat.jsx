@@ -27,12 +27,55 @@ export default function Riwayat() {
 
   const [data, setData] = useState(null);
   const [tab, setTab] = useState('materi');
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+
+  const fetchHistory = () => {
+    setLoading(true);
+    setErr('');
+    let isTimeout = false;
+    const t = setTimeout(() => {
+      isTimeout = true;
+      setErr('Gagal memuat riwayat (timeout). Silakan coba lagi.');
+      setLoading(false);
+    }, 10000);
+
+    api('/me/history')
+      .then(d => {
+        if (isTimeout) return;
+        clearTimeout(t);
+        setData(d);
+      })
+      .catch(e => {
+        if (isTimeout) return;
+        clearTimeout(t);
+        setErr('Gagal memuat riwayat: ' + e.message);
+      })
+      .finally(() => {
+        if (!isTimeout) setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    api('/me/history').then(setData).catch(() => {});
+    fetchHistory();
   }, []);
 
-  if (!data) return <p className="muted">Memuat riwayat…</p>;
+  if (loading) return (
+    <div className="center mt" style={{ padding: '40px' }}>
+      <div className="spinner" style={{ margin: '0 auto 20px', borderTopColor: 'var(--primary)' }}></div>
+      <p className="muted">Memuat riwayat belajar...</p>
+    </div>
+  );
+
+  if (err) return (
+    <div className="center mt card" style={{ padding: '40px', borderColor: 'var(--bad)' }}>
+      <h2>❌ Terjadi Kesalahan</h2>
+      <p className="muted">{err}</p>
+      <button className="btn mt" onClick={fetchHistory}>Coba Lagi</button>
+    </div>
+  );
+
+  if (!data) return null;
 
   const { topics, games } = data;
   const totalCorrect = topics.reduce((s, t) => s + t.correct, 0);
@@ -59,7 +102,14 @@ export default function Riwayat() {
 
       {tab === 'materi' && (
         <>
-          {!topics.length && <p className="muted mt">Belum ada materi yang dikerjakan. <Link to="/materi">Mulai belajar</Link>!</p>}
+          {!topics.length && (
+            <div className="center card mt" style={{ padding: '60px 20px' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '10px' }}>📖</div>
+              <h3>Belum ada riwayat belajar</h3>
+              <p className="muted mt" style={{ marginBottom: '20px' }}>Ayo mulai petualangan belajarmu sekarang!</p>
+              <Link to="/materi" className="btn">Mulai Belajar</Link>
+            </div>
+          )}
           {topics.length > 0 && (
             <div className="table-wrap card mt">
               <table>
@@ -102,7 +152,14 @@ export default function Riwayat() {
 
       {tab === 'game' && (
         <>
-          {!games.length && <p className="muted mt">Belum pernah main game. <Link to="/games">Main sekarang</Link>!</p>}
+          {!games.length && (
+             <div className="center card mt" style={{ padding: '60px 20px' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '10px' }}>🎮</div>
+              <h3>Belum pernah main game</h3>
+              <p className="muted mt" style={{ marginBottom: '20px' }}>Asah otakmu dengan berbagai game matematika!</p>
+              <Link to="/games" className="btn">Main Games</Link>
+            </div>
+          )}
           {games.length > 0 && (
             <div className="table-wrap card mt">
               <table>

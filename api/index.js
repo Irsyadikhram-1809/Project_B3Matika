@@ -86,11 +86,8 @@ async function loadRoutes() {
 await loadRoutes();
 
 app.use((req, res) => {
-  res.status(404).json({ 
-    error: `API Route Not Found. Loaded ${loadedRoutesCount} routes.`, 
-    path: req.path,
-    debug: routesDir
-  });
+  console.warn(`[404] API Route Not Found: ${req.method} ${req.path}`);
+  res.status(404).json({ error: 'Rute API tidak ditemukan.' });
 });
 
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
