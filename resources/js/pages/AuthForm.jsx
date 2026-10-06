@@ -36,7 +36,7 @@ export default function AuthForm({ mode, admin = false }) {
     setBusy(true);
     try {
       const path = admin ? '/auth/admin-login' : mode === 'login' ? '/auth/login' : '/auth/register/verify';
-      const body = mode === 'register' ? { email: f.email, otp: f.otp, name: f.name } : f;
+      const body = mode === 'register' ? { email: f.email, code: f.otp, name: f.name } : f;
       const d = await api(path, { method: 'POST', body });
       login(d.token, d.user);
       nav(admin ? '/panel-rahasia' : '/');

@@ -25,6 +25,7 @@ export default async function handler(req, res) {
 
   const email = norm(req.body.email);
   const code = req.body.code;
+  const name = req.body.name || email.split('@')[0];
 
   if (!email || !code) return errorResponse(res, 'Email dan kode wajib diisi.', 400);
 
@@ -49,7 +50,7 @@ export default async function handler(req, res) {
         `INSERT INTO profiles (id, email, name, role, points, is_active, avatar) 
          VALUES ($1, $2, $3, 'user', 0, true, '🎓')
          ON CONFLICT (id) DO NOTHING`,
-        [userId, email, email.split('@')[0]]
+        [userId, email, name]
       );
     }
 
