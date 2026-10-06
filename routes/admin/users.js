@@ -12,18 +12,25 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      const { rows } = await db.query(
-        "SELECT id, email, role, is_verified, is_blocked, created_at FROM users ORDER BY created_at DESC"
-      );
+      const { rows } = await db.query(`
+        SELECT u.id, u.email, u.role, u.is_verified, u.is_blocked, u.created_at,
+               COALESCE(p.name, split_part(u.email, '@', 1)) as name,
+               COALESCE(p.points, 0) as points,
+               p.last_seen
+        FROM users u
+        LEFT JOIN profiles p ON u.email = p.email
+        ORDER BY u.created_at DESC
+      `);
       
-      // Adaptasi dengan format frontend jika memungkinkan (misal field name dan is_active)
       const formatted = rows.map(u => ({
         id: u.id,
         email: u.email,
-        name: u.email.split('@')[0],
+        name: u.name,
+        points: parseInt(u.points, 10),
         role: u.role,
         is_active: !u.is_blocked,
         is_verified: u.is_verified,
+        last_seen: u.last_seen,
         created_at: u.created_at
       }));
 

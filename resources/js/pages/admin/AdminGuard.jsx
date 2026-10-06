@@ -14,7 +14,24 @@ export default function AdminGuard({ children }) {
   useEffect(() => {
     const saved = localStorage.getItem('theme-mode') || 'system';
     setThemeMode(saved);
+
+    if (saved === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
   }, []);
+
+  useEffect(() => {
+    if (themeMode !== 'system') return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [themeMode]);
 
   const cycleTheme = () => {
     const next = themeMode === 'system' ? 'dark' : themeMode === 'dark' ? 'light' : 'system';

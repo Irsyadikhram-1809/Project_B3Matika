@@ -25,6 +25,12 @@ export default function Users() {
 
   useEffect(() => { load(); }, []);
 
+  const isOnline = (lastSeen) => {
+    if (!lastSeen) return false;
+    const diff = Date.now() - new Date(lastSeen).getTime();
+    return diff < 5 * 60 * 1000;
+  };
+
   const act = async (fn) => {
     try { 
       await fn(); 
@@ -90,7 +96,16 @@ export default function Users() {
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{u.name}</div>
+                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {u.name}
+                        <span 
+                          title={isOnline(u.last_seen) ? 'Online' : 'Offline'}
+                          style={{ 
+                            width: '8px', height: '8px', borderRadius: '50%', 
+                            background: isOnline(u.last_seen) ? 'var(--ok)' : 'var(--text-muted)' 
+                          }}
+                        />
+                      </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
                     </td>
                     <td>
@@ -117,22 +132,28 @@ export default function Users() {
                       </span>
                     </td>
                     <td style={{ display: 'flex', gap: '8px' }}>
-                      <button 
-                        className="btn btn-sm btn-outline" 
-                        onClick={() => act(() => api(`/admin/users/${u.id}/toggle`, { method: 'POST' }))}
-                      >
-                        {u.is_active ? 'Blokir' : 'Aktifkan'}
-                      </button>
-                      <button 
-                        className="btn btn-sm btn-danger" 
-                        onClick={() => {
-                          if(confirm('Hapus pengguna ini secara permanen?')) {
-                            act(() => api(`/admin/users/${u.id}`, { method: 'DELETE' }));
-                          }
-                        }}
-                      >
-                        Hapus
-                      </button>
+                      {u.role !== 'superadmin' ? (
+                        <>
+                          <button 
+                            className="btn btn-sm btn-outline" 
+                            onClick={() => act(() => api(`/admin/users/${u.id}/block`, { method: 'PATCH', body: { blocked: u.is_active } }))}
+                          >
+                            {u.is_active ? 'Blokir' : 'Aktifkan'}
+                          </button>
+                          <button 
+                            className="btn btn-sm btn-danger" 
+                            onClick={() => {
+                              if(confirm('Hapus pengguna ini secara permanen?')) {
+                                act(() => api(`/admin/users/${u.id}`, { method: 'DELETE' }));
+                              }
+                            }}
+                          >
+                            Hapus
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Protected</span>
+                      )}
                     </td>
                   </tr>
                 ))}

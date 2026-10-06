@@ -40,6 +40,19 @@ export default async function handler(req, res) {
       [email, rec.pending_password_hash]
     );
 
+    // Dapatkan ID user yang baru (atau yang sudah ada)
+    const userRes = await db.query("SELECT id FROM users WHERE email=$1", [email]);
+    if (userRes.rows.length > 0) {
+      const userId = userRes.rows[0].id;
+      // Upsert profiles
+      await db.query(
+        `INSERT INTO profiles (id, email, name, role, points, is_active, avatar) 
+         VALUES ($1, $2, $3, 'user', 0, true, '🎓')
+         ON CONFLICT (id) DO NOTHING`,
+        [userId, email, email.split('@')[0]]
+      );
+    }
+
     await db.query("DELETE FROM otps WHERE id=$1", [rec.id]);
 
     return res.status(200).json({ message: "Akun berhasil dibuat, silakan login." });

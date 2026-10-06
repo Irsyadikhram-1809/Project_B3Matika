@@ -35,6 +35,9 @@ export async function requireAuth(req) {
       throw err;
     }
 
+    // Update last_seen asynchronously
+    db.query("UPDATE profiles SET last_seen = NOW() WHERE id = $1", [id]).catch(() => {});
+
     // Return object dengan field user agar kompatibel dengan existing code (walau mungkin perlu disesuaikan)
     return { user, profile: user }; 
   } catch (e) {
