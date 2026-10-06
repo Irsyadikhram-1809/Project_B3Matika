@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
   const email = norm(req.body.email);
-  const code = req.body.code;
+  const code = req.body.code || req.body.otp;
   const name = req.body.name || email.split('@')[0];
 
   if (!email || !code) return errorResponse(res, 'Email dan kode wajib diisi.', 400);
