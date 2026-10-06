@@ -29,6 +29,12 @@ export default function AuthForm({ mode, admin = false }) {
       });
     }, 1000);
   };
+
+  const resetOtpState = () => {
+    setOtpMode(false);
+    setF(prev => ({ ...prev, otp: '' }));
+    setErr('');
+  };
   
   if (user) return <Navigate to={admin ? '/panel-rahasia' : '/'} replace />;
 
@@ -133,7 +139,7 @@ export default function AuthForm({ mode, admin = false }) {
             </button>
             <button 
               type="button" 
-              onClick={() => setOtpMode(false)}
+              onClick={resetOtpState}
               style={{
                 background: 'transparent',
                 border: 'none',

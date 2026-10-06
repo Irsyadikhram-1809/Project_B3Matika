@@ -20,20 +20,27 @@ export default async function handler(req, res) {
   try {
     const { rows } = await db.query("SELECT 1 FROM users WHERE email=$1 AND is_verified=true", [email]);
     if (rows.length) {
-      // Walau sudah terdaftar, demi keamanan tetap kirim 200 OK untuk menghindari email enumeration
-      return res.status(200).json({ message: "Jika data valid, kode verifikasi telah dikirim ke email." });
+      return errorResponse(res, 'Email sudah terdaftar dan terverifikasi. Silakan login.', 400);
     }
 
-    const { rows: otpRows } = await db.query(
-      "SELECT created_at FROM otps WHERE email=$1 AND purpose='register' ORDER BY created_at DESC LIMIT 1",
-      [email]
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const { rows: rateRows } = await db.query(
+      "SELECT COUNT(*) as count, MAX(created_at) as last_req FROM otps WHERE email=$1 AND purpose='register' AND created_at > $2",
+      [email, oneHourAgo]
     );
 
-    if (otpRows[0] && Date.now() - new Date(otpRows[0].created_at).getTime() < 60 * 1000) {
+    const count = parseInt(rateRows[0]?.count || 0);
+    const lastReq = rateRows[0]?.last_req;
+
+    if (lastReq && Date.now() - new Date(lastReq).getTime() < 60 * 1000) {
       return errorResponse(res, 'Tunggu 1 menit sebelum meminta kode baru.', 429);
     }
+    if (count >= 5) {
+      return errorResponse(res, 'Batas maksimal 5 permintaan per jam tercapai. Coba lagi nanti.', 429);
+    }
 
-    await db.query("DELETE FROM otps WHERE email=$1 AND purpose='register'", [email]);
+    // Bersihkan OTP lama untuk email ini agar tidak menumpuk
+    await db.query("DELETE FROM otps WHERE email=$1 AND purpose='register' AND created_at <= $2", [email, oneHourAgo]);
 
     const otp = buatOTP();
     const pendingHash = await bcrypt.hash(password, 12);
@@ -43,11 +50,13 @@ export default async function handler(req, res) {
       [email, hmac(otp), pendingHash, new Date(Date.now() + 10 * 60 * 1000)]
     );
 
+    // Kirim email, jika gagal akan masuk ke catch block dan transaksi gagal secara logika di mata user
     await kirimOTP(email, otp, "Pendaftaran");
     
-    return res.status(200).json({ message: "Jika data valid, kode verifikasi telah dikirim ke email." });
+    return res.status(200).json({ message: "Kode verifikasi telah dikirim ke email." });
   } catch (error) {
     console.error("Error register request:", error);
-    return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
+    const msg = error.message?.includes('Gagal mengirim') ? error.message : 'Terjadi kesalahan pada server saat memproses permintaan.';
+    return errorResponse(res, msg, 500);
   }
 }

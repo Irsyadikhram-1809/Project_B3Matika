@@ -6,7 +6,7 @@ const norm = (v) => String(v || "").toLowerCase().trim();
 
 async function cekOtp(email, purpose, code) {
   const { rows } = await db.query(
-    "SELECT * FROM otps WHERE email=$1 AND purpose=$2 LIMIT 1", 
+    "SELECT * FROM otps WHERE email=$1 AND purpose=$2 ORDER BY created_at DESC LIMIT 1", 
     [email, purpose]
   );
   const rec = rows[0];
