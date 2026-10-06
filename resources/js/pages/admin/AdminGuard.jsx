@@ -1,37 +1,104 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import NotFound from '@/components/NotFound';
+import { useState, useEffect } from 'react';
+import './AdminGuard.css';
 
 export default function AdminGuard({ children }) {
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const loc = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState('system'); // light, dark, system
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme-mode') || 'system';
+    setThemeMode(saved);
+  }, []);
+
+  const cycleTheme = () => {
+    const next = themeMode === 'system' ? 'dark' : themeMode === 'dark' ? 'light' : 'system';
+    setThemeMode(next);
+    localStorage.setItem('theme-mode', next);
+    
+    if (next === 'system') {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', next);
+    }
+  };
 
   if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
 
+  const isActive = (path) => loc.pathname === path ? 'active' : '';
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f4f6fa' }}>
-      <header style={{ background: '#1b2468', color: '#fff', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0, color: '#fff', fontSize: '1.2rem' }}>⚙️ Panel Admin B3Matika</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <span style={{ fontSize: '0.9rem' }}>Halo, <b>{user.name}</b></span>
-          <Link to="/" style={{ color: '#fff', fontSize: '0.85rem', textDecoration: 'underline' }}>Ke Web Utama</Link>
-          <button className="btn btn-sm btn-danger" onClick={() => { logout(); nav('/'); }}>Keluar</button>
+    <div className="admin-layout">
+      {/* Sidebar */}
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="admin-sidebar-header">
+          <span style={{ fontSize: '1.4rem' }}>⚙️</span> B3Matika Admin
         </div>
-      </header>
+        
+        <nav className="admin-sidebar-nav">
+          <Link to="/panel-rahasia" className={`admin-nav-item ${isActive('/panel-rahasia')}`}>
+            📊 Dashboard
+          </Link>
+          <Link to="/panel-rahasia/topics" className={`admin-nav-item ${isActive('/panel-rahasia/topics')}`}>
+            📚 Materi
+          </Link>
+          <Link to="/panel-rahasia/questions" className={`admin-nav-item ${isActive('/panel-rahasia/questions')}`}>
+            📝 Soal
+          </Link>
+          <Link to="/panel-rahasia/puzzles" className={`admin-nav-item ${isActive('/panel-rahasia/puzzles')}`}>
+            🧩 Puzzle
+          </Link>
+          <Link to="/panel-rahasia/users" className={`admin-nav-item ${isActive('/panel-rahasia/users')}`}>
+            👥 Pengguna
+          </Link>
+        </nav>
+      </aside>
 
-      <div className="container" style={{ marginTop: '20px' }}>
-        <div className="admin-nav" style={{ display: 'flex', gap: '15px', background: '#fff', padding: '12px 20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
-          <Link to="/panel-rahasia" style={{ fontWeight: 600 }}>Dashboard</Link>
-          <Link to="/panel-rahasia/topics" style={{ fontWeight: 600 }}>Materi</Link>
-          <Link to="/panel-rahasia/questions" style={{ fontWeight: 600 }}>Soal</Link>
-          <Link to="/panel-rahasia/puzzles" style={{ fontWeight: 600 }}>Puzzle</Link>
-          <Link to="/panel-rahasia/users" style={{ fontWeight: 600 }}>Pengguna</Link>
-        </div>
+      {/* Main Content */}
+      <div className="admin-main">
+        {/* Topbar */}
+        <header className="admin-topbar">
+          <div className="admin-topbar-left">
+            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+              ☰
+            </button>
+            <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>
+              ← Ke Web Utama
+            </Link>
+          </div>
+          
+          <div className="admin-topbar-right">
+            <button className="theme-toggle-btn" onClick={cycleTheme} title={`Tema: ${themeMode}`}>
+              {themeMode === 'system' ? '💻' : themeMode === 'dark' ? '🌙' : '☀️'}
+            </button>
+            
+            <div className="admin-user-info">
+              <div className="admin-user-avatar">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontWeight: 600 }}>{user.name}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.role}</div>
+              </div>
+            </div>
+            
+            <button className="btn btn-sm btn-outline" onClick={() => { logout(); nav('/'); }}>
+              Keluar
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="admin-content" onClick={() => { if (sidebarOpen) setSidebarOpen(false); }}>
+          {children}
+        </main>
       </div>
-
-      <main className="container page" style={{ paddingTop: '0', flex: 1 }}>
-        {children}
-      </main>
     </div>
   );
 }

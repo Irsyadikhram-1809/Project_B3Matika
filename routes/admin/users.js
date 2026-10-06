@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         created_at: u.created_at
       }));
 
-      return res.status(200).json(formatted);
+      return res.status(200).json({ users: formatted });
     }
     
     return errorResponse(res, 'Method not allowed', 405);
