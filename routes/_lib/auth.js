@@ -19,14 +19,27 @@ export async function requireAuth(req) {
   try {
     const { id } = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Ambil user dari tabel users yang baru
-    const { rows } = await db.query("SELECT * FROM users WHERE id = $1", [id]);
+    // Ambil user dan profile dari database
+    const { rows } = await db.query(`
+      SELECT u.id, u.email, u.role, u.is_verified, u.is_blocked, u.created_at,
+             p.name, p.points, p.avatar, p.is_active, p.last_seen
+      FROM users u
+      LEFT JOIN profiles p ON u.id = p.id
+      WHERE u.id = $1
+    `, [id]);
     const user = rows[0];
 
     if (!user) {
       const err = new Error('Pengguna tidak ditemukan.');
       err.status = 401;
       throw err;
+    }
+    
+    // Fallback jika tidak ada di tabel profiles
+    if (!user.name) {
+      user.name = user.email.split('@')[0];
+      user.points = user.points || 0;
+      user.avatar = user.avatar || '🎓';
     }
 
     if (user.is_blocked) {

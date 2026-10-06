@@ -31,12 +31,16 @@ export default async function handler(req, res) {
 
     delete user.password_hash;
     
+    const profileRes = await db.query("SELECT * FROM profiles WHERE id = $1", [user.id]);
+    const profileData = profileRes.rows[0] || {};
+    
     const profile = {
       id: user.id,
       email: user.email,
-      name: user.email.split('@')[0],
+      name: profileData.name || user.email.split('@')[0],
       role: user.role,
-      points: 0,
+      points: profileData.points || 0,
+      avatar: profileData.avatar || '🎓',
       is_active: !user.is_blocked,
     };
 
