@@ -18,7 +18,7 @@ export default function AdminGuard({ children }) {
   };
 
   if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
-
+  const isImg = user.avatar?.startsWith('http') || user.avatar?.startsWith('data:');
   const isActive = (path) => loc.pathname === path ? 'active' : '';
 
   return (
@@ -73,11 +73,20 @@ export default function AdminGuard({ children }) {
             
             <div className="admin-user-info">
               <div className="admin-user-avatar">
-                {user.name.charAt(0).toUpperCase()}
+  <div className="admin-user-avatar">
+  {isImg ? (
+    <img src={user.avatar} alt={user.name}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+  ) : user.avatar && user.avatar !== '🎓' ? (
+    user.avatar
+  ) : (
+    user.name.charAt(0).toUpperCase()
+  )}
+</div>
               </div>
               <div>
                 <div style={{ fontWeight: 600 }}>{user.name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.role}</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.email}</div>
               </div>
             </div>
             
