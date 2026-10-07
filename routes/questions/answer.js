@@ -1,5 +1,4 @@
 import { supabase } from '../_lib/supabase.js';
-import db from '../_lib/db.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -40,9 +39,9 @@ export default async function handler(req, res) {
       // Masukkan ke question_solves
       await supabase.from('question_solves').insert({ user_id: user.id, question_id: id }).catch(() => {});
       
-      // Update points di users tabel dengan Postgres agar bypass RLS
       const newPoints = (profile.points || 0) + pointsAwarded;
-      await db.query("UPDATE users SET points = $1 WHERE id = $2", [newPoints, user.id]);
+      await supabase.from('users').update({ points: newPoints }).eq('id', user.id);
+      await supabase.from('profiles').update({ points: newPoints }).eq('id', user.id);
       profile.points = newPoints;
     }
 

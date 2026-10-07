@@ -1,5 +1,4 @@
 import { supabase } from '../_lib/supabase.js';
-import db from '../_lib/db.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -52,7 +51,8 @@ export default async function handler(req, res) {
           awarded = puzzle.points;
           profile.points = (profile.points ?? 0) + awarded;
           
-          await db.query("UPDATE users SET points = $1 WHERE id = $2", [profile.points, user.id]);
+          await supabase.from('users').update({ points: profile.points }).eq('id', user.id);
+          await supabase.from('profiles').update({ points: profile.points }).eq('id', user.id);
         }
         return res.status(200).json({ correct, awarded, points: awarded, user: { ...user, ...profile } });
       }

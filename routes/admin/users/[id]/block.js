@@ -1,4 +1,4 @@
-import db from '../../../_lib/db.js';
+import { supabase } from '../../../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../../../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -14,9 +14,13 @@ export default async function handler(req, res) {
 
     const { id } = req.query; // Diambil dari URL oleh custom index.js
 
-    const { rows } = await db.query("SELECT id, role, is_blocked FROM users WHERE id = $1", [id]);
-    const target = rows[0];
-    if (!target) return errorResponse(res, 'User tidak ditemukan', 404);
+    const { data: target, error: fetchErr } = await supabase
+      .from('users')
+      .select('id, role, is_blocked')
+      .eq('id', id)
+      .single();
+      
+    if (fetchErr || !target) return errorResponse(res, 'User tidak ditemukan', 404);
 
     if (target.role === 'superadmin') {
       return errorResponse(res, 'Super admin tidak bisa diubah', 403);
@@ -26,7 +30,12 @@ export default async function handler(req, res) {
     }
 
     const isBlocked = !!req.body.blocked;
-    await db.query("UPDATE users SET is_blocked = $1 WHERE id = $2", [isBlocked, id]);
+    const { error: updateErr } = await supabase
+      .from('users')
+      .update({ is_blocked: isBlocked })
+      .eq('id', id);
+      
+    if (updateErr) throw updateErr;
 
     res.json({ msg: isBlocked ? "User diblokir" : "Blokir dibuka" });
   } catch (err) {

@@ -31,10 +31,25 @@ export async function api(path, { method = 'GET', body } = {}) {
     },
     body: bodyStr,
   });
-  const data = await res.json().catch(() => ({}));
+  let data = {};
+  try {
+    data = await res.json();
+  } catch {
+    // Response bukan JSON (misal HTML error page dari Vercel/CDN)
+    data = {};
+  }
   if (!res.ok) {
-    const err = new Error(data.error || 'Terjadi kesalahan.');
+    const fallback =
+      res.status === 401 ? 'Sesi tidak valid, silakan masuk kembali.' :
+      res.status === 403 ? 'Akses ditolak.' :
+      res.status === 404 ? 'Endpoint tidak ditemukan.' :
+      res.status === 429 ? 'Terlalu banyak permintaan, coba lagi nanti.' :
+      res.status >= 500 ? 'Terjadi kesalahan pada server.' :
+      'Terjadi kesalahan.';
+    const message = (typeof data.error === 'string' && data.error) ? data.error : fallback;
+    const err = new Error(message);
     err.status = res.status;
+    err.data = data;
     throw err;
   }
   return data;

@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -21,17 +21,21 @@ export default async function handler(req, res) {
       return errorResponse(res, 'Password baru minimal 8 karakter.', 400);
     }
 
-    const { rows } = await db.query("SELECT password_hash FROM users WHERE id = $1", [profile.id]);
-    if (!rows.length) return errorResponse(res, 'Pengguna tidak ditemukan.', 404);
+    const { data: user } = await supabase
+      .from('users')
+      .select('password_hash')
+      .eq('id', profile.id)
+      .single();
+
+    if (!user) return errorResponse(res, 'Pengguna tidak ditemukan.', 404);
     
-    const user = rows[0];
     const valid = await bcrypt.compare(current_password, user.password_hash);
     if (!valid) {
       return errorResponse(res, 'Password saat ini salah.', 400);
     }
 
     const newHash = await bcrypt.hash(password, 12);
-    await db.query("UPDATE users SET password_hash = $1 WHERE id = $2", [newHash, profile.id]);
+    await supabase.from('users').update({ password_hash: newHash }).eq('id', profile.id);
 
     return res.status(200).json({ message: "Password berhasil diubah" });
   } catch (err) {

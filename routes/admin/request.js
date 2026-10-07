@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 import { kirimEmailNotifikasi } from '../_lib/otp.js';
 
@@ -15,27 +15,26 @@ export default async function handler(req, res) {
       return errorResponse(res, 'Alasan pengajuan admin harus diisi (minimal 10 karakter).', 400);
     }
 
-    // Check if already an admin or superadmin
     if (user.role === 'admin' || user.role === 'superadmin') {
       return errorResponse(res, 'Anda sudah menjadi admin/superadmin.', 400);
     }
 
-    // Check if there's already a pending request
-    const { rows: existing } = await db.query(
-      "SELECT id FROM admin_requests WHERE user_id = $1 AND status = 'pending'",
-      [user.id]
-    );
+    const { data: existing } = await supabase
+      .from('admin_requests')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'pending');
 
-    if (existing.length > 0) {
+    if (existing && existing.length > 0) {
       return errorResponse(res, 'Anda sudah memiliki pengajuan admin yang sedang diproses.', 400);
     }
 
-    await db.query(
-      "INSERT INTO admin_requests (user_id, request_reason, status) VALUES ($1, $2, 'pending')",
-      [user.id, request_reason.trim()]
-    );
+    await supabase.from('admin_requests').insert({
+      user_id: user.id,
+      request_reason: request_reason.trim(),
+      status: 'pending'
+    });
 
-    // Send email notification to user
     await kirimEmailNotifikasi(
       user.email,
       "Pengajuan Admin Diproses",

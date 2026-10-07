@@ -1,19 +1,22 @@
 import bcrypt from 'bcrypt';
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 import { hmac, safeEqual } from '../_lib/otp.js';
 
 const norm = (v) => String(v || "").toLowerCase().trim();
 
 async function cekOtp(email, purpose, code) {
-  const { rows } = await db.query(
-    "SELECT * FROM otps WHERE email=$1 AND purpose=$2 LIMIT 1", 
-    [email, purpose]
-  );
-  const rec = rows[0];
+  const { data: rows } = await supabase
+    .from('otps')
+    .select('*')
+    .eq('email', email)
+    .eq('purpose', purpose)
+    .limit(1);
+    
+  const rec = rows?.[0];
   if (!rec || new Date(rec.expires_at) < new Date() || rec.attempts >= 5) return null;
   if (!safeEqual(rec.code_hash, hmac(String(code || "")))) {
-    await db.query("UPDATE otps SET attempts = attempts + 1 WHERE id = $1", [rec.id]);
+    await supabase.from('otps').update({ attempts: rec.attempts + 1 }).eq('id', rec.id);
     return null;
   }
   return rec;
@@ -36,8 +39,8 @@ export default async function handler(req, res) {
     if (!rec) return errorResponse(res, 'Kode salah atau kedaluwarsa.', 400);
 
     const hash = await bcrypt.hash(newPassword, 12);
-    await db.query("UPDATE users SET password_hash=$1 WHERE email=$2", [hash, email]);
-    await db.query("DELETE FROM otps WHERE id=$1", [rec.id]);
+    await supabase.from('users').update({ password_hash: hash }).eq('email', email);
+    await supabase.from('otps').delete().eq('id', rec.id);
 
     return res.status(200).json({ message: "Sandi berhasil diubah." });
   } catch (error) {

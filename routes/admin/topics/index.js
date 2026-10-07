@@ -1,4 +1,4 @@
-import db from '../../_lib/db.js';
+import { supabase } from '../../_lib/supabase.js';
 import { requireRole, setCors, errorResponse } from '../../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -8,15 +8,21 @@ export default async function handler(req, res) {
   try {
     await requireRole(['admin', 'superadmin'])(req, res, async () => {
       if (req.method === 'GET') {
-        const { rows } = await db.query("SELECT * FROM topics ORDER BY id ASC");
-        res.json({ rows });
+        const { data, error } = await supabase
+          .from('topics')
+          .select('*')
+          .order('id', { ascending: true });
+        if (error) throw error;
+        res.json({ rows: data || [] });
       } else if (req.method === 'POST') {
         const { grade, title, content } = req.body;
-        const { rows } = await db.query(
-          "INSERT INTO topics (grade, title, content) VALUES ($1, $2, $3) RETURNING id",
-          [grade, title, content]
-        );
-        res.json({ id: rows[0].id });
+        const { data, error } = await supabase
+          .from('topics')
+          .insert({ grade, title, content })
+          .select('id')
+          .single();
+        if (error) throw error;
+        res.json({ id: data.id });
       } else {
         return errorResponse(res, 'Method not allowed', 405);
       }

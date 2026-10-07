@@ -1,4 +1,4 @@
-import db from '../../../_lib/db.js';
+import { supabase } from '../../../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../../../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -14,17 +14,24 @@ export default async function handler(req, res) {
 
     const { id } = req.query;
 
-    const { rows } = await db.query("SELECT id, role FROM users WHERE id = $1", [id]);
-    const target = rows[0];
+    const { data: target, error: fetchErr } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('id', id)
+      .single();
     
-    if (!target) return errorResponse(res, 'User tidak ditemukan', 404);
+    if (fetchErr || !target) return errorResponse(res, 'User tidak ditemukan', 404);
 
     if (target.role === 'superadmin') {
       return errorResponse(res, 'Super admin tidak bisa dihapus', 403);
     }
 
-    // Hapus dari tabel users (cascading seharusnya otomatis ke tabel lain jika di set di DB)
-    await db.query("DELETE FROM users WHERE id = $1", [id]);
+    const { error: delErr } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+      
+    if (delErr) throw delErr;
 
     res.json({ msg: 'Akun dihapus' });
   } catch (err) {

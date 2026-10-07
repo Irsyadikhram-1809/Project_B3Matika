@@ -1,4 +1,4 @@
-import db from '../../../_lib/db.js';
+import { supabase } from '../../../_lib/supabase.js';
 import { requireRole, setCors, errorResponse } from '../../../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -10,18 +10,19 @@ export default async function handler(req, res) {
       const { id } = req.query;
       
       if (req.method === 'GET') {
-        const { rows } = await db.query("SELECT * FROM puzzles WHERE id = $1", [id]);
-        if (!rows[0]) return errorResponse(res, 'Not found', 404);
-        res.json({ row: rows[0] });
+        const { data, error } = await supabase.from('puzzles').select('*').eq('id', id).single();
+        if (error || !data) return errorResponse(res, 'Not found', 404);
+        res.json({ row: data });
       } else if (req.method === 'PUT') {
-        let { type, title, description, data, solution, points } = req.body;
-        await db.query(
-          "UPDATE puzzles SET type = $1, title = $2, description = $3, data = $4, solution = $5, points = $6 WHERE id = $7",
-          [type, title, description, JSON.stringify(data || {}), JSON.stringify(solution || {}), points, id]
-        );
+        let { type, title, description, data: puzzleData, solution, points } = req.body;
+        const { error } = await supabase.from('puzzles')
+          .update({ type, title, description, data: puzzleData || {}, solution: solution || {}, points })
+          .eq('id', id);
+        if (error) throw error;
         res.json({ success: true });
       } else if (req.method === 'DELETE') {
-        await db.query("DELETE FROM puzzles WHERE id = $1", [id]);
+        const { error } = await supabase.from('puzzles').delete().eq('id', id);
+        if (error) throw error;
         res.json({ success: true });
       } else {
         return errorResponse(res, 'Method not allowed', 405);

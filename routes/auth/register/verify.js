@@ -1,18 +1,23 @@
-import db from '../../_lib/db.js';
+import { supabase } from '../../_lib/supabase.js';
 import { setCors, errorResponse } from '../../_lib/auth.js';
 import { hmac, safeEqual } from '../../_lib/otp.js';
 
 const norm = (v) => String(v || "").toLowerCase().trim();
 
 async function cekOtp(email, purpose, code) {
-  const { rows } = await db.query(
-    "SELECT * FROM otps WHERE email=$1 AND purpose=$2 ORDER BY created_at DESC LIMIT 1", 
-    [email, purpose]
-  );
-  const rec = rows[0];
+  const { data: rows } = await supabase
+    .from('otps')
+    .select('*')
+    .eq('email', email)
+    .eq('purpose', purpose)
+    .order('created_at', { ascending: false })
+    .limit(1);
+    
+  const rec = rows?.[0];
   if (!rec || new Date(rec.expires_at) < new Date() || rec.attempts >= 5) return null;
+  
   if (!safeEqual(rec.code_hash, hmac(String(code || "")))) {
-    await db.query("UPDATE otps SET attempts = attempts + 1 WHERE id = $1", [rec.id]);
+    await supabase.from('otps').update({ attempts: rec.attempts + 1 }).eq('id', rec.id);
     return null;
   }
   return rec;
@@ -33,29 +38,38 @@ export default async function handler(req, res) {
     const rec = await cekOtp(email, "register", code);
     if (!rec) return errorResponse(res, 'Kode salah atau sudah kedaluwarsa.', 400);
 
-    // Upsert user (jika belum ada, insert; jika ada tapi belum verify, update)
-    await db.query(
-      `INSERT INTO users (email, password_hash, is_verified, role) VALUES ($1, $2, true, 'user')
-       ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, is_verified = true
-       WHERE users.role = 'user'`,
-      [email, rec.pending_password_hash]
-    );
+    // Upsert user
+    const { data: userData, error: userErr } = await supabase
+      .from('users')
+      .upsert({
+        email,
+        password_hash: rec.pending_password_hash,
+        is_verified: true,
+        role: 'user'
+      }, { onConflict: 'email' })
+      .select('id')
+      .single();
 
-    // Dapatkan ID user yang baru (atau yang sudah ada)
-    const userRes = await db.query("SELECT id FROM users WHERE email=$1", [email]);
-    if (userRes.rows.length > 0) {
-      const userId = userRes.rows[0].id;
+    if (userErr) throw userErr;
+
+    if (userData?.id) {
       const username = rec.pending_username || name;
       // Upsert profiles
-      await db.query(
-        `INSERT INTO profiles (id, email, name, role, points, is_active, avatar, username) 
-         VALUES ($1, $2, $3, 'user', 0, true, '🎓', $4)
-         ON CONFLICT (id) DO NOTHING`,
-        [userId, email, name, username]
-      );
+      await supabase
+        .from('profiles')
+        .upsert({
+          id: userData.id,
+          email,
+          name,
+          username,
+          role: 'user',
+          points: 0,
+          is_active: true,
+          avatar: '🎓'
+        }, { onConflict: 'id' });
     }
 
-    await db.query("DELETE FROM otps WHERE id=$1", [rec.id]);
+    await supabase.from('otps').delete().eq('id', rec.id);
 
     return res.status(200).json({ message: "Akun berhasil dibuat, silakan login." });
   } catch (error) {

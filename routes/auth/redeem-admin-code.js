@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse, requireAuth } from '../_lib/auth.js';
 import { hmac } from '../_lib/otp.js';
 
@@ -15,27 +15,32 @@ export default async function handler(req, res) {
 
     const codeHash = hmac(String(code).toUpperCase());
 
-    const { rows } = await db.query(
-      "SELECT * FROM admin_invites WHERE code_hash=$1 AND used_by IS NULL AND expires_at > NOW()",
-      [codeHash]
-    );
-    const inv = rows[0];
+    const { data: inv } = await supabase
+      .from('admin_invites')
+      .select('*')
+      .eq('code_hash', codeHash)
+      .is('used_by', null)
+      .gt('expires_at', new Date().toISOString())
+      .single();
 
     if (!inv || (inv.for_email && inv.for_email !== user.email)) {
       return errorResponse(res, 'Kode tidak valid atau kedaluwarsa.', 400);
     }
 
-    const { rows: usedRows } = await db.query(
-      "UPDATE admin_invites SET used_by=$1 WHERE id=$2 AND used_by IS NULL RETURNING id",
-      [user.id, inv.id]
-    );
+    const { data: usedData, error: usedErr } = await supabase
+      .from('admin_invites')
+      .update({ used_by: user.id })
+      .eq('id', inv.id)
+      .is('used_by', null)
+      .select('id');
 
-    if (!usedRows.length) {
+    if (usedErr || !usedData?.length) {
       return errorResponse(res, 'Kode sudah dipakai.', 400);
     }
 
     if (user.role === "user") {
-      await db.query("UPDATE users SET role='admin' WHERE id=$1", [user.id]);
+      await supabase.from('users').update({ role: 'admin' }).eq('id', user.id);
+      await supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id);
     }
 
     return res.status(200).json({ message: "Kamu sekarang admin." });

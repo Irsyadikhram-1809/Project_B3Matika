@@ -52,7 +52,9 @@ async function loadRoutes() {
     routePath = routePath.replace(/\[(.*?)\]/g, ':$1');
 
     try {
-      const module = await import(`file://${file.path}`);
+      const { pathToFileURL } = await import('url');
+      const moduleUrl = pathToFileURL(file.path).href;
+      const module = await import(moduleUrl);
       const handler = module.default;
 
       if (handler) {

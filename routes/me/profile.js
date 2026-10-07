@@ -1,12 +1,9 @@
-import db from '../_lib/db.js';
-import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 import { supabase } from '../_lib/supabase.js';
+import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 const norm = (v) => String(v || "").toLowerCase().trim();
 
 function getMimeFromBase64(base64Str) {
-  // Check magic bytes in base64
-  // base64Str is something like data:image/jpeg;base64,/9j/4AAQSkZ...
   const parts = base64Str.split(',');
   if (parts.length !== 2) return null;
   const b64Data = parts[1];
@@ -14,11 +11,10 @@ function getMimeFromBase64(base64Str) {
   
   if (buffer.length > 2 * 1024 * 1024) return { error: 'Ukuran file maksimal 2 MB' };
   
-  // Magic bytes check
   const hex = buffer.toString('hex', 0, 4);
   if (hex.startsWith('89504e47')) return { mime: 'image/png', ext: 'png', buffer };
   if (hex.startsWith('ffd8ff')) return { mime: 'image/jpeg', ext: 'jpg', buffer };
-  if (hex.startsWith('52494646')) { // WebP is RIFF...WEBP
+  if (hex.startsWith('52494646')) { 
     const webp = buffer.toString('hex', 8, 12);
     if (webp === '57454250') return { mime: 'image/webp', ext: 'webp', buffer };
   }
@@ -45,27 +41,20 @@ export default async function handler(req, res) {
       return errorResponse(res, 'Nama tidak boleh kosong.', 400);
     }
 
-    // Check unique username
     if (username !== profile.username) {
-      const { rows } = await db.query("SELECT 1 FROM profiles WHERE username=$1", [username]);
-      if (rows.length) return errorResponse(res, 'Nama pengguna sudah dipakai.', 400);
+      const { data: profiles } = await supabase.from('profiles').select('id').eq('username', username);
+      if (profiles && profiles.length) return errorResponse(res, 'Nama pengguna sudah dipakai.', 400);
     }
     
-    // Check unique email
     if (email && email !== profile.email) {
-      const { rows } = await db.query("SELECT 1 FROM users WHERE email=$1", [email]);
-      if (rows.length) return errorResponse(res, 'Email sudah dipakai pengguna lain.', 400);
+      const { data: users } = await supabase.from('users').select('id').eq('email', email);
+      if (users && users.length) return errorResponse(res, 'Email sudah dipakai pengguna lain.', 400);
       
-      // Update email in users table
-      await db.query("UPDATE users SET email=$1 WHERE id=$2", [email, profile.id]);
-      // Note: Ideally sending OTP for email change, but prompt said "pertimbangkan verifikasi ulang via OTP ... atau jelaskan keputusan yang diambil."
-      // Since changing email via OTP flow is complex and requires new tables/routes for "change email request", 
-      // I will allow direct update here but note it in the output as requested.
+      await supabase.from('users').update({ email }).eq('id', profile.id);
     }
 
     let finalAvatar = avatar || profile.avatar;
 
-    // If avatar is base64
     if (avatar && avatar.startsWith('data:image/')) {
       const parsed = getMimeFromBase64(avatar);
       if (parsed.error) return errorResponse(res, parsed.error, 400);
@@ -87,7 +76,6 @@ export default async function handler(req, res) {
       const { data: pubData } = supabase.storage.from('avatars').getPublicUrl(fileName);
       finalAvatar = pubData.publicUrl;
       
-      // Attempt to delete old avatar if it was a supabase url
       if (profile.avatar && profile.avatar.includes('supabase.co/storage/v1/object/public/avatars/')) {
         const oldFile = profile.avatar.split('/').pop();
         if (oldFile) {
@@ -96,10 +84,9 @@ export default async function handler(req, res) {
       }
     }
 
-    await db.query(
-      "UPDATE profiles SET name=$1, email=$2, avatar=$3, username=$4 WHERE id=$5",
-      [name, email, finalAvatar, username, profile.id]
-    );
+    await supabase.from('profiles').update({
+      name, email, avatar: finalAvatar, username
+    }).eq('id', profile.id);
 
     const updated = {
       ...profile,

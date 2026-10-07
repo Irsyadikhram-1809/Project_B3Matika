@@ -1,4 +1,4 @@
-import db from '../../../_lib/db.js';
+import { supabase } from '../../../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../../../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -14,9 +14,13 @@ export default async function handler(req, res) {
 
     const { id } = req.query;
 
-    const { rows } = await db.query("SELECT id, role FROM users WHERE id = $1", [id]);
-    const target = rows[0];
-    if (!target) return errorResponse(res, 'User tidak ditemukan', 404);
+    const { data: target, error: fetchErr } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('id', id)
+      .single();
+      
+    if (fetchErr || !target) return errorResponse(res, 'User tidak ditemukan', 404);
 
     if (target.role === 'superadmin') {
       return errorResponse(res, 'Super admin tidak bisa diubah', 403);
@@ -27,7 +31,12 @@ export default async function handler(req, res) {
       return errorResponse(res, 'Role tidak valid', 400);
     }
 
-    await db.query("UPDATE users SET role = $1 WHERE id = $2", [role, id]);
+    const { error: updateErr } = await supabase
+      .from('users')
+      .update({ role })
+      .eq('id', id);
+      
+    if (updateErr) throw updateErr;
 
     res.json({ msg: `Role diubah menjadi ${role}` });
   } catch (err) {

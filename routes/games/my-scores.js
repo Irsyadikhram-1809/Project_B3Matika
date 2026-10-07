@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -10,20 +10,29 @@ export default async function handler(req, res) {
     const { profile } = await requireAuth(req);
     const userId = profile.id;
 
-    const { rows } = await db.query(`
-      SELECT game, MAX(score) as best_score
-      FROM game_scores
-      WHERE user_id = $1
-      GROUP BY game
-    `, [userId]);
+    const { data: rows, error } = await supabase
+      .from('game_scores')
+      .select('game_type, score')
+      .eq('user_id', userId);
 
+    if (error) {
+      console.error('Supabase my-scores error:', error);
+      return res.status(200).json({ scores: {} });
+    }
+
+    // Hitung best_score per game_type
     const scores = {};
-    for (const row of rows) {
-      scores[row.game] = row.best_score;
+    for (const row of (rows || [])) {
+      const key = row.game_type;
+      if (!scores[key] || row.score > scores[key].best_score) {
+        scores[key] = { best_score: row.score };
+      }
     }
 
     return res.status(200).json({ scores });
   } catch (err) {
+    // Jika tidak login, return kosong bukan error
+    if (err.status === 401) return res.status(200).json({ scores: {} });
     console.error(err);
     return errorResponse(res, err.message, err.status || 500);
   }

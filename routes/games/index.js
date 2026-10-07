@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -10,16 +10,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { rows } = await db.query(`
-      SELECT slug as id, title as label, description as desc, badge_color, emoji, level, tutorial, learning_goal as "learningGoal", tips
-      FROM games
-      WHERE is_active = true
-      ORDER BY created_at ASC
-    `);
+    const { data: games, error } = await supabase
+      .from('games')
+      .select('slug, title, description, badge_color, emoji, level, tutorial, learning_goal, tips')
+      .eq('is_active', true)
+      .order('created_at', { ascending: true });
 
-    return res.status(200).json({ games: rows });
+    if (error) {
+      console.error('Supabase games error:', error);
+      return res.status(200).json({ games: [] });
+    }
+
+    // Normalisasi nama kolom agar cocok dengan frontend
+    const normalized = (games || []).map(g => ({
+      id: g.slug,
+      label: g.title,
+      desc: g.description,
+      badge_color: g.badge_color,
+      emoji: g.emoji,
+      level: g.level,
+      tutorial: g.tutorial,
+      learningGoal: g.learning_goal,
+      tips: g.tips,
+    }));
+
+    return res.status(200).json({ games: normalized });
   } catch (err) {
-    console.error("Error fetching games:", err);
-    return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
+    console.error('Error fetching games:', err);
+    return res.status(200).json({ games: [] });
   }
 }

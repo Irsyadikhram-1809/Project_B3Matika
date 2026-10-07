@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 import env from '../_lib/env.js';
 
@@ -17,8 +17,11 @@ export default async function handler(req, res) {
   if (!email || !password) return errorResponse(res, 'Email dan password wajib diisi.', 422);
 
   try {
-    const { rows } = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    const user = rows[0];
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
     const valid = user && user.is_verified && !user.is_blocked &&
       (await bcrypt.compare(password, user.password_hash));

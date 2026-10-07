@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 import { hmac, buatOTP, kirimOTP } from '../_lib/otp.js';
 
@@ -13,29 +13,36 @@ export default async function handler(req, res) {
   if (!email) return errorResponse(res, 'Email wajib diisi.', 400);
 
   try {
-    const { rows } = await db.query(
-      "SELECT 1 FROM users WHERE email=$1 AND is_verified=true AND is_blocked=false", 
-      [email]
-    );
+    const { data: users } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .eq('is_verified', true)
+      .eq('is_blocked', false);
 
-    if (rows.length) {
+    if (users && users.length) {
       // Sama seperti register, pastikan rate limit
-      const { rows: otpRows } = await db.query(
-        "SELECT created_at FROM otps WHERE email=$1 AND purpose='reset' ORDER BY created_at DESC LIMIT 1",
-        [email]
-      );
+      const { data: otpRows } = await supabase
+        .from('otps')
+        .select('created_at')
+        .eq('email', email)
+        .eq('purpose', 'reset')
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-      if (otpRows[0] && Date.now() - new Date(otpRows[0].created_at).getTime() < 60 * 1000) {
+      if (otpRows?.[0] && Date.now() - new Date(otpRows[0].created_at).getTime() < 60 * 1000) {
         return errorResponse(res, 'Tunggu 1 menit sebelum meminta kode baru.', 429);
       }
 
-      await db.query("DELETE FROM otps WHERE email=$1 AND purpose='reset'", [email]);
+      await supabase.from('otps').delete().eq('email', email).eq('purpose', 'reset');
       
       const otp = buatOTP();
-      await db.query(
-        "INSERT INTO otps (email, purpose, code_hash, expires_at) VALUES ($1, 'reset', $2, $3)",
-        [email, hmac(otp), new Date(Date.now() + 10 * 60 * 1000)]
-      );
+      await supabase.from('otps').insert({
+        email,
+        purpose: 'reset',
+        code_hash: hmac(otp),
+        expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+      });
 
       await kirimOTP(email, otp, "Reset Sandi");
     }

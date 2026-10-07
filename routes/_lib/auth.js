@@ -1,11 +1,9 @@
 import jwt from 'jsonwebtoken';
-import db from './db.js';
+import { supabase } from './supabase.js';
 import env from './env.js';
 
 /**
  * Validasi token JWT dan kembalikan { user, profile }
- * Ini menggantikan Supabase Auth, namun karena data user 
- * kini di tabel users, kita return user sebagai profile juga.
  */
 export async function requireAuth(req) {
   const authHeader = req.headers['authorization'] || '';
@@ -21,27 +19,29 @@ export async function requireAuth(req) {
     const { id } = jwt.verify(token, env.JWT_SECRET);
     
     // Ambil user dan profile dari database
-    const { rows } = await db.query(`
-      SELECT u.id, u.email, u.role, u.is_verified, u.is_blocked, u.created_at,
-             p.name, p.points, p.avatar, p.is_active, p.last_seen
-      FROM users u
-      LEFT JOIN profiles p ON u.id = p.id
-      WHERE u.id = $1
-    `, [id]);
-    const user = rows[0];
+    const { data: user, error } = await supabase
+      .from('users')
+      .select(`
+        id, email, role, is_verified, is_blocked, created_at,
+        profiles(name, points, avatar, is_active, last_seen, username)
+      `)
+      .eq('id', id)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       const err = new Error('Pengguna tidak ditemukan.');
       err.status = 401;
       throw err;
     }
     
+    const profile = user.profiles?.[0] || {};
+    
     // Fallback jika tidak ada di tabel profiles
-    if (!user.name) {
-      user.name = user.email.split('@')[0];
-      user.points = user.points || 0;
-      user.avatar = user.avatar || '🎓';
-    }
+    user.name = profile.name || user.email.split('@')[0];
+    user.points = profile.points || 0;
+    user.avatar = profile.avatar || '🎓';
+    user.username = profile.username || null;
+    user.last_seen = profile.last_seen || null;
 
     if (user.is_blocked) {
       const err = new Error('Akun diblokir oleh admin.');
@@ -50,9 +50,9 @@ export async function requireAuth(req) {
     }
 
     // Update last_seen asynchronously
-    db.query("UPDATE profiles SET last_seen = NOW() WHERE id = $1", [id]).catch(() => {});
+    supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', id).then(() => {});
 
-    // Return object dengan field user agar kompatibel dengan existing code (walau mungkin perlu disesuaikan)
+    // Return object dengan field user agar kompatibel dengan existing code
     return { user, profile: user }; 
   } catch (e) {
     if (e.status) throw e;

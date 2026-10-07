@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -12,23 +12,29 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      const { rows } = await db.query("SELECT * FROM games ORDER BY created_at DESC");
-      return res.status(200).json({ games: rows });
+      const { data: games, error } = await supabase.from('games').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return res.status(200).json({ games });
     }
 
     if (req.method === 'POST') {
       const { slug, title, description, badge_color, emoji, level, tutorial, learning_goal, tips } = req.body;
-      const { rows } = await db.query(
-        `INSERT INTO games (slug, title, description, badge_color, emoji, level, tutorial, learning_goal, tips) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-        [slug, title, description, badge_color || '#2563eb', emoji, level, tutorial, learning_goal, JSON.stringify(tips || [])]
-      );
+      const { data: rows, error } = await supabase
+        .from('games')
+        .insert({
+          slug, title, description, badge_color: badge_color || '#2563eb', emoji, level, tutorial, learning_goal, tips: tips || []
+        })
+        .select();
+        
+      if (error) throw error;
       
       // Audit log
-      await db.query(
-        "INSERT INTO audit_logs (admin_id, action, entity, entity_id) VALUES ($1, 'CREATE', 'games', $2)",
-        [user.id, rows[0].id]
-      );
+      await supabase.from('audit_logs').insert({
+        admin_id: user.id,
+        action: 'CREATE',
+        entity: 'games',
+        entity_id: rows[0].id
+      });
       
       return res.status(201).json({ game: rows[0] });
     }

@@ -1,19 +1,82 @@
-/.phpunit.cache
+# ==========================================
+# DEPENDENCIES
+# ==========================================
 /node_modules
+/vendor
+
+# ==========================================
+# BUILD OUTPUT
+# ==========================================
+/dist
 /public/build
 /public/hot
 /public/storage
-/storage/*.key
-/vendor
-/dist
+
+# ==========================================
+# ENVIRONMENT & SECRETS (JANGAN PERNAH DI-COMMIT)
+# ==========================================
 .env
+.env.*
+.env*.local
 .env.backup
 .env.production
-.phpunit.result.cache
+.env.local
 auth.json
+/storage/*.key
+
+# ==========================================
+# DATABASE & MIGRATION FILES (PRIVASI)
+# ==========================================
+*.sql
+migrate_*.js
+migration_*.js
+
+# ==========================================
+# FILE SCRATCH / DEBUG / TEMP (JANGAN DI-COMMIT)
+# ==========================================
+scratch_*.js
+scratch/
+test.js
+test_*.js
+payload.json
+
+# ==========================================
+# DEPLOYMENT & LOCAL SETUP TOOLS
+# ==========================================
+setup-laragon.bat
+cek-lingkungan.bat
+laragon-setup.ps1
+nixpacks.toml
+nginx.conf
+Procfile
+docker/
+server.js
+
+# ==========================================
+# TOOLS & LOGS
+# ==========================================
 npm-debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# ==========================================
+# IDE & EDITOR
+# ==========================================
 /.idea
 /.vscode
+*.suo
+*.user
 
+# ==========================================
+# VERCEL
+# ==========================================
 .vercel
-.env*
+
+# ==========================================
+# MISC
+# ==========================================
+/.phpunit.cache
+.phpunit.result.cache
+jsconfig.json

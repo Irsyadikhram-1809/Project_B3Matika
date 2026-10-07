@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -12,34 +12,31 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      let queryCond = "";
-      let queryParams = [];
+      let query = supabase
+        .from('users')
+        .select(`
+          id, email, role, is_verified, is_blocked, created_at,
+          profiles(name, points, last_seen)
+        `)
+        .order('created_at', { ascending: false });
 
       // Jika yang request adalah admin biasa, sembunyikan semua superadmin
       if (user.role === 'admin') {
-        queryCond = "WHERE u.role != 'superadmin'";
+        query = query.neq('role', 'superadmin');
       }
 
-      const { rows } = await db.query(`
-        SELECT u.id, u.email, u.role, u.is_verified, u.is_blocked, u.created_at,
-               COALESCE(p.name, split_part(u.email, '@', 1)) as name,
-               COALESCE(p.points, 0) as points,
-               p.last_seen
-        FROM users u
-        LEFT JOIN profiles p ON u.email = p.email
-        ${queryCond}
-        ORDER BY u.created_at DESC
-      `, queryParams);
+      const { data: rows, error } = await query;
+      if (error) throw error;
       
-      const formatted = rows.map(u => ({
+      const formatted = (rows || []).map(u => ({
         id: u.id,
         email: u.email,
-        name: u.name,
-        points: parseInt(u.points, 10),
+        name: u.profiles?.[0]?.name || u.email.split('@')[0],
+        points: parseInt(u.profiles?.[0]?.points || 0, 10),
         role: u.role,
         is_active: !u.is_blocked,
         is_verified: u.is_verified,
-        last_seen: u.last_seen,
+        last_seen: u.profiles?.[0]?.last_seen,
         created_at: u.created_at
       }));
 

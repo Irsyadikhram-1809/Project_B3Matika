@@ -1,4 +1,4 @@
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -11,21 +11,32 @@ export default async function handler(req, res) {
 
   try {
     const { user } = await requireAuth(req);
-    // Only superadmin can manage admin requests, though admin can view maybe? Let's limit to superadmin for action.
     if (user.role !== 'superadmin') {
       return errorResponse(res, 'Akses ditolak. Hanya Superadmin yang bisa mengakses halaman ini.', 403);
     }
 
-    const { rows } = await db.query(`
-      SELECT r.id, r.user_id, r.status, r.request_reason, r.created_at, 
-             u.email, p.name 
-      FROM admin_requests r
-      JOIN users u ON r.user_id = u.id
-      LEFT JOIN profiles p ON u.email = p.email
-      ORDER BY r.created_at DESC
-    `);
+    const { data: rows, error } = await supabase
+      .from('admin_requests')
+      .select(`
+        id, user_id, status, request_reason, created_at,
+        users:user_id(email),
+        profiles:user_id(name)
+      `)
+      .order('created_at', { ascending: false });
 
-    return res.status(200).json({ requests: rows });
+    if (error) throw error;
+
+    const formatted = rows.map(r => ({
+      id: r.id,
+      user_id: r.user_id,
+      status: r.status,
+      request_reason: r.request_reason,
+      created_at: r.created_at,
+      email: r.users?.email,
+      name: r.profiles?.name
+    }));
+
+    return res.status(200).json({ requests: formatted });
   } catch (err) {
     console.error("Error fetching requests:", err);
     return errorResponse(res, 'Terjadi kesalahan pada server.', 500);

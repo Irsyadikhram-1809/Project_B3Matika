@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import db from '../_lib/db.js';
+import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
 import env from '../_lib/env.js';
 
@@ -19,16 +19,33 @@ export default async function handler(req, res) {
   try {
     const isEmail = identifier.includes('@');
     let user;
+    let authError = null;
+
     if (isEmail) {
-      const { rows } = await db.query("SELECT * FROM users WHERE email = $1", [identifier]);
-      user = rows[0];
+      const { data, error } = await supabase
+        .from('users')
+        .select(`*, profiles(name, username, points, avatar)`)
+        .eq('email', identifier)
+        .single();
+      user = data;
+      authError = error;
     } else {
-      const { rows } = await db.query(`
-        SELECT u.* FROM users u 
-        JOIN profiles p ON u.id = p.id 
-        WHERE p.username = $1
-      `, [identifier]);
-      user = rows[0];
+      // Find user by username
+      const { data: profileMatch, error: pErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', identifier)
+        .single();
+
+      if (profileMatch) {
+        const { data, error } = await supabase
+          .from('users')
+          .select(`*, profiles(name, username, points, avatar)`)
+          .eq('id', profileMatch.id)
+          .single();
+        user = data;
+        authError = error;
+      }
     }
 
     const valid = user && user.is_verified && !user.is_blocked &&
@@ -41,10 +58,7 @@ export default async function handler(req, res) {
 
     const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: '7d' });
 
-    delete user.password_hash;
-    
-    const profileRes = await db.query("SELECT * FROM profiles WHERE id = $1", [user.id]);
-    const profileData = profileRes.rows[0] || {};
+    const profileData = user.profiles?.[0] || {};
     
     const profile = {
       id: user.id,
