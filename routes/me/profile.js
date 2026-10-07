@@ -50,7 +50,9 @@ export default async function handler(req, res) {
       const { data: users } = await supabase.from('users').select('id').eq('email', email);
       if (users && users.length) return errorResponse(res, 'Email sudah dipakai pengguna lain.', 400);
       
-      await supabase.from('users').update({ email }).eq('id', profile.id);
+      await supabase.from('profiles').upsert({
+  id: profile.id, name, email, avatar: finalAvatar, username
+});
     }
 
     let finalAvatar = avatar || profile.avatar;
