@@ -11,8 +11,15 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
   const email = norm(req.body.email);
-  const { password, username: rawUsername } = req.body;
+  const { password, username: rawUsername, role, adminCode } = req.body;
   const username = norm(rawUsername);
+  const userRole = role === 'admin' ? 'admin' : 'user';
+
+  if (userRole === 'admin') {
+    if (adminCode !== process.env.ADMIN_SECRET_CODE) {
+      return errorResponse(res, 'Kode Admin tidak valid.', 403);
+    }
+  }
 
   if (!email || !password || password.length < 8) {
     return errorResponse(res, 'Email/sandi tidak valid (min. 8 karakter)', 400);
@@ -80,6 +87,7 @@ export default async function handler(req, res) {
       code_hash: hmac(otp),
       pending_password_hash: pendingHash,
       pending_username: username,
+      pending_role: userRole,
       expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString()
     });
 

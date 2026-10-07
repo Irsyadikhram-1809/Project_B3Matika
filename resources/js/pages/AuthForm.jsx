@@ -7,16 +7,16 @@ import Logo from '@/components/Logo';
 export default function AuthForm({ mode, admin = false }) {
   const { user, login } = useAuth();
   const nav = useNavigate();
-  const [f, setF] = useState({ name: '', username: '', email: '', password: '', password2: '' });
+  const [f, setF] = useState({ name: '', username: '', email: '', password: '', password2: '', adminCode: '' });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [regType, setRegType] = useState('user'); // 'user' or 'admin'
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   
   const [otpMode, setOtpMode] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
 
-  // Helper to start the resend timer
   const startResendTimer = () => {
     setResendTimer(60);
     const interval = setInterval(() => {
@@ -46,7 +46,16 @@ export default function AuthForm({ mode, admin = false }) {
       if (f.password.length < 8) return setErr('Password minimal 8 karakter.');
       setBusy(true);
       try {
-        await api('/auth/register/request', { method: 'POST', body: { email: f.email, username: f.username, password: f.password } });
+        await api('/auth/register/request', { 
+          method: 'POST', 
+          body: { 
+            email: f.email, 
+            username: f.username, 
+            password: f.password,
+            role: regType,
+            adminCode: regType === 'admin' ? f.adminCode : undefined
+          } 
+        });
         setOtpMode(true);
         startResendTimer();
         setErr('');
@@ -71,7 +80,7 @@ export default function AuthForm({ mode, admin = false }) {
     setBusy(true);
     setErr('');
     try {
-      await api('/auth/register/request', { method: 'POST', body: { email: f.email, username: f.username, password: f.password } });
+      await api('/auth/register/request', { method: 'POST', body: { email: f.email, username: f.username, password: f.password, role: regType } });
       startResendTimer();
       setErr('Kode OTP baru telah dikirim.');
     } catch (e2) {
@@ -87,10 +96,23 @@ export default function AuthForm({ mode, admin = false }) {
         <h2 className="center">{admin ? 'Masuk Admin' : mode === 'login' ? 'Masuk' : otpMode ? 'Verifikasi OTP' : 'Daftar Akun'}</h2>
         {err && <div className="alert">{err}</div>}
         
+        {!otpMode && mode === 'register' && (
+          <div className="game-filter" style={{ marginBottom: '1rem', justifyContent: 'center' }}>
+            <button type="button" className={`chip ${regType === 'user' ? 'chip-active' : ''}`} onClick={() => setRegType('user')}>Akun User</button>
+            <button type="button" className={`chip ${regType === 'admin' ? 'chip-active' : ''}`} onClick={() => setRegType('admin')}>Akun Admin</button>
+          </div>
+        )}
+
         {!otpMode && mode === 'register' && <label>Nama Lengkap<input value={f.name} onChange={set('name')} required maxLength={60} /></label>}
         {!otpMode && mode === 'register' && <label>Nama Pengguna (Username)<input value={f.username} onChange={set('username')} required maxLength={20} minLength={3} pattern="[a-zA-Z0-9_.]+" title="Hanya huruf, angka, titik, dan underscore" /></label>}
         {!otpMode && <label>{mode === 'login' && !admin ? 'Nama Pengguna atau Email' : 'Email'}<input type={mode === 'login' && !admin ? 'text' : 'email'} value={f.email} onChange={set('email')} required /></label>}
         
+        {!otpMode && mode === 'register' && regType === 'admin' && (
+          <label>Kode Rahasia Admin
+            <input type="password" value={f.adminCode} onChange={set('adminCode')} required />
+          </label>
+        )}
+
         {!otpMode && (
           <label>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -121,7 +143,7 @@ export default function AuthForm({ mode, admin = false }) {
           </label>
         )}
         
-        <button className="btn btn-block mt" disabled={busy}>{busy ? 'Memproses…' : admin ? 'Masuk' : mode === 'login' ? 'Masuk' : otpMode ? 'Verifikasi' : 'Daftar'}</button>
+        <button className="btn btn-block mt" disabled={busy}>{busy ? 'Memproses…' : admin ? 'Masuk' : mode === 'login' ? 'Masuk' : otpMode ? 'Verifikasi' : `Daftar sebagai ${regType === 'admin' ? 'Admin' : 'User'}`}</button>
         {!admin && !otpMode && (
           <p className="center small muted mt">
             {mode === 'login' ? <>Belum punya akun? <Link to="/daftar">Daftar</Link></> : <>Sudah punya akun? <Link to="/masuk">Masuk</Link></>}

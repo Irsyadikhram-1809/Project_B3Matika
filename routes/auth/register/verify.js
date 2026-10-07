@@ -45,7 +45,7 @@ export default async function handler(req, res) {
         email,
         password_hash: rec.pending_password_hash,
         is_verified: true,
-        role: 'user'
+        role: rec.pending_role || 'user'
       }, { onConflict: 'email' })
       .select('id')
       .single();
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
           email,
           name,
           username,
-          role: 'user',
+          role: rec.pending_role || 'user',
           points: 0,
           is_active: true,
           avatar: '🎓'
