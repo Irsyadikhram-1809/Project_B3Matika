@@ -70,7 +70,7 @@ export default function AdminGuard({ children }) {
             <button className="theme-toggle-btn" onClick={cycleTheme} title={`Tema: ${theme}`}>
               {theme === 'system' ? '💻' : theme === 'dark' ? '🌙' : '☀️'}
             </button>
-            
+            </div> 
             <div className="admin-user-info">
               <div className="admin-user-avatar">
   {isImg ? (
@@ -83,8 +83,10 @@ export default function AdminGuard({ children }) {
   )}
 </div>
               <div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.email}</div>
-              </div>
+                <div>
+  <div style={{ fontWeight: 600 }}>{user.name}</div>
+  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.email}</div>   {/* ← ini */}
+</div>
             </div>
             
             <button className="btn btn-sm btn-outline" onClick={() => { logout(); nav('/'); }}>
