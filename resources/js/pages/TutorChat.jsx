@@ -160,9 +160,19 @@ export default function TutorChat() {
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const hasInteracted = useRef(false);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!hasInteracted.current) return;
+    const scrollContainer = document.querySelector('.chat-messages-area');
+    if (scrollContainer) {
+      scrollContainer.scrollTo({
+        top: scrollContainer.scrollHeight,
+        behavior: 'smooth'
+      });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   };
 
   useEffect(() => { scrollToBottom(); }, [messages]);
@@ -203,6 +213,7 @@ export default function TutorChat() {
 
   const sendMessage = async (text) => {
     if (!text.trim() || loading) return;
+    hasInteracted.current = true;
     const userMsg = { role: 'user', parts: [{ text }] };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);

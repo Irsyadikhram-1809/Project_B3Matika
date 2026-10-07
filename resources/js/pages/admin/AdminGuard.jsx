@@ -12,11 +12,6 @@ export default function AdminGuard({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
-  const cycleTheme = () => {
-    const next = theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system';
-    setTheme(next);
-  };
-
   if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
   const isImg = user.avatar?.startsWith('http') || user.avatar?.startsWith('data:');
   const isActive = (path) => loc.pathname === path ? 'active' : '';
@@ -45,11 +40,6 @@ export default function AdminGuard({ children }) {
           <Link to="/panel-rahasia/users" className={`admin-nav-item ${isActive('/panel-rahasia/users')}`}>
             👥 Pengguna
           </Link>
-          {user?.role === 'superadmin' && (
-            <Link to="/panel-rahasia/requests" className={`admin-nav-item ${isActive('/panel-rahasia/requests')}`}>
-              📨 Pengajuan
-            </Link>
-          )}
         </nav>
       </aside>
 
@@ -67,22 +57,21 @@ export default function AdminGuard({ children }) {
           </div>
           
           <div className="admin-topbar-right">
-            <button className="theme-toggle-btn" onClick={cycleTheme} title={`Tema: ${theme}`}>
-              {theme === 'system' ? '💻' : theme === 'dark' ? '🌙' : '☀️'}
-            </button>
+            <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-subtle, #f1f5f9)', padding: '4px', borderRadius: '8px' }}>
+              <button className={`btn btn-sm ${theme === 'light' ? '' : 'btn-outline'}`} onClick={() => setTheme('light')} title="Mode Terang" style={{ padding: '4px 8px', border: 'none' }}>☀️</button>
+              <button className={`btn btn-sm ${theme === 'dark' ? '' : 'btn-outline'}`} onClick={() => setTheme('dark')} title="Mode Gelap" style={{ padding: '4px 8px', border: 'none' }}>🌙</button>
+              <button className={`btn btn-sm ${theme === 'system' ? '' : 'btn-outline'}`} onClick={() => setTheme('system')} title="Sistem" style={{ padding: '4px 8px', border: 'none' }}>💻</button>
+            </div>
             
             <div className="admin-user-info">
               <div className="admin-user-avatar">
-  <div className="admin-user-avatar">
-  {isImg ? (
-    <img src={user.avatar} alt={user.name}
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-  ) : user.avatar && user.avatar !== '🎓' ? (
-    user.avatar
-  ) : (
-    user.name.charAt(0).toUpperCase()
-  )}
-</div>
+                {isImg ? (
+                  <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : user.avatar && user.avatar !== '🎓' ? (
+                  user.avatar
+                ) : (
+                  user.name.charAt(0).toUpperCase()
+                )}
               </div>
               <div>
                 <div style={{ fontWeight: 600 }}>{user.name}</div>

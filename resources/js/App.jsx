@@ -1,8 +1,9 @@
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import NotFound from '@/components/NotFound';
+import WelcomeToast from '@/components/WelcomeToast';
 import BrandIntro from '@/components/Brandintro';
 import Home from '@/pages/Home';
 import Games from '@/pages/Games';
@@ -20,9 +21,10 @@ import PuzzleDetail from '@/pages/puzzle/PuzzleDetail';
 import AdminLogin from '@/pages/admin/AdminLogin';
 import AdminDashboard from '@/pages/admin/Dashboard';
 import AdminUsers from '@/pages/admin/Users';
-import AdminRequests from '@/pages/admin/Requests';
 import AdminList from '@/pages/admin/ResourceList';
 import AdminForm from '@/pages/admin/ResourceForm';
+import AdminTokenConfirm from '@/pages/AdminTokenConfirm';
+import VerifyEmailLink from '@/pages/VerifyEmailLink';
 import TutorChat from '@/pages/TutorChat';
 import MathBackground from '@/components/MathBackground';
 
@@ -30,12 +32,23 @@ export default function App() {
   const { ready } = useAuth();
   const loc = useLocation();
   const [showSplash, setShowSplash] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
   const isAdminPath = loc.pathname.startsWith('/panel-rahasia');
+
+  useEffect(() => {
+    if (ready && user) {
+      if (sessionStorage.getItem('welcome_shown') !== 'true') {
+        setShowWelcome(true);
+        sessionStorage.setItem('welcome_shown', 'true');
+      }
+    }
+  }, [ready, user]);
 
   if (!ready) return <div className="container page center muted">Memuat…</div>;
 
   return (
     <>
+      {showWelcome && <WelcomeToast user={user} onClose={() => setShowWelcome(false)} />}
       {showSplash && <BrandIntro splash once onFinish={() => setShowSplash(false)} />}
       {!isAdminPath && <MathBackground />}
       {!isAdminPath && <Navbar />}
@@ -56,12 +69,13 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/profil" element={<Profil />} />
           <Route path="/riwayat" element={<Riwayat />} />
+          <Route path="/verifikasi-email" element={<VerifyEmailLink />} />
+          <Route path="/konfirmasi-admin" element={<AdminTokenConfirm />} />
 
           {/* Admin: URL tersembunyi, tidak ditautkan di situs; non-admin melihat 404 */}
           <Route path="/panel-rahasia/login" element={<AdminLogin />} />
           <Route path="/panel-rahasia" element={<AdminDashboard />} />
           <Route path="/panel-rahasia/users" element={<AdminUsers />} />
-          <Route path="/panel-rahasia/requests" element={<AdminRequests />} />
           <Route path="/panel-rahasia/:res" element={<AdminList />} />
           <Route path="/panel-rahasia/:res/create" element={<AdminForm />} />
           <Route path="/panel-rahasia/:res/:id/edit" element={<AdminForm />} />

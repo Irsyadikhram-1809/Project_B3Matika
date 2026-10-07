@@ -1,8 +1,15 @@
+/**
+ * routes/auth/register/verify.js
+ * POST /api/auth/register/verify
+ *
+ * Verifikasi pendaftaran lewat kode OTP.
+ * Untuk verifikasi lewat tautan, gunakan GET /api/auth/verify-email-link
+ */
 import { supabase } from '../../_lib/supabase.js';
 import { setCors, errorResponse } from '../../_lib/auth.js';
 import { hmac, safeEqual } from '../../_lib/otp.js';
 
-const norm = (v) => String(v || "").toLowerCase().trim();
+const norm = (v) => String(v || '').toLowerCase().trim();
 
 async function cekOtp(email, purpose, code) {
   const { data: rows } = await supabase
@@ -12,15 +19,61 @@ async function cekOtp(email, purpose, code) {
     .eq('purpose', purpose)
     .order('created_at', { ascending: false })
     .limit(1);
-    
+
   const rec = rows?.[0];
-  if (!rec || new Date(rec.expires_at) < new Date() || rec.attempts >= 5) return null;
-  
-  if (!safeEqual(rec.code_hash, hmac(String(code || "")))) {
-    await supabase.from('otps').update({ attempts: rec.attempts + 1 }).eq('id', rec.id);
-    return null;
+  if (!rec) return { rec: null, err: 'Tidak ada kode verifikasi aktif untuk email ini.' };
+  if (new Date(rec.expires_at) < new Date()) return { rec: null, err: 'Kode sudah kedaluwarsa. Minta kode baru.' };
+  if ((rec.attempts || 0) >= 5) return { rec: null, err: 'Kode diblokir karena terlalu banyak percobaan salah. Minta kode baru.' };
+
+  if (!safeEqual(rec.code_hash, hmac(String(code || '')))) {
+    await supabase.from('otps').update({ attempts: (rec.attempts || 0) + 1 }).eq('id', rec.id);
+    const sisaPercobaan = 4 - (rec.attempts || 0);
+    return { rec: null, err: `Kode salah. Sisa percobaan: ${sisaPercobaan > 0 ? sisaPercobaan : 0}.` };
   }
-  return rec;
+  return { rec, err: null };
+}
+
+async function buatAkun(rec, email, name) {
+  const username = rec.pending_username || name;
+  const role     = rec.pending_role || 'user';
+
+  const { data: userData, error: userErr } = await supabase
+    .from('users')
+    .upsert({
+      email,
+      password_hash: rec.pending_password_hash,
+      is_verified:   true,
+      role,
+    }, { onConflict: 'email' })
+    .select('id')
+    .single();
+
+  if (userErr) throw userErr;
+
+  if (userData?.id) {
+    await supabase.from('profiles').upsert({
+      id:        userData.id,
+      email,
+      name:      name || username,
+      username,
+      role,
+      points:    0,
+      is_active: true,
+      avatar:    '🎓',
+    }, { onConflict: 'id' });
+
+    // Jika admin: update used_by di admin_invites
+    if (role === 'admin') {
+      await supabase
+        .from('admin_invites')
+        .update({ used_by: userData.id })
+        .eq('for_email', email)
+        .eq('status', 'used');
+    }
+  }
+
+  await supabase.from('otps').delete().eq('id', rec.id);
+  return { userId: userData?.id };
 }
 
 export default async function handler(req, res) {
@@ -29,51 +82,20 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
   const email = norm(req.body.email);
-  const code = req.body.code || req.body.otp;
-  const name = req.body.name || email.split('@')[0];
+  const code  = req.body.code || req.body.otp;
+  const name  = req.body.name || email.split('@')[0];
 
   if (!email || !code) return errorResponse(res, 'Email dan kode wajib diisi.', 400);
 
   try {
-    const rec = await cekOtp(email, "register", code);
-    if (!rec) return errorResponse(res, 'Kode salah atau sudah kedaluwarsa.', 400);
+    const { rec, err } = await cekOtp(email, 'register', code);
+    if (!rec) return errorResponse(res, err, 400);
 
-    // Upsert user
-    const { data: userData, error: userErr } = await supabase
-      .from('users')
-      .upsert({
-        email,
-        password_hash: rec.pending_password_hash,
-        is_verified: true,
-        role: rec.pending_role || 'user'
-      }, { onConflict: 'email' })
-      .select('id')
-      .single();
+    await buatAkun(rec, email, name);
 
-    if (userErr) throw userErr;
-
-    if (userData?.id) {
-      const username = rec.pending_username || name;
-      // Upsert profiles
-      await supabase
-        .from('profiles')
-        .upsert({
-          id: userData.id,
-          email,
-          name,
-          username,
-          role: rec.pending_role || 'user',
-          points: 0,
-          is_active: true,
-          avatar: '🎓'
-        }, { onConflict: 'id' });
-    }
-
-    await supabase.from('otps').delete().eq('id', rec.id);
-
-    return res.status(200).json({ message: "Akun berhasil dibuat, silakan login." });
+    return res.status(200).json({ message: 'Akun berhasil dibuat. Silakan login.' });
   } catch (error) {
-    console.error("Error register verify:", error);
+    console.error('Error register/verify:', error);
     return errorResponse(res, 'Terjadi kesalahan pada server.', 500);
   }
 }
