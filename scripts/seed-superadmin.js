@@ -28,7 +28,6 @@ export async function ensureSuperAdmin() {
              role = 'superadmin',
              is_verified = true,
              is_blocked = false,
-             updated_at = now()
        RETURNING id`,
       [email, hash]
     );
