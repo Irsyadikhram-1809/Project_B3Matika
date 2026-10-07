@@ -27,7 +27,7 @@ export async function ensureSuperAdmin() {
          SET password_hash = EXCLUDED.password_hash,
              role = 'superadmin',
              is_verified = true,
-             is_blocked = false,
+             is_blocked = false
        RETURNING id`,
       [email, hash]
     );
