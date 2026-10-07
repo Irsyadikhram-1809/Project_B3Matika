@@ -34,7 +34,7 @@ export async function requireAuth(req) {
       throw err;
     }
     
-    const profile = user.profiles?.[0] || {};
+    const profile = (Array.isArray(user.profiles) ? user.profiles[0] : user.profiles) || {};
     
     // Fallback jika tidak ada di tabel profiles
     user.name = profile.name || user.email.split('@')[0];
