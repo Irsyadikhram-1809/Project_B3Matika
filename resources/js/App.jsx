@@ -29,7 +29,7 @@ import TutorChat from '@/pages/TutorChat';
 import MathBackground from '@/components/MathBackground';
 
 export default function App() {
-  const { ready } = useAuth();
+  const { ready, user } = useAuth();
   const loc = useLocation();
   const [showSplash, setShowSplash] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
