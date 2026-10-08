@@ -22,6 +22,16 @@ export default function Dashboard() {
 
   useEffect(() => { loadData(); }, []);
 
+  const getLabelForStat = (key) => {
+    const k = key.toLowerCase();
+    if (k.includes('user') || k.includes('pengguna')) return 'Total Pengguna';
+    if (k.includes('soal') || k.includes('question')) return 'Total Soal';
+    if (k.includes('materi') || k.includes('topic')) return 'Total Materi';
+    if (k.includes('puzzle')) return 'Total Puzzle';
+    // Fallback: capitalize dan replace underscore
+    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
+
   const getIconForStat = (key) => {
     const k = key.toLowerCase();
     if (k.includes('user') || k.includes('pengguna')) return '👤';
@@ -79,12 +89,12 @@ export default function Dashboard() {
               ];
               const bg = gradients[i % gradients.length];
               return (
-                <div key={k} className="admin-card stat-card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '24px' }}>
+                <div key={k} className="admin-card stat-card stat-card-hover" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '24px' }}>
                   <div>
-                    <div className="stat-card-title">{k.replace(/_/g, ' ')}</div>
+                    <div className="stat-card-title">{getLabelForStat(k)}</div>
                     <div className="stat-card-value" style={{ marginTop: '8px' }}>{v}</div>
                   </div>
-                  <div className="stat-card-icon" style={{ background: bg, color: '#fff', width: '64px', height: '64px', borderRadius: '16px', fontSize: '2rem', margin: 0, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}>
+                  <div className="stat-card-icon-wrap" style={{ background: bg, color: '#fff' }}>
                     {getIconForStat(k)}
                   </div>
                 </div>

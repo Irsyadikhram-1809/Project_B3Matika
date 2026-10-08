@@ -145,7 +145,7 @@ export default function Games() {
 
       <div className="game-filter">
         {levels.map(l => (
-          <button key={l} className={`chip ${filter === l ? 'chip-active' : ''}`} onClick={() => setFilter(l)}>
+          <button key={l} className={`chip-filter${filter === l ? ' chip-active' : ''}`} onClick={() => setFilter(l)} aria-pressed={filter === l}>
             {l}
           </button>
         ))}
@@ -153,11 +153,11 @@ export default function Games() {
 
       <div className="game-hub">
         {shown.map(g => (
-          <button key={g.id} className="game-card" onClick={() => setSearchParams({ game: g.id })}>
+          <button key={g.id} className="game-card" onClick={() => setSearchParams({ game: g.id })} aria-label={`Mainkan ${g.label}`}>
             <span className="game-card-emoji">{g.emoji}</span>
             <div className="game-card-info">
               <h3>{g.label}</h3>
-              <p className="muted small">{g.desc}</p>
+              <p className="game-card-desc">{g.desc}</p>
             </div>
             <div className="game-card-meta">
               <span className={`tag tag-level-${g.level === 'Sulit' ? 'hard' : 'easy'}`}>{g.level}</span>

@@ -96,14 +96,13 @@ export default function Users() {
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {u.name}
-                        <span 
+                        <span
+                          className={`user-status-dot ${isOnline(u.last_seen) ? 'online' : 'offline'}`}
+                          aria-label={isOnline(u.last_seen) ? 'Sedang online' : 'Offline'}
                           title={isOnline(u.last_seen) ? 'Online' : 'Offline'}
-                          style={{ 
-                            width: '8px', height: '8px', borderRadius: '50%', 
-                            background: isOnline(u.last_seen) ? 'var(--ok)' : 'var(--text-muted)' 
-                          }}
+                          role="img"
                         />
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
@@ -131,9 +130,9 @@ export default function Users() {
                         {u.is_active ? 'Aktif' : 'Diblokir'}
                       </span>
                     </td>
-                    <td style={{ display: 'flex', gap: '8px' }}>
+                    <td className="aksi-cell">
                       {u.role !== 'superadmin' ? (
-                        <>
+                        <div className="aksi-cell-inner">
                           <button 
                             className="btn btn-sm btn-outline" 
                             onClick={() => act(() => api(`/admin/users/${u.id}/block`, { method: 'PATCH', body: { blocked: u.is_active } }))}
@@ -150,7 +149,7 @@ export default function Users() {
                           >
                             Hapus
                           </button>
-                        </>
+                        </div>
                       ) : (
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Protected</span>
                       )}

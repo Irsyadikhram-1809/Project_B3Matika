@@ -27,6 +27,7 @@ import AdminTokenConfirm from '@/pages/AdminTokenConfirm';
 import VerifyEmailLink from '@/pages/VerifyEmailLink';
 import TutorChat from '@/pages/TutorChat';
 import MathBackground from '@/components/MathBackground';
+import BackToTop from '@/components/BackToTop';
 
 export default function App() {
   const { ready, user } = useAuth();
@@ -84,6 +85,7 @@ export default function App() {
         </Routes>
       </main>
       {!isAdminPath && <footer className="footer">© {new Date().getFullYear()} B3Matika — Belajar, Berlatih, Bermain</footer>}
+      {!isAdminPath && <BackToTop />}
     </>
   );
 }

@@ -1,30 +1,60 @@
+/* Reveal.jsx — progressive enhancement tanpa framer-motion dependency issues
+ *
+ * Prinsip: elemen HARUS terlihat secara default (opacity: 1, transform: none).
+ * IntersectionObserver menambahkan class 'reveal-pending' saat mount, lalu
+ * 'reveal-done' saat elemen masuk viewport. Jika JS gagal atau IO tidak
+ * didukung, konten tetap terlihat.
+ *
+ * Kelas CSS reveal-item, reveal-pending, reveal-done didefinisikan di app.css.
+ */
 import { useEffect, useRef } from 'react';
-import { motion, useInView, useAnimation } from 'framer-motion';
 
-export default function Reveal({ children, width = "100%", delay = 0, style }) {
+export default function Reveal({ children, delay = 0, style, width = '100%' }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "0px 0px -10% 0px" });
-  const controls = useAnimation();
 
   useEffect(() => {
-    if (isInView) {
-      controls.start("visible");
-    }
-  }, [isInView, controls]);
+    const el = ref.current;
+    if (!el) return;
+
+    // Cek prefers-reduced-motion — jika aktif, skip animasi
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return;
+
+    // Cek IntersectionObserver support
+    if (!('IntersectionObserver' in window)) return;
+
+    // Tandai sebagai pending (opacity: 0 + translate)
+    el.classList.add('reveal-pending');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Terapkan delay melalui style
+            if (delay) el.style.transitionDelay = `${delay}s`;
+            el.classList.remove('reveal-pending');
+            el.classList.add('reveal-done');
+            observer.unobserve(el);
+          }
+        });
+      },
+      {
+        threshold: 0.08,
+        rootMargin: '0px 0px -5% 0px',
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [delay]);
 
   return (
-    <div ref={ref} style={{ position: "relative", width, ...style }}>
-      <motion.div
-        variants={{
-          hidden: { opacity: 0, y: 40 },
-          visible: { opacity: 1, y: 0 },
-        }}
-        initial="hidden"
-        animate={controls}
-        transition={{ duration: 0.6, delay: delay, ease: [0.22, 1, 0.36, 1] }}
-      >
-        {children}
-      </motion.div>
+    <div
+      ref={ref}
+      className="reveal-item"
+      style={{ width, ...style }}
+    >
+      {children}
     </div>
   );
 }

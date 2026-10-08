@@ -1,53 +1,27 @@
-import React from 'react';
 import { useTheme } from '@/context/ThemeContext';
+
+const THEMES = [
+  { value: 'light', emoji: '☀️', label: 'Mode Terang' },
+  { value: 'dark',  emoji: '🌙', label: 'Mode Gelap'  },
+  { value: 'system',emoji: '💻', label: 'Ikuti Sistem' },
+];
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-
   return (
-    <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-card, rgba(0,0,0,0.05))', padding: '4px', borderRadius: '8px' }}>
-      <button 
-        onClick={() => setTheme('light')} 
-        title="Mode Terang" 
-        style={{ 
-          padding: '6px 10px', 
-          border: 'none', 
-          borderRadius: '4px',
-          background: theme === 'light' ? 'var(--primary)' : 'transparent',
-          color: theme === 'light' ? '#fff' : 'inherit',
-          cursor: 'pointer'
-        }}
-      >
-        ☀️
-      </button>
-      <button 
-        onClick={() => setTheme('dark')} 
-        title="Mode Gelap" 
-        style={{ 
-          padding: '6px 10px', 
-          border: 'none', 
-          borderRadius: '4px',
-          background: theme === 'dark' ? 'var(--primary)' : 'transparent',
-          color: theme === 'dark' ? '#fff' : 'inherit',
-          cursor: 'pointer'
-        }}
-      >
-        🌙
-      </button>
-      <button 
-        onClick={() => setTheme('system')} 
-        title="Ikuti Sistem" 
-        style={{ 
-          padding: '6px 10px', 
-          border: 'none', 
-          borderRadius: '4px',
-          background: theme === 'system' ? 'var(--primary)' : 'transparent',
-          color: theme === 'system' ? '#fff' : 'inherit',
-          cursor: 'pointer'
-        }}
-      >
-        💻
-      </button>
+    <div className="theme-toggle" role="group" aria-label="Pilih tema tampilan">
+      {THEMES.map(({ value, emoji, label }) => (
+        <button
+          key={value}
+          className={`theme-btn${theme === value ? ' active' : ''}`}
+          onClick={() => setTheme(value)}
+          title={label}
+          aria-label={label}
+          aria-pressed={theme === value}
+        >
+          {emoji}
+        </button>
+      ))}
     </div>
   );
 }
