@@ -3,21 +3,14 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
 
-import { useTheme } from '@/context/ThemeContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
   const nav = useNavigate();
   const location = useLocation();
-
-  const toggleTheme = () => {
-    if (theme === 'light') setTheme('dark');
-    else if (theme === 'dark') setTheme('system');
-    else setTheme('light');
-  };
 
   // Tutup menu saat route berubah
   useEffect(() => { setOpen(false); setDropOpen(false); }, [location.pathname]);
@@ -50,9 +43,7 @@ export default function Navbar() {
             <NavLink to="/puzzle" onClick={close}>Puzzle</NavLink>
             <NavLink to="/ai-tutor" onClick={close}>AI Tutor</NavLink>
             <NavLink to="/papan-skor" onClick={close}>Papan Skor</NavLink>
-            <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme">
-              {theme === 'light' ? '🌙' : theme === 'dark' ? '☀️' : '💻'}
-            </button>
+            <ThemeToggle />
             <div className="nav-user">
               {user ? (
                 <>

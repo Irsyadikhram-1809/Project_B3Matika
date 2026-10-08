@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
+import ThemeToggle from '@/components/ThemeToggle';
 import NotFound from '@/components/NotFound';
 import { useState, useEffect } from 'react';
 import './AdminGuard.css';
@@ -57,11 +58,7 @@ export default function AdminGuard({ children }) {
           </div>
           
           <div className="admin-topbar-right">
-            <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-subtle, #f1f5f9)', padding: '4px', borderRadius: '8px' }}>
-              <button className={`btn btn-sm ${theme === 'light' ? '' : 'btn-outline'}`} onClick={() => setTheme('light')} title="Mode Terang" style={{ padding: '4px 8px', border: 'none' }}>☀️</button>
-              <button className={`btn btn-sm ${theme === 'dark' ? '' : 'btn-outline'}`} onClick={() => setTheme('dark')} title="Mode Gelap" style={{ padding: '4px 8px', border: 'none' }}>🌙</button>
-              <button className={`btn btn-sm ${theme === 'system' ? '' : 'btn-outline'}`} onClick={() => setTheme('system')} title="Sistem" style={{ padding: '4px 8px', border: 'none' }}>💻</button>
-            </div>
+            <ThemeToggle />
             
             <div className="admin-user-info">
               <div className="admin-user-avatar">

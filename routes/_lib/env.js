@@ -98,8 +98,11 @@ try {
   }
 
 } catch (error) {
-  console.error(error.message);
-  throw error; // Fail closed securely without killing the process immediately on serverless
+  console.error('CRITICAL ENV ERROR:', error.message);
+  // Do NOT throw here, otherwise the serverless function fails to initialize 
+  // and Vercel returns a 500 error WITHOUT CORS headers, causing "Failed to fetch".
+  // Let the endpoints fail gracefully when they try to use the missing variables.
+  ENV._error = error.message; 
 }
 
 export default ENV;
