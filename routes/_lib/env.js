@@ -57,6 +57,17 @@ try {
     EMAIL_USER: requireEnv('EMAIL_USER'),
     EMAIL_PASS: requireEnv('EMAIL_PASS'),
     OTP_SECRET: requireEnv('OTP_SECRET'),
+
+    // D2. Email provider (mailer.js) — opsional, tidak wajib untuk keberjalanan
+    EMAIL_PROVIDER  : (process.env.EMAIL_PROVIDER  || 'gmail').toLowerCase().trim(),
+    EMAIL_FROM_NAME : (process.env.EMAIL_FROM_NAME || 'B3Matika').trim(),
+    EMAIL_REPLY_TO  : (process.env.EMAIL_REPLY_TO  || '').trim(),
+    SMTP_HOST       : process.env.SMTP_HOST || '',
+    SMTP_PORT       : parseInt(process.env.SMTP_PORT || '587', 10),
+    SMTP_SECURE     : process.env.SMTP_SECURE === 'true',
+    SMTP_USER       : process.env.SMTP_USER || '',
+    SMTP_PASS       : process.env.SMTP_PASS || '',
+    RESEND_API_KEY  : process.env.RESEND_API_KEY || null,
     SUPABASE_URL: requireEnv('SUPABASE_URL'),
     SUPABASE_SERVICE_ROLE_KEY: requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
     JWT_SECRET: requireEnv('JWT_SECRET'),
