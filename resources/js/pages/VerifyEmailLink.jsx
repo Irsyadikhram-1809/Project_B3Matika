@@ -2,6 +2,9 @@
  * resources/js/pages/VerifyEmailLink.jsx
  * Halaman verifikasi email melalui tautan di email.
  * GET /api/auth/verify-email-link?token=...&email=...
+ *
+ * DESAIN: Halaman berdiri sendiri (tanpa Navbar/Footer situs).
+ * Semua warna memakai CSS design tokens agar otomatis benar di mode terang, gelap, dan system.
  */
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -12,71 +15,79 @@ export default function VerifyEmailLink() {
   const [params] = useSearchParams();
   const token = params.get('token');
   const email = params.get('email');
-  const [state, setState] = useState('loading'); // loading, success, error
+  const [state, setState] = useState('loading'); // loading | success | error
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
     if (!token || !email) {
-      setMsg('Tautan verifikasi tidak lengkap.');
+      setMsg('Tautan verifikasi tidak lengkap. Pastikan Anda membuka tautan secara utuh dari email.');
       setState('error');
       return;
     }
 
-    // Call API
-    api(`/auth/verify-email-link?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`)
+    api(
+      `/auth/verify-email-link?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
+    )
       .then((res) => {
-        setMsg(res.message || 'Email berhasil diverifikasi!');
+        setMsg(res.message || 'Email berhasil diverifikasi! Silakan masuk ke akun Anda.');
         setState('success');
       })
       .catch((err) => {
-        setMsg(err.message || 'Gagal memverifikasi email.');
+        setMsg(err.message || 'Gagal memverifikasi email. Tautan mungkin sudah kedaluwarsa atau sudah pernah dipakai.');
         setState('error');
       });
   }, [token, email]);
 
   return (
-    <div style={{
-      minHeight: '100vh', background: '#f8fafc',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px'
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: '16px', padding: '40px',
-        maxWidth: '400px', width: '100%',
-        boxShadow: '0 8px 32px rgba(37,99,235,0.10)',
-        border: '1px solid #e2e8f0', textAlign: 'center'
-      }}>
-        <div style={{ marginBottom: '28px' }}>
-          <Logo size={48} tagline={false} />
+    /* Latar mengikuti token --bg sehingga otomatis benar di dark/light/system */
+    <div className="confirm-shell">
+      <div className="confirm-card" style={{ maxWidth: 420 }}>
+        {/* Header logo */}
+        <div className="confirm-header">
+          <Logo size={44} tagline={false} />
+          <h2 className="confirm-card-title">Verifikasi Email</h2>
+          <p className="confirm-card-subtitle">B3Matika — Belajar, Berlatih, Bermain</p>
         </div>
 
+        {/* ── State: loading ── */}
         {state === 'loading' && (
-          <div style={{ padding: '32px 0', color: '#64748b' }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-            <h3 style={{ color: '#1e293b', margin: '0 0 8px' }}>Memverifikasi Tautan...</h3>
-            <p style={{ margin: 0 }}>Harap tunggu sebentar.</p>
+          <div className="confirm-status">
+            <div className="confirm-status-icon" aria-hidden="true">⏳</div>
+            <h3 className="confirm-status-title">Memverifikasi Tautan…</h3>
+            <p className="confirm-status-desc">Harap tunggu sebentar.</p>
           </div>
         )}
 
+        {/* ── State: success ── */}
         {state === 'success' && (
-          <div style={{ padding: '16px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
-            <h3 style={{ margin: '0 0 8px', color: '#16a34a' }}>Berhasil!</h3>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 24px' }}>{msg}</p>
-            <Link to="/masuk" className="btn btn-block" style={{ textDecoration: 'none' }}>
+          <div className="confirm-status">
+            <div className="confirm-status-icon" aria-hidden="true">✅</div>
+            <h3 className="confirm-status-title" style={{ color: 'var(--ok-text)' }}>
+              Berhasil!
+            </h3>
+            <p className="confirm-status-desc">{msg}</p>
+            <Link to="/masuk" className="btn btn-block" style={{ marginTop: 20 }}>
               Masuk Sekarang
             </Link>
           </div>
         )}
 
+        {/* ── State: error ── */}
         {state === 'error' && (
-          <div style={{ padding: '16px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
-            <h3 style={{ margin: '0 0 8px', color: '#dc2626' }}>Gagal Verifikasi</h3>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 24px' }}>{msg}</p>
-            <Link to="/daftar" className="btn btn-block btn-outline" style={{ textDecoration: 'none' }}>
-              Kembali ke Pendaftaran
-            </Link>
+          <div className="confirm-status">
+            <div className="confirm-status-icon" aria-hidden="true">⚠️</div>
+            <h3 className="confirm-status-title" style={{ color: 'var(--bad)' }}>
+              Gagal Verifikasi
+            </h3>
+            <p className="confirm-status-desc">{msg}</p>
+            <div className="confirm-status-actions">
+              <Link to="/daftar" className="btn btn-outline">
+                Kembali ke Pendaftaran
+              </Link>
+              <Link to="/" className="btn btn-ghost">
+                Beranda
+              </Link>
+            </div>
           </div>
         )}
       </div>

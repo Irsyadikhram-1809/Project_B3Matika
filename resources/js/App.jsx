@@ -35,6 +35,10 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const isAdminPath = loc.pathname.startsWith('/panel-rahasia');
+  // Halaman standalone: tanpa Navbar, Footer, MathBackground
+  const isStandalonePage = isAdminPath
+    || loc.pathname === '/konfirmasi-admin'
+    || loc.pathname === '/verifikasi-email';
 
   useEffect(() => {
     if (ready && user) {
@@ -51,9 +55,9 @@ export default function App() {
     <>
       {showWelcome && <WelcomeToast user={user} onClose={() => setShowWelcome(false)} />}
       {showSplash && <BrandIntro splash once onFinish={() => setShowSplash(false)} />}
-      {!isAdminPath && <MathBackground />}
-      {!isAdminPath && <Navbar />}
-      <main className={isAdminPath ? "" : "container page"}>
+      {!isStandalonePage && <MathBackground />}
+      {!isStandalonePage && <Navbar />}
+      <main className={isStandalonePage ? "" : "container page"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/materi" element={<Materi />} />
@@ -84,8 +88,9 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!isAdminPath && <footer className="footer">© {new Date().getFullYear()} B3Matika — Belajar, Berlatih, Bermain</footer>}
-      {!isAdminPath && <BackToTop />}
+      {!isStandalonePage && <footer className="footer">© {new Date().getFullYear()} B3Matika — Belajar, Berlatih, Bermain</footer>}
+      {!isStandalonePage && <BackToTop />}
     </>
   );
 }
+

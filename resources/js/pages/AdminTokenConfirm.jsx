@@ -4,12 +4,34 @@
  *
  * Dibuka oleh superadmin dari link email.
  * GET: validasi link dan tampilkan info pendaftar
- * POST: konfirmasi aksi (approve/reject)
+ * POST: konfirmasi aksi (approve/reject) — aksi dilakukan lewat tombol, BUKAN otomatis
+ *
+ * DESAIN: Halaman berdiri sendiri (tanpa Navbar/Footer situs).
+ * Semua warna memakai CSS design tokens agar otomatis benar di mode terang, gelap, dan system.
  */
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
+
+/* Komponen reusable: kartu status (loading / success / error / warning) */
+function StatusCard({ icon, title, desc, titleColor, children }) {
+  return (
+    <div className="confirm-status">
+      <div className="confirm-status-icon" aria-hidden="true">{icon}</div>
+      {title && (
+        <h3
+          className="confirm-status-title"
+          style={titleColor ? { color: titleColor } : undefined}
+        >
+          {title}
+        </h3>
+      )}
+      {desc && <p className="confirm-status-desc">{desc}</p>}
+      {children}
+    </div>
+  );
+}
 
 export default function AdminTokenConfirm() {
   const [params] = useSearchParams();
@@ -24,21 +46,23 @@ export default function AdminTokenConfirm() {
 
   useEffect(() => {
     if (!action || !token || !id) {
-      setMsg('Tautan tidak lengkap atau tidak valid.');
+      setMsg('Tautan tidak lengkap atau tidak valid. Pastikan Anda membuka tautan secara utuh dari email.');
       setState('error');
       return;
     }
 
-    api(`/admin/confirm-token?action=${encodeURIComponent(action)}&token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`)
+    api(
+      `/admin/confirm-token?action=${encodeURIComponent(action)}&token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`
+    )
       .then((data) => {
         setInfo(data.invite);
         setState('confirm');
       })
       .catch((err) => {
-        setMsg(err.message || 'Tautan tidak valid atau sudah kedaluwarsa.');
+        setMsg(err.message || 'Tautan tidak valid, sudah dipakai, atau telah kedaluwarsa.');
         setState('error');
       });
-  }, []);
+  }, []);                     // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleConfirm() {
     setBusy(true);
@@ -50,7 +74,8 @@ export default function AdminTokenConfirm() {
       setMsg(data.message);
       setState('success');
     } catch (err) {
-      setMsg(err.message || 'Terjadi kesalahan.');
+      setMsg(err.message || 'Terjadi kesalahan saat memproses. Coba lagi.');
+      // Tetap di state confirm agar tombol bisa dicoba ulang
     } finally {
       setBusy(false);
     }
@@ -59,115 +84,101 @@ export default function AdminTokenConfirm() {
   const isApprove = action === 'approve';
 
   return (
-    <div style={{
-      minHeight: '100vh', background: '#f8fafc',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '24px'
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: '16px', padding: '40px',
-        maxWidth: '480px', width: '100%',
-        boxShadow: '0 8px 32px rgba(37,99,235,0.10)',
-        border: '1px solid #e2e8f0',
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <Logo size={48} tagline={false} />
-          <h2 style={{ margin: '16px 0 4px', color: '#1e293b' }}>
+    /* Latar mengikuti token --bg sehingga otomatis benar di dark/light */
+    <div className="confirm-shell">
+      <div className="confirm-card">
+        {/* Header logo — warna mengikuti CSS tokens, bukan hardcode */}
+        <div className="confirm-header">
+          <Logo size={44} tagline={false} />
+          <h2 className="confirm-card-title">
             {isApprove ? '✅ Konfirmasi Persetujuan Token' : '❌ Konfirmasi Penolakan'}
           </h2>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-            Panel Admin B3Matika
-          </p>
+          <p className="confirm-card-subtitle">Panel Admin B3Matika</p>
         </div>
 
+        {/* ── State: loading ── */}
         {state === 'loading' && (
-          <div style={{ textAlign: 'center', padding: '32px 0', color: '#64748b' }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
-            <p>Memvalidasi tautan…</p>
-          </div>
+          <StatusCard
+            icon="⏳"
+            title="Memvalidasi tautan…"
+            desc="Mohon tunggu sebentar."
+          />
         )}
 
+        {/* ── State: confirm ── */}
         {state === 'confirm' && info && (
           <>
-            <div style={{
-              background: '#f8fafc', borderRadius: '10px',
-              padding: '20px', marginBottom: '24px',
-              border: '1px solid #e2e8f0',
-            }}>
-              <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Data Pendaftar</p>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+            {/* Info pendaftar */}
+            <div className="confirm-info-box">
+              <p className="confirm-info-label">Data Pendaftar</p>
+              <table className="confirm-table">
                 <tbody>
                   {[
-                    ['Nama', info.nama],
+                    ['Nama',     info.nama],
                     ['Username', `@${info.username}`],
-                    ['Email', info.email],
+                    ['Email',    info.email],
                   ].map(([k, v]) => (
                     <tr key={k}>
-                      <td style={{ padding: '6px 0', color: '#64748b', width: '90px' }}>{k}</td>
-                      <td style={{ padding: '6px 0', fontWeight: 600, color: '#1e293b' }}>{v}</td>
+                      <td className="confirm-table-key">{k}</td>
+                      <td className="confirm-table-val">{v}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div style={{
-              background: isApprove ? '#f0fdf4' : '#fef2f2',
-              border: `1px solid ${isApprove ? '#86efac' : '#fca5a5'}`,
-              borderRadius: '8px', padding: '14px', marginBottom: '24px',
-              fontSize: '14px', color: isApprove ? '#15803d' : '#dc2626',
-            }}>
+            {/* Peringatan tindakan */}
+            <div className={`confirm-action-warn ${isApprove ? 'confirm-warn-ok' : 'confirm-warn-bad'}`}>
               {isApprove
                 ? '⚠️ Dengan menyetujui, sistem akan mengirimkan token admin ke email pendaftar.'
                 : '⚠️ Dengan menolak, pendaftar akan menerima email pemberitahuan penolakan.'}
             </div>
 
+            {/* Pesan error inline (jika POST gagal) */}
             {msg && (
-              <div style={{
-                background: '#fef2f2', border: '1px solid #fca5a5',
-                borderRadius: '8px', padding: '12px', marginBottom: '16px',
-                color: '#dc2626', fontSize: '14px',
-              }}>
-                {msg}
-              </div>
+              <div className="alert" role="alert">{msg}</div>
             )}
 
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={handleConfirm}
-                disabled={busy}
-                style={{
-                  flex: 1, padding: '14px',
-                  background: isApprove ? '#16a34a' : '#dc2626',
-                  color: '#fff', border: 'none', borderRadius: '8px',
-                  fontSize: '15px', fontWeight: 700, cursor: busy ? 'not-allowed' : 'pointer',
-                  opacity: busy ? 0.7 : 1,
-                }}
-              >
-                {busy ? 'Memproses…' : isApprove ? '✅ Setujui & Kirim Token' : '❌ Tolak Permintaan'}
-              </button>
-            </div>
+            <button
+              className={`btn btn-block ${isApprove ? 'btn-ok-action' : 'btn-danger'}`}
+              onClick={handleConfirm}
+              disabled={busy}
+              aria-busy={busy}
+            >
+              {busy
+                ? '⏳ Memproses…'
+                : isApprove
+                  ? '✅ Setujui & Kirim Token'
+                  : '❌ Tolak Permintaan'}
+            </button>
           </>
         )}
 
+        {/* ── State: success ── */}
         {state === 'success' && (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>
-              {isApprove ? '🎉' : '✅'}
-            </div>
-            <h3 style={{ margin: '0 0 8px', color: '#1e293b' }}>
-              {isApprove ? 'Token Berhasil Dikirim!' : 'Permintaan Ditolak'}
-            </h3>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>{msg}</p>
-          </div>
+          <StatusCard
+            icon={isApprove ? '🎉' : '✅'}
+            title={isApprove ? 'Token Berhasil Dikirim!' : 'Permintaan Ditolak'}
+            desc={msg}
+          >
+            <Link to="/" className="btn btn-block" style={{ marginTop: 20 }}>
+              Kembali ke B3Matika
+            </Link>
+          </StatusCard>
         )}
 
+        {/* ── State: error ── */}
         {state === 'error' && (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
-            <h3 style={{ margin: '0 0 8px', color: '#dc2626' }}>Tautan Tidak Valid</h3>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>{msg}</p>
-          </div>
+          <StatusCard
+            icon="⚠️"
+            title="Tautan Tidak Valid"
+            titleColor="var(--bad)"
+            desc={msg}
+          >
+            <Link to="/" className="btn btn-block btn-outline" style={{ marginTop: 20 }}>
+              Kembali ke B3Matika
+            </Link>
+          </StatusCard>
         )}
       </div>
     </div>

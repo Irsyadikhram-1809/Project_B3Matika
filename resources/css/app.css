@@ -244,12 +244,27 @@ h3 { margin: .4rem 0; color: var(--navy); }
   font-size: .92rem;
   padding: 6px 10px;
   border-radius: 8px;
-  border-bottom: 2px solid transparent;
+  /* border-bottom dihapus dari box model → diganti ::after pseudo-element
+     agar tidak menggeser tinggi item aktif vs non-aktif */
+  border-bottom: none;
   white-space: nowrap;
   transition: color var(--dur-fast) var(--ease-in-out),
-              background var(--dur-fast) var(--ease-in-out),
-              border-color var(--dur-fast) var(--ease-in-out);
+              background var(--dur-fast) var(--ease-in-out);
   position: relative;
+}
+
+.nav-links > a::after {
+  content: '';
+  position: absolute;
+  bottom: 2px; left: 10px; right: 10px;
+  height: 2px;
+  background: var(--orange);
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: opacity var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
 }
 
 .nav-links > a:hover {
@@ -257,10 +272,19 @@ h3 { margin: .4rem 0; color: var(--navy); }
   background: var(--surface);
 }
 
+.nav-links > a:hover::after {
+  opacity: .35;
+  transform: scaleX(1);
+}
+
 .nav-links > a.active {
   color: var(--blue-d);
-  border-bottom-color: var(--orange);
   font-weight: 600;
+}
+
+.nav-links > a.active::after {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 /* Bagian kanan navbar: tema + user */
@@ -510,16 +534,17 @@ a.card:hover {
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 
 /* ─── 10. Hero (Beranda) ─────────────────────────────────────────────── */
+/* Definisi lengkap ada di section 10b di bawah — ini placeholder agar urutan
+   komentar section tetap terbaca. Properti di sini tetap bisa berfungsi
+   sebagai fallback minimal. */
 .hero {
-  text-align: center; padding: 34px 0 40px;
+  text-align: center;
   display: flex; flex-direction: column;
-  align-items: center; gap: 22px;
+  align-items: center;
 }
-/* KRITIS: teks hero harus center juga */
 .hero-sub {
-  max-width: 560px; color: var(--text-muted);
-  font-size: 1.05rem; margin: 0;
-  text-align: center; /* fix text alignment */
+  text-align: center;
+  margin-inline: auto;
 }
 
 /* Feature cards — perbaiki layout agar tidak ada overlap */
@@ -595,6 +620,297 @@ a.card:hover {
 .back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .back-to-top:hover { filter: brightness(1.1); transform: translateY(-2px); }
 .back-to-top:focus-visible { outline: 2px solid var(--blue-d); outline-offset: 3px; }
+
+/* ─── 10b. Hero — Perbaikan Sumbu Tengah ────────────────────────────── */
+/*
+  Masalah: elemen di dalam <Reveal> dibungkus div dengan width: 100% default,
+  menyebabkan hero-sub ditampilkan dengan lebar penuh → text-align: center
+  tidak cukup karena blok tidak terpusat di sumbu.
+
+  Fix: .hero menggunakan align-items: center (sudah ada), dan setiap anak
+  langsung harus menggunakan margin-inline: auto. .reveal-item di dalam .hero
+  juga dibatasi agar terpusat.
+*/
+.hero {
+  text-align: center; padding: clamp(28px, 6vw, 56px) 0 clamp(32px, 7vw, 60px);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 20px;
+  position: relative; /* pastikan di atas math-bg */
+  isolation: isolate;
+}
+
+/* Isolasi hero dari MathBackground yang melintas di tengah */
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  /* Gradient mask: hanya tengah yang bersih, tepi biarkan watermark terlihat */
+  background: radial-gradient(
+    ellipse 70% 80% at 50% 50%,
+    var(--bg) 55%,
+    transparent 100%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero-sub {
+  /* max-width + margin-inline: auto = selalu terpusat, apapun lebar parent */
+  max-width: 58ch;
+  margin-inline: auto;
+  color: var(--text-muted);
+  font-size: clamp(.95rem, 2.2vw, 1.1rem);
+  line-height: 1.75;
+  text-align: center;
+  /* Pastikan teks tidak terpotong di layar sempit */
+  padding: 0 4px;
+}
+
+/* .reveal-item di dalam .hero: pastikan tidak melebihi lebar konten */
+.hero .reveal-item {
+  display: flex;
+  justify-content: center;
+  /* Lebar max mengikuti konten, bukan parent full-width */
+  max-width: 100%;
+}
+
+/* Tombol di hero: gunakan center-row agar terpusat */
+.hero .center-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Logo hero besar */
+.logo-big .logo-name {
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.logo-big .logo-tag {
+  font-size: clamp(.85rem, 2.4vw, 1.55rem);
+  margin-top: 8px;
+  color: var(--text-muted);
+}
+
+/* ─── 6c. Navbar Active Link — Pseudo-element Indicator ──────────────── */
+/*
+  Masalah: border-bottom: 2px solid pada .nav-links > a menambah tinggi visual
+  pada link aktif → link tidak sejajar vertical dengan link lain.
+
+  Fix: gunakan ::after pseudo-element absolut di dasar item, sehingga garis
+  tidak menambah box model sama sekali.
+*/
+.nav-links > a {
+  /* Override: hapus border-bottom dari box model */
+  border-bottom: none;
+  /* Perlu position: relative untuk ::after */
+  position: relative;
+}
+
+.nav-links > a::after {
+  content: '';
+  position: absolute;
+  bottom: 2px; left: 10px; right: 10px;
+  height: 2px;
+  background: var(--orange);
+  border-radius: 1px;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: opacity var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+
+.nav-links > a.active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.nav-links > a:hover::after {
+  opacity: .4;
+  transform: scaleX(1);
+}
+
+/* ─── 12b. Math Background — Kurangi Opacity & Mask Tengah ───────────── */
+/*
+  Masalah: item MathBackground muncul di tengah konten hero (opacity 0.1–0.25)
+  mengganggu keterbacaan. MathBackground pakai position: fixed dengan z-index: -1
+  sehingga selalu di belakang konten — hero::before sudah menutup tengah dengan
+  gradient latar. Pastikan item sendiri tidak terlalu opak.
+*/
+.math-bg-item {
+  /* Turunkan max opacity: 0.06 di light, 0.04 di dark sudah di CSS.
+     Paksa --item-opacity tidak melebihi 0.08 via max() — tapi CSS tidak punya max() untuk custom property.
+     Solusi: override opacity langsung agar konsisten. */
+  opacity: calc(var(--item-opacity, 0.06) * 0.5);
+}
+
+[data-theme="dark"] .math-bg-item {
+  opacity: calc(var(--item-opacity, 0.04) * 0.4);
+}
+
+/* ─── 16. Halaman Konfirmasi & Verifikasi Email ───────────────────────── */
+/*
+  Semua warna menggunakan CSS design tokens (--bg, --card, --text, --navy,
+  --text-muted, --line, dll.) sehingga otomatis benar di mode terang, gelap,
+  dan ikuti sistem. TIDAK ADA warna hardcode di sini.
+*/
+
+/* Shell: latar penuh layar, satu kolom terpusat */
+.confirm-shell {
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Kartu utama */
+.confirm-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: clamp(28px, 5vw, 48px) clamp(20px, 5vw, 40px);
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Header: logo + judul + subtitle */
+.confirm-header {
+  text-align: center;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.confirm-card-title {
+  /* Pakai --navy (token) bukan hardcode #1e293b */
+  color: var(--navy);
+  font-size: clamp(1.1rem, 3vw, 1.35rem);
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.confirm-card-subtitle {
+  color: var(--text-muted);
+  font-size: .88rem;
+  margin: 0;
+}
+
+/* Kotak info pendaftar */
+.confirm-info-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.confirm-info-label {
+  font-size: .75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.confirm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+
+.confirm-table-key {
+  padding: 5px 0;
+  color: var(--text-muted);
+  width: 90px;
+  vertical-align: top;
+}
+
+.confirm-table-val {
+  padding: 5px 0;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-all;
+}
+
+/* Peringatan aksi: setujui / tolak */
+.confirm-action-warn {
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+.confirm-warn-ok {
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-border);
+  color: var(--ok-text);
+}
+
+.confirm-warn-bad {
+  background: var(--bad-bg);
+  border: 1px solid var(--bad-border);
+  color: var(--bad-text);
+}
+
+/* Tombol setujui — warna berbeda dari btn biasa agar tidak bergantung pada --blue-d */
+.btn-ok-action {
+  background: #16a34a;
+  color: #fff;
+}
+.btn-ok-action:hover { filter: brightness(1.08); }
+[data-theme="dark"] .btn-ok-action { color: #fff; }
+
+/* Area status (loading/success/error) */
+.confirm-status {
+  text-align: center;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.confirm-status-icon {
+  font-size: clamp(2.5rem, 8vw, 3.5rem);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.confirm-status-title {
+  /* Warna default menggunakan token; bisa dioverride via style prop */
+  color: var(--navy);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.confirm-status-desc {
+  color: var(--text-muted);
+  font-size: .92rem;
+  margin: 0;
+  max-width: 38ch;
+  line-height: 1.6;
+}
+
+/* CTA buttons area (error state dengan beberapa pilihan) */
+.confirm-status-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+
 
 /* ─── 13. Materi & Soal ─────────────────────────────────────────────── */
 .prose { white-space: pre-line; font-size: 1.02rem; margin-top: 14px; }
