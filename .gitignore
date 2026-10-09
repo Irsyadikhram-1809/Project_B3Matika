@@ -27,6 +27,7 @@ auth.json
 # ==========================================
 # DATABASE & MIGRATION FILES (PRIVASI)
 # ==========================================
+database/
 *.sql
 migrate_*.js
 migration_*.js
