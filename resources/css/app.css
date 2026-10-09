@@ -2239,3 +2239,11 @@ td.aksi-cell {
   }
 }
 
+/* Perbaikan drawer mobile terpotong:
+backdrop-filter membuat .navbar menjadi containing block bagi elemen fixed
+  (.nav-links), sehingga drawer menyusut setinggi navbar saat halaman digulir.
+   Saat menu terbuka, matikan blur pada navbar. */
+.navbar.scrolled.menu-open {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}

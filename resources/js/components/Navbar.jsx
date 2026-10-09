@@ -71,7 +71,7 @@ export default function Navbar() {
         aria-valuemax={100}
       />
 
-      <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
+      <header className={`navbar${scrolled ? ' scrolled' : ''}${open ? ' menu-open' : ''}`}>
         <div className="container nav-inner">
           {/* Logo */}
           <Link to="/" onClick={close} aria-label="Beranda B3Matika" className="nav-logo-link">
