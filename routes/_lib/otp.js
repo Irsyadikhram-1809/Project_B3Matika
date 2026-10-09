@@ -152,7 +152,7 @@ function otpBox(otp) {
  * @param {string|null} linkToken - Token link verifikasi (null jika tidak ada)
  * @throws {Error} jika SMTP gagal
  */
-export async function kirimOTP(to, otp, tujuan, linkToken = null) {
+export async function kirimOTP(to, otp, tujuan, linkToken = null, isAdmin = false) {
   const linkHref = linkToken
     ? `${env.APP_BASE_URL}/verifikasi-email?token=${encodeURIComponent(linkToken)}&email=${encodeURIComponent(to)}`
     : null;
@@ -172,6 +172,15 @@ export async function kirimOTP(to, otp, tujuan, linkToken = null) {
     ? `\nAtau verifikasi lewat tautan berikut (berlaku 10 menit):\n${linkHref}\n`
     : '';
 
+  // Petunjuk satu kalimat untuk pendaftar admin — tanpa path rahasia
+  const adminNote = isAdmin
+    ? `<p style="font-size:13px;color:#1d4ed8;background:#eff6ff;border-radius:7px;padding:12px 16px;margin:16px 0 0;font-family:'Segoe UI',Arial,sans-serif;line-height:1.6;">Setelah verifikasi selesai, masuk melalui halaman login admin yang Anda terima di email terpisah.</p>`
+    : '';
+
+  const adminNoteText = isAdmin
+    ? `\nCatatan: Setelah verifikasi selesai, masuk melalui halaman login admin yang Anda terima di email terpisah.\n`
+    : '';
+
   const html = wrapHtml(`
     <h2 style="margin:0 0 12px;color:#1e293b;font-size:20px;font-family:'Segoe UI',Arial,sans-serif;">Verifikasi ${esc(tujuan)} Anda</h2>
     <p style="color:#475569;font-size:15px;line-height:1.65;margin:0 0 20px;font-family:'Segoe UI',Arial,sans-serif;">
@@ -185,6 +194,7 @@ export async function kirimOTP(to, otp, tujuan, linkToken = null) {
       Kode berlaku selama <strong>10 menit</strong>.
       Jangan bagikan kode ini kepada siapa pun, termasuk pihak yang mengaku dari B3Matika.
     </p>
+    ${adminNote}
   `);
 
   const text =
@@ -193,6 +203,7 @@ export async function kirimOTP(to, otp, tujuan, linkToken = null) {
     `Kode verifikasi Anda: ${otp}\n` +
     `Berlaku 10 menit. Jangan bagikan ke siapa pun.\n` +
     linkFallback +
+    adminNoteText +
     `\nB3Matika — Belajar, Berlatih, Bermain`;
 
   await sendMail({
@@ -204,7 +215,53 @@ export async function kirimOTP(to, otp, tujuan, linkToken = null) {
   });
 }
 
-// ─── 2. Email Notifikasi Umum ─────────────────────────────────────────────────
+// ─── 2. Email Konfirmasi Pasca-Verifikasi Admin ───────────────────────────────
+/**
+ * Dikirim ke pendaftar admin setelah akun berhasil diverifikasi.
+ * Berisi tombol masuk ke panel admin dan tautan teks cadangan.
+ * @throws {Error} jika SMTP gagal (ditangkap oleh pemanggil)
+ */
+export async function kirimEmailKonfirmasiAdmin(to, displayName) {
+  const loginUrl = `${env.APP_BASE_URL}/panel-rahasia/login`;
+
+  const html = wrapHtml(`
+    <h2 style="margin:0 0 12px;color:#1e293b;font-size:20px;font-family:'Segoe UI',Arial,sans-serif;">Akun Admin Aktif</h2>
+    <p style="color:#475569;font-size:15px;line-height:1.65;margin:0 0 20px;font-family:'Segoe UI',Arial,sans-serif;">
+      Halo <strong>${esc(displayName)}</strong>,<br>
+      Akun admin B3Matika Anda telah aktif dan siap digunakan.
+    </p>
+
+    <div style="text-align:center;margin:24px 0;">
+      ${btnPrimary(loginUrl, 'Masuk ke Panel Admin')}
+    </div>
+
+    <p style="font-size:12px;color:#94a3b8;text-align:center;margin:16px 0 0;font-family:'Segoe UI',Arial,sans-serif;line-height:1.6;">
+      Jika tombol tidak berfungsi, salin tautan berikut ke browser:<br>
+      <a href="${esc(loginUrl)}" style="color:#1d4ed8;word-break:break-all;">${esc(loginUrl)}</a>
+    </p>
+  `, 'Email ini dikirim otomatis karena akun admin Anda baru saja diverifikasi.');
+
+  const text =
+    `Akun Admin B3Matika Aktif\n` +
+    `\n` +
+    `Halo ${displayName},\n` +
+    `\n` +
+    `Akun admin B3Matika Anda telah aktif dan siap digunakan.\n` +
+    `\n` +
+    `Masuk ke panel admin melalui tautan berikut:\n` +
+    `${loginUrl}\n` +
+    `\n` +
+    `B3Matika — Belajar, Berlatih, Bermain`;
+
+  await sendMail({
+    to,
+    subject: `Akun admin B3Matika Anda telah aktif`,
+    text,
+    html,
+  });
+}
+
+// ─── 3. Email Notifikasi Umum ─────────────────────────────────────────────────
 /**
  * Kirim email HTML umum. Error dilempar ulang agar pemanggil tahu.
  * @throws {Error} jika SMTP gagal

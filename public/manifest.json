@@ -1,0 +1,43 @@
+{
+  "name": "B3Matika — Belajar, Berlatih, Bermain",
+  "short_name": "B3Matika",
+  "description": "Platform belajar matematika interaktif untuk SD, SMP, hingga SMA/SMK dengan AI Tutor dan mini-games.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#1b2468",
+  "orientation": "portrait-primary",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/logo-b3.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-b3.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Materi",
+      "url": "/materi",
+      "description": "Buka halaman materi belajar"
+    },
+    {
+      "name": "Games",
+      "url": "/games",
+      "description": "Buka halaman games matematika"
+    },
+    {
+      "name": "AI Tutor",
+      "url": "/ai-tutor",
+      "description": "Chat dengan MathTutor AI"
+    }
+  ],
+  "categories": ["education", "games"]
+}

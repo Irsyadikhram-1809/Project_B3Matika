@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -19,6 +19,20 @@ export default function AuthForm({ mode, admin = false }) {
   const [otpMode, setOtpMode] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
 
+  // State sukses verifikasi OTP
+  const [verifySuccess, setVerifySuccess] = useState(null); // { role, redirectTo, message }
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
+
   const startResendTimer = () => {
     setResendTimer(60);
     const interval = setInterval(() => {
@@ -36,6 +50,25 @@ export default function AuthForm({ mode, admin = false }) {
     setOtpMode(false);
     setF(prev => ({ ...prev, otp: '' }));
     setErr('');
+  };
+
+  /** Mulai hitung mundur otomatis dan arahkan setelah selesai. */
+  const startCountdown = (seconds, to) => {
+    setCountdown(seconds);
+    countdownRef.current = setInterval(() => {
+      if (!mountedRef.current) {
+        clearInterval(countdownRef.current);
+        return;
+      }
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current);
+          nav(to, { replace: true });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
   
   if (user) return <Navigate to={admin ? '/panel-rahasia' : '/'} replace />;
@@ -96,11 +129,24 @@ export default function AuthForm({ mode, admin = false }) {
 
     setBusy(true);
     try {
-      const path = admin ? '/auth/admin-login' : mode === 'login' ? '/auth/login' : '/auth/register/verify';
-      const body = mode === 'register' ? { email: f.email, code: f.otp, name: f.name } : f;
-      const d = await api(path, { method: 'POST', body });
-      login(d.token, d.user);
-      nav(admin ? '/panel-rahasia' : '/');
+      if (mode === 'register') {
+        // Jalur verifikasi OTP — respons menyertakan role dan redirectTo dari server
+        const d = await api('/auth/register/verify', {
+          method: 'POST',
+          body: { email: f.email, code: f.otp, name: f.name },
+        });
+        // Tujuan pengalihan ditentukan server
+        const redirectTo = d.redirectTo || '/masuk';
+        const role = d.role || 'user';
+        setVerifySuccess({ role, redirectTo, message: d.message });
+        startCountdown(4, redirectTo);
+      } else {
+        // Login biasa
+        const path = admin ? '/auth/admin-login' : '/auth/login';
+        const d = await api(path, { method: 'POST', body: f });
+        login(d.token, d.user);
+        nav(admin ? '/panel-rahasia' : '/');
+      }
     } catch (e2) { setErr(e2.message); }
     setBusy(false);
   }
@@ -121,6 +167,48 @@ export default function AuthForm({ mode, admin = false }) {
     }
     setBusy(false);
   }
+
+  // ── Layar sukses setelah OTP berhasil ──────────────────────────────────────
+  if (verifySuccess) {
+    const isAdminSuccess = verifySuccess.role === 'admin';
+    return (
+      <div className="auth">
+        <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <div className="center mb"><Logo size={52} tagline={false} /></div>
+          <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }} aria-hidden="true">
+            {isAdminSuccess ? '🛡️' : '✅'}
+          </div>
+          <h2 className="center" style={{ color: 'var(--ok-text, #16a34a)', marginBottom: '0.75rem' }}>
+            {isAdminSuccess ? 'Akun Admin Aktif' : 'Akun Berhasil Dibuat'}
+          </h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+            {isAdminSuccess
+              ? 'Akun admin berhasil dibuat dan diverifikasi. Silakan masuk lewat halaman login admin.'
+              : 'Akun Anda berhasil dibuat dan diverifikasi. Silakan masuk.'}
+          </p>
+          <a
+            href={verifySuccess.redirectTo}
+            className="btn btn-block"
+            onClick={(e) => {
+              e.preventDefault();
+              if (countdownRef.current) clearInterval(countdownRef.current);
+              nav(verifySuccess.redirectTo, { replace: true });
+            }}
+          >
+            {isAdminSuccess ? 'Masuk ke Panel Admin' : 'Masuk Sekarang'}
+          </a>
+          <p className="small muted center mt" style={{ marginTop: '0.75rem' }}>
+            Mengalihkan otomatis dalam <strong>{countdown}</strong> detik…
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Tautan "Sudah punya akun? Masuk" — berbeda per tab ───────────────────
+  const loginLink = mode === 'register' && regType === 'admin'
+    ? '/panel-rahasia/login'
+    : '/masuk';
 
   return (
     <div className="auth">
@@ -147,11 +235,11 @@ export default function AuthForm({ mode, admin = false }) {
 
         {!otpMode && mode === 'register' && <label>Nama Lengkap<input value={f.name} onChange={set('name')} required maxLength={60} /></label>}
         {!otpMode && mode === 'register' && <label>Nama Pengguna (Username)<input value={f.username} onChange={set('username')} required maxLength={20} minLength={3} pattern="[a-zA-Z0-9_.]+" title="Hanya huruf, angka, titik, dan underscore" /></label>}
-        {!otpMode && <label>{mode === 'login' && !admin ? 'Nama Pengguna atau Email' : 'Email'}<input type={mode === 'login' && !admin ? 'text' : 'email'} value={f.email} onChange={set('email')} required /></label>}
+        {!otpMode && <label>{mode === 'login' && !admin ? 'Nama Pengguna atau Email' : 'Email'}<input type={mode === 'login' && !admin ? 'text' : 'email'} value={f.email} onChange={set('email')} required autoComplete="email" /></label>}
         
         {!otpMode && mode === 'register' && regType === 'admin' && adminFlow === 'input_token' && (
           <label>Token Khusus Admin
-            <input type="text" value={f.adminToken} onChange={set('adminToken')} required placeholder="Masukkan token dari email" />
+            <input type="text" value={f.adminToken} onChange={set('adminToken')} required placeholder="Masukkan token dari email" autoComplete="off" />
           </label>
         )}
 
@@ -162,7 +250,7 @@ export default function AuthForm({ mode, admin = false }) {
               {mode === 'login' && !admin && <Link to="/lupa-password" tabIndex="-1" style={{ fontSize: '0.85rem' }}>Lupa password?</Link>}
             </div>
             <div className="pw-wrapper">
-              <input type={showPw ? 'text' : 'password'} value={f.password} onChange={set('password')} required minLength={mode === 'register' ? 8 : 1} />
+              <input type={showPw ? 'text' : 'password'} value={f.password} onChange={set('password')} required minLength={mode === 'register' ? 8 : 1} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} />
               <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex="-1" aria-label="Toggle password">
                 {showPw ? '🙈' : '👁️'}
               </button>
@@ -173,7 +261,7 @@ export default function AuthForm({ mode, admin = false }) {
         {!otpMode && mode === 'register' && (
           <label>Ulangi Password
             <div className="pw-wrapper">
-              <input type={showPw ? 'text' : 'password'} value={f.password2} onChange={set('password2')} required minLength={8} />
+              <input type={showPw ? 'text' : 'password'} value={f.password2} onChange={set('password2')} required minLength={8} autoComplete="new-password" />
             </div>
           </label>
         )}
@@ -181,7 +269,17 @@ export default function AuthForm({ mode, admin = false }) {
         {otpMode && (
           <label>Kode OTP
             <div className="small muted">Kode telah dikirim ke {f.email}. Masukkan kode 6 digit. Atau klik tautan pada email.</div>
-            <input type="text" value={f.otp || ''} onChange={set('otp')} required maxLength={6} pattern="\d{6}" style={{ letterSpacing: '0.5em', textAlign: 'center', fontSize: '1.2em' }} />
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              value={f.otp || ''}
+              onChange={set('otp')}
+              required
+              maxLength={6}
+              pattern="\d{6}"
+              style={{ letterSpacing: '0.5em', textAlign: 'center', fontSize: '1.2em' }}
+            />
           </label>
         )}
         
@@ -196,7 +294,9 @@ export default function AuthForm({ mode, admin = false }) {
         
         {!admin && !otpMode && (
           <p className="center small muted mt">
-            {mode === 'login' ? <>Belum punya akun? <Link to="/daftar">Daftar</Link></> : <>Sudah punya akun? <Link to="/masuk">Masuk</Link></>}
+            {mode === 'login'
+              ? <>Belum punya akun? <Link to="/daftar">Daftar</Link></>
+              : <>Sudah punya akun? <Link to={loginLink}>Masuk</Link></>}
           </p>
         )}
         {otpMode && (

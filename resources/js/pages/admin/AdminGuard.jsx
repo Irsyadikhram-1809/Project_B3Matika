@@ -13,32 +13,54 @@ export default function AdminGuard({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
+  // Tutup sidebar saat Escape ditekan
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setSidebarOpen(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  // Cegah scroll body saat sidebar open di mobile
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [sidebarOpen]);
+
   if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
   const isImg = user.avatar?.startsWith('http') || user.avatar?.startsWith('data:');
   const isActive = (path) => loc.pathname === path ? 'active' : '';
 
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div className="admin-layout">
+      {/* Overlay mobile saat sidebar terbuka */}
+      <div
+        className={`admin-sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+        onClick={closeSidebar}
+        aria-hidden="true"
+      />
+
       {/* Sidebar */}
-      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Sidebar admin">
         <div className="admin-sidebar-header">
           <span style={{ fontSize: '1.4rem' }}>⚙️</span> B3Matika Admin
         </div>
         
         <nav className="admin-sidebar-nav">
-          <Link to="/panel-rahasia" className={`admin-nav-item ${isActive('/panel-rahasia')}`}>
+          <Link to="/panel-rahasia" className={`admin-nav-item ${isActive('/panel-rahasia')}`} onClick={closeSidebar}>
             📊 Dashboard
           </Link>
-          <Link to="/panel-rahasia/topics" className={`admin-nav-item ${isActive('/panel-rahasia/topics')}`}>
+          <Link to="/panel-rahasia/topics" className={`admin-nav-item ${isActive('/panel-rahasia/topics')}`} onClick={closeSidebar}>
             📚 Materi
           </Link>
-          <Link to="/panel-rahasia/questions" className={`admin-nav-item ${isActive('/panel-rahasia/questions')}`}>
+          <Link to="/panel-rahasia/questions" className={`admin-nav-item ${isActive('/panel-rahasia/questions')}`} onClick={closeSidebar}>
             📝 Soal
           </Link>
-          <Link to="/panel-rahasia/puzzles" className={`admin-nav-item ${isActive('/panel-rahasia/puzzles')}`}>
+          <Link to="/panel-rahasia/puzzles" className={`admin-nav-item ${isActive('/panel-rahasia/puzzles')}`} onClick={closeSidebar}>
             🧩 Puzzle
           </Link>
-          <Link to="/panel-rahasia/users" className={`admin-nav-item ${isActive('/panel-rahasia/users')}`}>
+          <Link to="/panel-rahasia/users" className={`admin-nav-item ${isActive('/panel-rahasia/users')}`} onClick={closeSidebar}>
             👥 Pengguna
           </Link>
         </nav>
@@ -49,8 +71,14 @@ export default function AdminGuard({ children }) {
         {/* Topbar */}
         <header className="admin-topbar">
           <div className="admin-topbar-left">
-            <button className="sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-              ☰
+            <button
+              className="sidebar-toggle"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? 'Tutup sidebar' : 'Buka sidebar'}
+              aria-expanded={sidebarOpen}
+              aria-controls="admin-sidebar"
+            >
+              {sidebarOpen ? '✕' : '☰'}
             </button>
             <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>
               ← Ke Web Utama
@@ -83,7 +111,7 @@ export default function AdminGuard({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="admin-content" onClick={() => { if (sidebarOpen) setSidebarOpen(false); }}>
+        <main className="admin-content">
           {children}
         </main>
       </div>

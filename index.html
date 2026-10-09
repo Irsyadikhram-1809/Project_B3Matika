@@ -2,11 +2,23 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="B3Matika — Platform belajar matematika interaktif. Belajar, Berlatih, Bermain dengan AI Tutor dan mini-games seru." />
+    <meta name="theme-color" content="#1b2468" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="B3Matika" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- Open Graph -->
+    <meta property="og:title" content="B3Matika — Belajar, Berlatih, Bermain" />
+    <meta property="og:description" content="Platform belajar matematika interaktif untuk SD, SMP, hingga SMA/SMK." />
+    <meta property="og:image" content="/logo-b3.jpeg" />
+    <meta property="og:type" content="website" />
     <title>B3Matika — Belajar, Berlatih, Bermain</title>
     <link rel="icon" type="image/jpeg" href="/logo-b3.jpeg" />
     <link rel="apple-touch-icon" href="/logo-b3.jpeg" />
+    <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -17,6 +29,12 @@
           var isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
           if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
         } catch (e) {}
+        // Daftarkan Service Worker
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').catch(function() {});
+          });
+        }
       })();
     </script>
   </head>

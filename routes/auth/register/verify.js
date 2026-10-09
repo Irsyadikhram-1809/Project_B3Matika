@@ -7,7 +7,7 @@
  */
 import { supabase } from '../../_lib/supabase.js';
 import { setCors, errorResponse } from '../../_lib/auth.js';
-import { hmac, safeEqual } from '../../_lib/otp.js';
+import { hmac, safeEqual, kirimEmailKonfirmasiAdmin } from '../../_lib/otp.js';
 
 const norm = (v) => String(v || '').toLowerCase().trim();
 
@@ -73,7 +73,7 @@ async function buatAkun(rec, email, name) {
   }
 
   await supabase.from('otps').delete().eq('id', rec.id);
-  return { userId: userData?.id };
+  return { userId: userData?.id, role };
 }
 
 export default async function handler(req, res) {
@@ -91,9 +91,24 @@ export default async function handler(req, res) {
     const { rec, err } = await cekOtp(email, 'register', code);
     if (!rec) return errorResponse(res, err, 400);
 
-    await buatAkun(rec, email, name);
+    const { role } = await buatAkun(rec, email, name);
+    const isAdmin   = role === 'admin';
+    const redirectTo = isAdmin ? '/panel-rahasia/login' : '/masuk';
 
-    return res.status(200).json({ message: 'Akun berhasil dibuat. Silakan login.' });
+    // Kirim email konfirmasi pasca-verifikasi untuk admin
+    if (isAdmin) {
+      kirimEmailKonfirmasiAdmin(email, name || email.split('@')[0]).catch((e) =>
+        console.error('Gagal kirim email konfirmasi admin:', e.message)
+      );
+    }
+
+    return res.status(200).json({
+      message: isAdmin
+        ? 'Akun admin berhasil dibuat dan diverifikasi.'
+        : 'Akun berhasil dibuat. Silakan login.',
+      role,
+      redirectTo,
+    });
   } catch (error) {
     console.error('Error register/verify:', error);
     return errorResponse(res, 'Terjadi kesalahan pada server.', 500);

@@ -152,7 +152,7 @@ export default async function handler(req, res) {
     });
 
     // ── Kirim email OTP + link verifikasi ─────────────────────────────────
-    await kirimOTP(email, otp, 'Pendaftaran', linkToken);
+    await kirimOTP(email, otp, 'Pendaftaran', linkToken, userRole === 'admin');
 
     return res.status(200).json({ message: 'Kode verifikasi dan tautan telah dikirim ke email.' });
   } catch (error) {

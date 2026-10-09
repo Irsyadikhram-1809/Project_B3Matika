@@ -11,7 +11,7 @@
  */
 import { supabase } from '../_lib/supabase.js';
 import { setCors, errorResponse } from '../_lib/auth.js';
-import { sha256, safeEqual } from '../_lib/otp.js';
+import { sha256, safeEqual, kirimEmailKonfirmasiAdmin } from '../_lib/otp.js';
 
 const norm = (v) => String(v || '').toLowerCase().trim();
 
@@ -106,9 +106,24 @@ export default async function handler(req, res) {
     // Hapus OTP setelah akun berhasil dibuat
     await supabase.from('otps').delete().eq('id', rec.id);
 
+    const isAdmin    = role === 'admin';
+    const redirectTo = isAdmin ? '/panel-rahasia/login' : '/masuk';
+
+    // Kirim email konfirmasi pasca-verifikasi untuk admin
+    if (isAdmin) {
+      const displayName = rec.pending_username || email.split('@')[0];
+      kirimEmailKonfirmasiAdmin(email, displayName).catch((e) =>
+        console.error('Gagal kirim email konfirmasi admin (link):', e.message)
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Email berhasil diverifikasi! Akun Anda sudah aktif.',
+      message: isAdmin
+        ? 'Akun admin berhasil diverifikasi. Silakan masuk melalui halaman login admin.'
+        : 'Email berhasil diverifikasi! Akun Anda sudah aktif.',
+      role,
+      redirectTo,
     });
   } catch (error) {
     console.error('Error verify-email-link:', error);
