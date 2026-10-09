@@ -10,6 +10,9 @@ Dokumen ini mendokumentasikan semua perubahan yang dibuat untuk mempersiapkan B3
 |------|--------|
 | Responsivitas (320px–1536px) | ✅ Selesai |
 | Navbar hamburger & drawer | ✅ Sudah ada, diperbaiki |
+- Laci menu mobile memakai `--nav-bottom` (diukur lewat JS di `Navbar.jsx`),
+  bukan tinggi tetap. `backdrop-filter` navbar dimatikan di ≤1024px agar laci
+  (position: fixed) tidak ikut terpotong.
 | Admin sidebar + overlay mobile | ✅ Selesai |
 | Tabel horizontal scroll | ✅ Selesai |
 | AI Tutor chat window (dvh) | ✅ Selesai |
@@ -83,10 +86,9 @@ Blok penambahan responsivitas di akhir file:
 
 #### 32v. Safe area
 ```css
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  body { padding-bottom: env(safe-area-inset-bottom); }
-  .admin-layout { padding-bottom: 0; }
-}
+/* safe-area bawah ditangani di .footer (bukan di body),
+   agar tidak muncul strip kosong di bawah footer */
+.footer { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
 ```
 
 #### 32w. View Transitions API
@@ -132,7 +134,8 @@ npx cap open android # buka Android Studio
 ### Catatan penting
 - `viewport-fit=cover` sudah di-set → notch iPhone tertangani
 - `env(safe-area-inset-*)` sudah di-handle di CSS → home indicator aman
-- `font-size: max(16px, 1em)` → tidak ada zoom aneh di iOS
+- `env(safe-area-inset-bottom)` dipakai di footer; navbar tidak diberi padding atas
+  karena status bar PWA sudah memberi jarak sendiri (padding ganda membuat navbar terlalu tinggi)
 - Service Worker tidak konflik dengan Capacitor (Capacitor punya native layer sendiri)
 
 ---
@@ -162,3 +165,7 @@ npx cap open android # buka Android Studio
 - [ ] Add to Home Screen: icon muncul, nama "B3Matika"
 - [ ] Offline: halaman beranda tetap muncul (SW cache)
 - [ ] Dark mode + mobile: semua komponen tetap terbaca
+- [ ] Navbar atas rapi (tidak ada jarak ganda di bawah status bar)
+- [ ] Laci menu tidak menutupi logo, baik sebelum maupun sesudah di-scroll
+- [ ] Footer menempel di dasar layar di semua halaman (tanpa strip kosong di bawahnya)
+- [ ] Teks logo "B" dan "Matika" putih di mode gelap

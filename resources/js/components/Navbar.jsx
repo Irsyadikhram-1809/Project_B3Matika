@@ -11,6 +11,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const dropRef = useRef(null);
+  const headerRef = useRef(null);
   const nav = useNavigate();
   const location = useLocation();
 
@@ -56,6 +57,27 @@ export default function Navbar() {
     return () => document.removeEventListener('keydown', handler);
   }, []);
 
+  // Ukur tinggi navbar sebenarnya agar laci menu mobile tepat di bawahnya
+useEffect(() => {
+  const el = headerRef.current;
+  if (!el) return;
+  const update = () => {
+    document.documentElement.style.setProperty(
+      '--nav-bottom', `${Math.round(el.getBoundingClientRect().bottom)}px`
+    );
+  };
+  update();
+  window.addEventListener('resize', update);
+  window.addEventListener('orientationchange', update);
+  const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
+  ro?.observe(el);
+  return () => {
+    window.removeEventListener('resize', update);
+    window.removeEventListener('orientationchange', update);
+    ro?.disconnect();
+  };
+}, [open, scrolled]);
+
   const close = () => { setOpen(false); setDropOpen(false); };
 
   return (
@@ -71,7 +93,7 @@ export default function Navbar() {
         aria-valuemax={100}
       />
 
-      <header className={`navbar${scrolled ? ' scrolled' : ''}${open ? ' menu-open' : ''}`}>
+      <header ref={headerRef} className={`navbar${scrolled ? ' scrolled' : ''}${open ? ' menu-open' : ''}`}>
         <div className="container nav-inner">
           {/* Logo */}
           <Link to="/" onClick={close} aria-label="Beranda B3Matika" className="nav-logo-link">

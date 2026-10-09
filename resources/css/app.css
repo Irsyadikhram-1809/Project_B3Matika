@@ -451,6 +451,8 @@ h3 { margin: .4rem 0; color: var(--navy); }
 .logo-text { display: flex; flex-direction: column; line-height: 1.05; }
 .logo-name { font-size: 2rem; font-weight: 700; color: var(--navy); letter-spacing: -.5px; }
 .logo-name .three { color: var(--orange); }
+[data-theme="dark"] .logo-name { color: #ffffff; }
+[data-theme="dark"] .logo-name .three { color: #f7931e; }
 .logo-tag { font-size: .72rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; white-space: nowrap; }
 .logo-big { gap: 22px; }
 .logo-big .logo-name { font-size: clamp(2.8rem, 8vw, 5.4rem); font-weight: 800; }
@@ -1430,7 +1432,14 @@ td.aksi-cell {
 .auth-card { width: 100%; max-width: 400px; padding: 28px; }
 
 /* ─── 19. Footer ─────────────────────────────────────────────────────── */
-.footer { text-align: center; color: var(--text-muted); font-size: .82rem; padding: 26px 0; border-top: 1px solid var(--line); background: var(--surface); }
+.footer {
+  text-align: center; color: var(--text-muted); font-size: .82rem; line-height: 1.5;
+  padding: 22px 16px; border-top: 1px solid var(--line); background: var(--surface);
+  margin-top: auto; width: 100%; flex-shrink: 0;
+}
+#root { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+#root > main { flex: 1 0 auto; width: 100%; }
+#root > .page { min-height: 0; }
 
 /* ─── 20. Game Components ────────────────────────────────────────────── */
 .game { max-width: 460px; }
@@ -1714,6 +1723,13 @@ td.aksi-cell {
   /* Hamburger visible */
   .burger { display: flex; }
 
+  .navbar.scrolled,
+[data-theme="dark"] .navbar.scrolled {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--card);
+}
+
   /* Logo tagline tersembunyi di navbar pada lebar ini */
   .logo-tag { display: none; }
 
@@ -1727,7 +1743,7 @@ td.aksi-cell {
   .nav-links {
     display: none;
     position: fixed;
-    top: var(--navbar-h); left: 0; right: 0; bottom: 0;
+    top: var(--nav-bottom, var(--navbar-h)); left: 0; right: 0; bottom: 0;
     background: var(--card);
     flex-direction: column;
     align-items: stretch;
@@ -1795,7 +1811,6 @@ td.aksi-cell {
   .container { padding: 0 18px; }
 
   .nav-inner { height: 60px; }
-  .nav-links { top: 60px; }
 
   /* Home hero */
   .logo-big { flex-direction: column; text-align: center; gap: 10px; }
@@ -1873,7 +1888,7 @@ td.aksi-cell {
   .auth-card { padding: 20px 16px; }
 
   /* Footer */
-  .footer { font-size: .78rem; padding: 18px 0; }
+  .footer { font-size: .78rem; padding: 16px 12px; }
 }
 
 /* ── 600px ── */
@@ -1883,7 +1898,6 @@ td.aksi-cell {
   .page { padding-top: 14px; padding-bottom: 32px; }
 
   .nav-inner { height: 56px; }
-  .nav-links { top: 56px; }
 
   .grades { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .grade-card { padding: 14px 8px; }
@@ -1980,8 +1994,8 @@ td.aksi-cell {
 
 /* ── Safe area (iPhone notch / home bar) ── */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .navbar { padding-top: env(safe-area-inset-top); }
-  .footer { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  /* HAPUS baris: .navbar { padding-top: env(safe-area-inset-top); } */
+  .footer { padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
   .chat-input-form { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
   .nav-links { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
   .back-to-top { bottom: calc(28px + env(safe-area-inset-bottom)); }
@@ -2175,16 +2189,6 @@ td.aksi-cell {
 .card > .table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-}
-
-/* ── 32v. Bottom nav safe area untuk PWA / Capacitor ── */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  body {
-    /* Pastikan konten tidak tersembunyi di balik home indicator iPhone */
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  /* Override: body padding tidak merusak admin layout */
-  .admin-layout { padding-bottom: 0; }
 }
 
 /* ── 32w. Page transitions — persiapan View Transitions API ── */
