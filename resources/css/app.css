@@ -448,14 +448,15 @@ h3 { margin: .4rem 0; color: var(--navy); }
 .nav-dropdown-header .username { font-size: .8rem; color: var(--text-muted); font-weight: 600; display: block; }
 
 /* ─── 7. Logo ────────────────────────────────────────────────────────── */
-.logo { display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
-.logo-text { display: flex; flex-direction: column; line-height: 1.1; justify-content: center; }
-.logo-name { font-size: clamp(1.8rem, 5vw, 2.3rem); font-weight: 800; color: var(--navy); letter-spacing: -.8px; }
+.logo { display: inline-flex; align-items: center; justify-content: center; gap: 14px; }
+.logo-text { display: flex; flex-direction: column; justify-content: center; line-height: 1; }
+.logo-name { font-size: 2.2rem; font-weight: 800; color: var(--navy); letter-spacing: -0.8px; display: flex; align-items: center; }
+.logo-name .brand-wordmark { font-size: 1em; font-weight: 800; letter-spacing: inherit; }
 [data-theme="dark"] .logo-name { color: #ffffff; }
-.logo-tag { font-size: .72rem; color: var(--brand-accent); font-weight: 600; margin-top: 2px; white-space: nowrap; }
-.logo-big { gap: 22px; }
-.logo-big .logo-name { font-size: clamp(2.8rem, 8vw, 5.4rem); font-weight: 800; }
-.logo-big .logo-tag { font-size: clamp(.9rem, 2.6vw, 1.7rem); margin-top: 10px; color: var(--brand-accent); font-weight: 600; }
+.logo-tag { font-size: .8rem; color: var(--brand-accent); font-weight: 700; margin-top: 4px; white-space: nowrap; }
+.logo-big { gap: 24px; }
+.logo-big .logo-name { font-size: clamp(3.5rem, 8vw, 5.5rem); }
+.logo-big .logo-tag { font-size: clamp(1.1rem, 2.6vw, 1.8rem); margin-top: 8px; font-weight: 600; color: var(--brand-accent); }
 
 /* ─── 8. Buttons & Forms ─────────────────────────────────────────────── */
 .btn {
@@ -2391,9 +2392,6 @@ td.aksi-cell {
   .brand-wordmark.size-md { font-size: 1.6rem; }
   .brand-wordmark.size-lg { font-size: 2.2rem; }
   .brand-wordmark.size-xl { font-size: 3rem; }
-  
-  /* Inherit sizing if inside logo-name */
-  .logo-name .brand-wordmark { font-size: inherit; font-weight: inherit; letter-spacing: inherit; color: inherit; }
   
   /* SegmentedControl */
   .segmented-control {
