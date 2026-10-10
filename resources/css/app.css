@@ -718,7 +718,7 @@ a.card:hover {
 .logo-big .logo-tag {
   font-size: clamp(.85rem, 2.4vw, 1.55rem);
   margin-top: 8px;
-  color: var(--text-muted);
+  color: var(--brand-accent);
 }
 
 /* ─── 6c. Navbar Active Link — Pseudo-element Indicator ──────────────── */
@@ -2391,6 +2391,9 @@ td.aksi-cell {
   .brand-wordmark.size-md { font-size: 1.6rem; }
   .brand-wordmark.size-lg { font-size: 2.2rem; }
   .brand-wordmark.size-xl { font-size: 3rem; }
+  
+  /* Inherit sizing if inside logo-name */
+  .logo-name .brand-wordmark { font-size: inherit; font-weight: inherit; letter-spacing: inherit; color: inherit; }
   
   /* SegmentedControl */
   .segmented-control {
