@@ -448,9 +448,9 @@ h3 { margin: .4rem 0; color: var(--navy); }
 .nav-dropdown-header .username { font-size: .8rem; color: var(--text-muted); font-weight: 600; display: block; }
 
 /* ─── 7. Logo ────────────────────────────────────────────────────────── */
-.logo { display: inline-flex; align-items: center; gap: 10px; }
-.logo-text { display: flex; flex-direction: column; line-height: 1.05; }
-.logo-name { font-size: 2rem; font-weight: 700; color: var(--navy); letter-spacing: -.5px; }
+.logo { display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.1; justify-content: center; }
+.logo-name { font-size: clamp(1.8rem, 5vw, 2.3rem); font-weight: 800; color: var(--navy); letter-spacing: -.8px; }
 [data-theme="dark"] .logo-name { color: #ffffff; }
 .logo-tag { font-size: .72rem; color: var(--brand-accent); font-weight: 600; margin-top: 2px; white-space: nowrap; }
 .logo-big { gap: 22px; }
@@ -588,9 +588,14 @@ a.card:hover {
 .grades { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
 .grade-card {
   text-align: center; display: flex; flex-direction: column;
-  align-items: center; gap: 2px; padding: 18px 10px;
+  align-items: center; gap: 4px; padding: 18px 10px;
   background: var(--card-bg); border: 1px solid var(--border-light);
   border-radius: var(--radius);
+}
+.grade-card-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  margin-bottom: 6px;
 }
 .grade-num { font-size: 2.2rem; font-weight: 700; color: var(--orange); line-height: 1.1; }
 .grade-label { font-weight: 600; color: var(--navy); font-size: .85rem; }
@@ -1772,12 +1777,18 @@ td.aksi-cell {
 .materi-page-hero { text-align: center; margin-bottom: 32px; }
 .materi-page-hero h1 { font-size: 2.2rem; margin-bottom: 8px; }
 .level-section { border-radius: var(--radius); padding: 24px; margin-bottom: 20px; border: 1.5px solid var(--border-light); background: var(--card-bg); backdrop-filter: blur(12px); box-shadow: var(--shadow); }
-.level-sd { border-top: 4px solid #4ade80; }
-.level-smp { border-top: 4px solid #60a5fa; }
-.level-sma { border-top: 4px solid #a78bfa; }
+.level-sd { border-top: 4px solid #ef4444; }
+.level-smp { border-top: 4px solid #3b82f6; }
+.level-sma { border-top: 4px solid #0d9488; }
+.level-sd-icon { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+.level-smp-icon { color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+.level-sma-icon { color: #0d9488; background: rgba(13, 148, 136, 0.1); }
 .level-section-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
 .level-badge-wrap { display: flex; align-items: center; gap: 12px; }
-.level-emoji { font-size: 2.2rem; }
+.level-icon-wrapper {
+  display: flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; border-radius: 14px;
+}
 .level-title { font-size: 1.5rem; margin: 0; color: var(--navy); }
 .level-desc { font-size: .85rem; color: var(--text-muted); margin: 2px 0 0; }
 .level-skills { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; }
@@ -1794,9 +1805,9 @@ td.aksi-cell {
 /* Grade Page */
 .breadcrumb-nav { margin-bottom: 14px; }
 .grade-page-header { display: flex; align-items: center; gap: 20px; background: var(--card-bg); backdrop-filter: blur(12px); border-radius: var(--radius); padding: 24px 28px; margin-bottom: 18px; box-shadow: var(--shadow); border: 1.5px solid var(--border-light); }
-.grade-page-header.level-sd { border-top: 4px solid #4ade80; }
-.grade-page-header.level-smp { border-top: 4px solid #60a5fa; }
-.grade-page-header.level-sma { border-top: 4px solid #a78bfa; }
+.grade-page-header.level-sd { border-top: 4px solid #ef4444; }
+.grade-page-header.level-smp { border-top: 4px solid #3b82f6; }
+.grade-page-header.level-sma { border-top: 4px solid #0d9488; }
 .grade-page-icon { font-size: 3rem; flex-shrink: 0; }
 .grade-page-tag { display: inline-block; background: var(--blue-d); color: #fff; padding: 2px 10px; border-radius: 99px; font-size: .75rem; font-weight: 700; margin-bottom: 4px; }
 .grade-page-title { margin: 0; font-size: 1.8rem; }

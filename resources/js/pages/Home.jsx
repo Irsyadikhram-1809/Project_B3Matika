@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import Reveal from '@/components/Reveal';
 import IconTile from '@/components/IconTile';
-import { BookOpen, PencilLine, Gamepad2 } from 'lucide-react';
+import { BookOpen, PencilLine, Gamepad2, Blocks, Compass, GraduationCap } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export default function Home() {
@@ -44,7 +44,10 @@ export default function Home() {
       <div className="grades">
         {Array.from({ length: 12 }, (_, i) => i + 1).map((g, i) => (
           <Reveal key={g} delay={0.1 + (i * 0.05)} style={{ width: 'auto' }}>
-            <Link to={`/kelas/${g}`} className="card grade-card">
+            <Link to={`/kelas/${g}`} className={`card grade-card level-${g <= 6 ? 'sd' : g <= 9 ? 'smp' : 'sma'}`}>
+              <div className={`grade-card-icon level-${g <= 6 ? 'sd' : g <= 9 ? 'smp' : 'sma'}-icon`}>
+                {g <= 6 ? <Blocks size={26} strokeWidth={2.2} /> : g <= 9 ? <Compass size={26} strokeWidth={2.2} /> : <GraduationCap size={26} strokeWidth={2.2} />}
+              </div>
               <span className="grade-num">{g}</span>
               <span className="grade-label">{g <= 6 ? 'SD' : g <= 9 ? 'SMP' : 'SMA/SMK'}</span>
               <span className="muted small">{counts[g] || 0} materi</span>

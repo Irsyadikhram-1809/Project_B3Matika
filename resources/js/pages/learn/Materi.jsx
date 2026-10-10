@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
+import { Blocks, Compass, GraduationCap } from 'lucide-react';
 
 const LEVEL_INFO = [
   {
     level: 'SD',
     grades: [1, 2, 3, 4, 5, 6],
-    emoji: '🏫',
+    Icon: Blocks,
     color: 'level-sd',
     desc: 'Fondasi Konkret',
     skills: ['Operasi Hitung Dasar', 'Pecahan & Desimal', 'KPK & FPB', 'Keliling & Luas', 'Volume 3D', 'Data Dasar'],
@@ -12,7 +13,7 @@ const LEVEL_INFO = [
   {
     level: 'SMP',
     grades: [7, 8, 9],
-    emoji: '🏛️',
+    Icon: Compass,
     color: 'level-smp',
     desc: 'Transisi ke Aljabar',
     skills: ['Himpunan & Aljabar', 'Persamaan Linear', 'Fungsi & Grafik', 'Teorema Pythagoras', 'Persamaan Kuadrat', 'Transformasi Geometri'],
@@ -20,7 +21,7 @@ const LEVEL_INFO = [
   {
     level: 'SMA/SMK',
     grades: [10, 11, 12],
-    emoji: '🎓',
+    Icon: GraduationCap,
     color: 'level-sma',
     desc: 'Analisis & Penerapan',
     skills: ['Eksponen & Logaritma', 'Trigonometri', 'Matriks', 'Kalkulus Dasar', 'Statistika Lanjut', 'Peluang & Kombinatorika'],
@@ -35,11 +36,13 @@ export default function Materi() {
         <p className="hero-sub">Pilih kelas untuk mulai belajar. Setiap topik berisi penjelasan materi lengkap beserta latihan soal interaktif.</p>
       </div>
 
-      {LEVEL_INFO.map(({ level, grades, emoji, color, desc, skills }) => (
+      {LEVEL_INFO.map(({ level, grades, Icon, color, desc, skills }) => (
         <section key={level} className={`level-section ${color}`}>
           <div className="level-section-header">
             <div className="level-badge-wrap">
-              <span className="level-emoji">{emoji}</span>
+              <div className={`level-icon-wrapper ${color}-icon`}>
+                <Icon size={32} strokeWidth={2} />
+              </div>
               <div>
                 <h2 className="level-title">{level}</h2>
                 <p className="level-desc">{desc}</p>
