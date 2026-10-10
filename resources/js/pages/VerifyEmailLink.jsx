@@ -11,6 +11,7 @@
  */
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { ShieldCheck, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 
@@ -102,7 +103,9 @@ export default function VerifyEmailLink() {
         {/* ── State: loading ── */}
         {state === 'loading' && (
           <div className="confirm-status">
-            <div className="confirm-status-icon" aria-hidden="true">⏳</div>
+            <div className="confirm-status-icon" aria-hidden="true" style={{ animation: 'spin 2s linear infinite' }}>
+              <Loader2 size={48} />
+            </div>
             <h3 className="confirm-status-title">Memverifikasi Tautan…</h3>
             <p className="confirm-status-desc">Harap tunggu sebentar.</p>
           </div>
@@ -111,8 +114,8 @@ export default function VerifyEmailLink() {
         {/* ── State: success ── */}
         {state === 'success' && (
           <div className="confirm-status">
-            <div className="confirm-status-icon" aria-hidden="true">
-              {isAdmin ? '🛡️' : '✅'}
+            <div className="confirm-status-icon" aria-hidden="true" style={{ color: isAdmin ? 'var(--warn)' : 'var(--ok-text)' }}>
+              {isAdmin ? <ShieldCheck size={48} /> : <CheckCircle size={48} />}
             </div>
             <h3 className="confirm-status-title" style={{ color: 'var(--ok-text)' }}>
               {isAdmin ? 'Akun Admin Aktif' : 'Berhasil!'}
@@ -135,7 +138,9 @@ export default function VerifyEmailLink() {
         {/* ── State: error ── */}
         {state === 'error' && (
           <div className="confirm-status">
-            <div className="confirm-status-icon" aria-hidden="true">⚠️</div>
+            <div className="confirm-status-icon" aria-hidden="true" style={{ color: 'var(--bad)' }}>
+              <AlertTriangle size={48} />
+            </div>
             <h3 className="confirm-status-title" style={{ color: 'var(--bad)' }}>
               Gagal Verifikasi
             </h3>

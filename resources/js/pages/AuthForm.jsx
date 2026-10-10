@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, ShieldCheck, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
@@ -252,7 +253,7 @@ export default function AuthForm({ mode, admin = false }) {
             <div className="pw-wrapper">
               <input type={showPw ? 'text' : 'password'} value={f.password} onChange={set('password')} required minLength={mode === 'register' ? 8 : 1} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} />
               <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex="-1" aria-label="Toggle password">
-                {showPw ? '🙈' : '👁️'}
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </label>
@@ -268,7 +269,10 @@ export default function AuthForm({ mode, admin = false }) {
 
         {otpMode && (
           <label>Kode OTP
-            <div className="small muted">Kode telah dikirim ke {f.email}. Masukkan kode 6 digit. Atau klik tautan pada email.</div>
+            <div className="small muted">
+              Kode telah dikirim ke {f.email}. Masukkan kode 6 digit. Atau klik tautan pada email. 
+              <br /><strong style={{ color: 'var(--warn-text, #b45309)' }}>Penting:</strong> Silakan cek folder Spam/Junk jika email tidak ditemukan di Kotak Masuk.
+            </div>
             <input
               type="text"
               inputMode="numeric"

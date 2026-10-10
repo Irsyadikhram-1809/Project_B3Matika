@@ -4,6 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import ThemeToggle from '@/components/ThemeToggle';
 import NotFound from '@/components/NotFound';
 import { useState, useEffect } from 'react';
+import { Settings, LayoutDashboard, BookOpen, FileText, Puzzle, Users, Menu, X, ArrowLeft } from 'lucide-react';
 import './AdminGuard.css';
 
 export default function AdminGuard({ children }) {
@@ -43,25 +44,25 @@ export default function AdminGuard({ children }) {
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`} aria-label="Sidebar admin">
-        <div className="admin-sidebar-header">
-          <span style={{ fontSize: '1.4rem' }}>⚙️</span> B3Matika Admin
+        <div className="admin-sidebar-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Settings size={24} style={{ color: 'var(--brand)' }} /> B3Matika Admin
         </div>
         
         <nav className="admin-sidebar-nav">
           <Link to="/panel-rahasia" className={`admin-nav-item ${isActive('/panel-rahasia')}`} onClick={closeSidebar}>
-            📊 Dashboard
+            <LayoutDashboard size={20} /> Dashboard
           </Link>
           <Link to="/panel-rahasia/topics" className={`admin-nav-item ${isActive('/panel-rahasia/topics')}`} onClick={closeSidebar}>
-            📚 Materi
+            <BookOpen size={20} /> Materi
           </Link>
           <Link to="/panel-rahasia/questions" className={`admin-nav-item ${isActive('/panel-rahasia/questions')}`} onClick={closeSidebar}>
-            📝 Soal
+            <FileText size={20} /> Soal
           </Link>
           <Link to="/panel-rahasia/puzzles" className={`admin-nav-item ${isActive('/panel-rahasia/puzzles')}`} onClick={closeSidebar}>
-            🧩 Puzzle
+            <Puzzle size={20} /> Puzzle
           </Link>
           <Link to="/panel-rahasia/users" className={`admin-nav-item ${isActive('/panel-rahasia/users')}`} onClick={closeSidebar}>
-            👥 Pengguna
+            <Users size={20} /> Pengguna
           </Link>
         </nav>
       </aside>
@@ -78,10 +79,10 @@ export default function AdminGuard({ children }) {
               aria-expanded={sidebarOpen}
               aria-controls="admin-sidebar"
             >
-              {sidebarOpen ? '✕' : '☰'}
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>
-              ← Ke Web Utama
+            <Link to="/" style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ArrowLeft size={16} /> Ke Web Utama
             </Link>
           </div>
           

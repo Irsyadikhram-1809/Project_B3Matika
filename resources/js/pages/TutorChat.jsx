@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Bot, User, MessageSquare, Gamepad2, GraduationCap, School, Landmark, Lightbulb, Send, BookOpen, Puzzle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import ReactMarkdown from 'react-markdown';
@@ -30,7 +31,7 @@ function TypingIndicator() {
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{ duration: 0.3 }}
     >
-      <div className="chat-avatar chat-avatar-ai">🤖</div>
+      <div className="chat-avatar chat-avatar-ai" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bot size={20} /></div>
       <div className="chat-msg-body">
         <div className="typing-dots">
           <span /><span /><span />
@@ -49,7 +50,7 @@ function ChatMessage({ msg }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
     >
-      {!isUser && <div className="chat-avatar chat-avatar-ai">🤖</div>}
+      {!isUser && <div className="chat-avatar chat-avatar-ai" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bot size={20} /></div>}
       <div className="chat-msg-body">
         {isUser ? (
           <div className="chat-msg-text chat-user-text">{msg.parts[0].text}</div>
@@ -71,7 +72,7 @@ function ChatMessage({ msg }) {
           </div>
         )}
       </div>
-      {isUser && <div className="chat-avatar chat-avatar-user">👤</div>}
+      {isUser && <div className="chat-avatar chat-avatar-user" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20} /></div>}
     </motion.div>
   );
 }
@@ -83,6 +84,8 @@ export default function TutorChat() {
   const [loading, setLoading] = useState(false);
   const [appStatus, setAppStatus] = useState('idle'); // idle, listening, processing, speaking
   const [currentLang, setCurrentLang] = useState('id-ID');
+  const [apiStatus, setApiStatus] = useState('Menghubungkan'); // Online, Menghubungkan, Tidak tersedia
+  const abortControllerRef = useRef(null);
 
   const { 
     isSupported: isTtsSupported, 
@@ -134,6 +137,12 @@ export default function TutorChat() {
         break;
       case 'STOP_SPEAKING':
         stopSpeaking();
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+          abortControllerRef.current = null;
+          setLoading(false);
+          setAppStatus('idle');
+        }
         break;
       case 'CLEAR_CHAT':
         setMessages([]);
@@ -175,9 +184,20 @@ export default function TutorChat() {
     }
   };
 
-  useEffect(() => { scrollToBottom(); }, [messages]);
+  useEffect(() => { scrollToBottom(); }, [messages, loading]);
 
   useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch('/api/chat?health=1');
+        if (res.ok) setApiStatus('Online');
+        else setApiStatus('Tidak tersedia');
+      } catch (err) {
+        setApiStatus('Tidak tersedia');
+      }
+    };
+    checkHealth();
+
     const fetchHistory = async () => {
       const defaultGreeting = {
         role: 'model',
@@ -209,69 +229,124 @@ export default function TutorChat() {
     };
 
     fetchHistory();
+    return () => {
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
   }, [user]);
 
   const sendMessage = async (text) => {
     if (!text.trim() || loading) return;
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    
     hasInteracted.current = true;
     const userMsg = { role: 'user', parts: [{ text }] };
     const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    // Tambahkan placeholder AI message kosong
+    setMessages([...newMessages, { role: 'model', parts: [{ text: '' }] }]);
     setInput('');
     setLoading(true);
     setAppStatus('processing');
 
     if (user) {
-      await supabase.from('chat_messages').insert({
+      // Background save user message (jangan di-await)
+      supabase.from('chat_messages').insert({
         user_id: user.id,
         role: 'user',
         text: text
-      });
+      }).then();
     }
 
     try {
-      // Filter history sebelum dikirim ke server:
-      // 1. Hapus pesan error (⚠️) agar tidak masuk context AI
-      // 2. Hanya kirim pesan valid (user & model normal)
-      // 3. Pastikan dimulai dari 'user' (skip greeting model awal)
       const historyToSend = newMessages
-        .filter(m => !m.parts[0].text.startsWith('⚠️'))  // hapus error messages
-        .slice(-12);                                        // max 12 pesan terakhir
+        .filter(m => !m.parts[0].text.startsWith('⚠️') && !m.isError)
+        .slice(-12);
 
-      // Hapus leading 'model' messages agar selalu dimulai 'user'
       while (historyToSend.length > 0 && historyToSend[0].role === 'model') {
         historyToSend.shift();
       }
 
-      const res = await api('/chat', {
+      const token = localStorage.getItem('b3_token');
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        body: { messages: historyToSend }
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ messages: historyToSend }),
+        signal: abortControllerRef.current.signal
       });
-      
-      const modelText = res.text;
-      
-      if (user) {
-        await supabase.from('chat_messages').insert({
+
+      if (!res.ok) {
+        let errData;
+        try { errData = await res.json(); } catch(e) {}
+        throw new Error(errData?.error || 'Gagal terhubung ke AI Tutor.');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let fullText = '';
+      let done = false;
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.replace('data: ', '').trim();
+              if (!dataStr) continue;
+              try {
+                const parsed = JSON.parse(dataStr);
+                if (parsed.error) {
+                   throw new Error(parsed.error);
+                }
+                if (parsed.text) {
+                  fullText += parsed.text;
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { role: 'model', parts: [{ text: fullText }] };
+                    return updated;
+                  });
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        done = readerDone;
+      }
+
+      if (user && fullText) {
+        supabase.from('chat_messages').insert({
           user_id: user.id,
           role: 'model',
-          text: modelText
-        });
+          text: fullText
+        }).then();
       }
       
-      setMessages([...newMessages, { role: 'model', parts: [{ text: modelText }] }]);
-      setAppStatus('speaking');
-      speak(modelText);
+      if (fullText) {
+        setAppStatus('speaking');
+        speak(fullText);
+      } else {
+         setAppStatus('idle');
+      }
     } catch (err) {
+      if (err.name === 'AbortError') return;
       const errText = err?.message && err.message !== 'Terjadi kesalahan.'
         ? `⚠️ ${err.message}`
         : '⚠️ Maaf, terjadi kesalahan saat menghubungi AI. Coba lagi dalam beberapa saat.';
-      setMessages([...newMessages, {
-        role: 'model',
-        parts: [{ text: errText }]
-      }]);
+      
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: 'model', parts: [{ text: errText }], isError: true };
+        return updated;
+      });
       setAppStatus('idle');
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -292,26 +367,26 @@ export default function TutorChat() {
         {/* Header */}
         <div className="tutor-header">
           <div className="tutor-header-left">
-            <div className="tutor-avatar-large">🤖</div>
+            <div className="tutor-avatar-large" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bot size={40} /></div>
             <div>
               <h1 className="tutor-title">MathTutor AI</h1>
               <p className="tutor-subtitle">Tutor Matematika &amp; Game Master Teka-teki Logika</p>
             </div>
           </div>
           <div className="tutor-status">
-            <span className="status-dot" />
-            <span className="status-text">Online</span>
+            <span className={`status-dot ${apiStatus === 'Online' ? '' : apiStatus === 'Menghubungkan' ? 'status-connecting' : 'status-offline'}`} />
+            <span className="status-text">{apiStatus}</span>
           </div>
         </div>
 
         {/* Skills Strip */}
         <div className="tutor-skills-strip">
-          <span className="skill-pill skill-sd">🏫 Materi SD</span>
-          <span className="skill-pill skill-smp">🏛️ Materi SMP</span>
-          <span className="skill-pill skill-sma">🎓 Materi SMA</span>
-          <span className="skill-pill skill-game">🎮 Game Teka-teki</span>
-          <span className="skill-pill skill-guide">💡 Panduan Soal</span>
-          <span className="skill-pill skill-eval">📊 Evaluasi &amp; Koreksi</span>
+          <span className="skill-pill skill-sd"><School size={16} /> Materi SD</span>
+          <span className="skill-pill skill-smp"><Landmark size={16} /> Materi SMP</span>
+          <span className="skill-pill skill-sma"><GraduationCap size={16} /> Materi SMA</span>
+          <span className="skill-pill skill-game"><Gamepad2 size={16} /> Game Teka-teki</span>
+          <span className="skill-pill skill-guide"><Lightbulb size={16} /> Panduan Soal</span>
+          <span className="skill-pill skill-eval"><BookOpen size={16} /> Evaluasi &amp; Koreksi</span>
         </div>
 
         {/* Quick prompts */}
@@ -329,8 +404,32 @@ export default function TutorChat() {
         {/* Chat window — flex:1, messages scroll di sini */}
         <div className="chat-window">
           <div className="chat-messages-area">
-            {messages.map((msg, i) => <ChatMessage key={i} msg={msg} />)}
-            {loading && <TypingIndicator />}
+            {messages.map((msg, i) => {
+              if (msg.role === 'model' && msg.parts[0].text === '' && loading) {
+                 return <TypingIndicator key={i} />;
+              }
+              return (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column' }}>
+                   <ChatMessage msg={msg} />
+                   {msg.isError && (
+                     <div style={{ textAlign: 'center', marginTop: '-8px', marginBottom: '16px' }}>
+                       <button 
+                         onClick={() => {
+                           const lastUserIndex = messages.findLastIndex((m, idx) => m.role === 'user' && idx < i);
+                           if (lastUserIndex !== -1) sendMessage(messages[lastUserIndex].parts[0].text);
+                         }}
+                         style={{ 
+                           background: 'var(--red, #ef4444)', color: '#fff', border: 'none', 
+                           padding: '6px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
+                         }}
+                       >
+                         Coba lagi
+                       </button>
+                     </div>
+                   )}
+                </div>
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
 
@@ -369,7 +468,7 @@ export default function TutorChat() {
                 style={{ flex: 1, resize: 'none' }}
               />
               <button type="submit" className="chat-send-btn" disabled={loading || !input.trim()} aria-label="Kirim">
-                <span className="send-icon">➤</span>
+                <span className="send-icon" style={{ display: 'flex' }}><Send size={18} /></span>
               </button>
             </div>
           </form>
@@ -393,17 +492,17 @@ export default function TutorChat() {
       {/* Info cards — di bawah chat, bisa diakses dengan scroll halaman */}
       <div className="tutor-info-grid" style={{ marginTop: '24px' }}>
         <div className="tutor-info-card">
-          <div className="info-icon">📖</div>
+          <div className="info-icon"><BookOpen size={32} strokeWidth={1.5} /></div>
           <h3>Materi Lengkap</h3>
           <p>Penjelasan konsep, rumus, contoh soal bertahap, dan analogi dunia nyata untuk setiap topik.</p>
         </div>
         <div className="tutor-info-card">
-          <div className="info-icon">🧩</div>
+          <div className="info-icon"><Puzzle size={32} strokeWidth={1.5} /></div>
           <h3>Teka-teki Interaktif</h3>
           <p>Bermain Cryptarithm, Math Riddles, KenKen, Sudoku Mini, dan Calculords secara percakapan.</p>
         </div>
         <div className="tutor-info-card">
-          <div className="info-icon">🎓</div>
+          <div className="info-icon"><GraduationCap size={32} strokeWidth={1.5} /></div>
           <h3>Pembimbing Sabar</h3>
           <p>Tidak pernah langsung memberi jawaban. Memandu dengan petunjuk agar kamu bisa menemukan sendiri.</p>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { AlertTriangle, FolderOpen, Pencil, Trash2, Plus } from 'lucide-react';
 import { api } from '@/lib/api';
 import NotFound from '@/components/NotFound';
 import AdminGuard from './AdminGuard';
@@ -49,7 +50,7 @@ export default function ResourceList() {
 
       {error && !loading && (
         <div className="admin-error-state" style={{ marginBottom: '24px' }}>
-          <span>⚠️</span> <div><strong>Terjadi Kesalahan</strong><br/>{error}</div>
+          <span><AlertTriangle size={24} color="var(--danger)" /></span> <div><strong>Terjadi Kesalahan</strong><br/>{error}</div>
           <button className="btn btn-sm" style={{ marginLeft: 'auto', background: '#fff', color: '#000' }} onClick={load}>Coba Lagi</button>
         </div>
       )}
@@ -67,7 +68,7 @@ export default function ResourceList() {
           </div>
         ) : rows.length === 0 && !error ? (
           <div className="admin-empty-state">
-            <div className="admin-empty-icon">📂</div>
+            <div className="admin-empty-icon" style={{ display: 'flex', justifyContent: 'center' }}><FolderOpen size={48} color="var(--text-muted)" /></div>
             <h3 style={{ margin: '0 0 8px 0', color: 'var(--text)' }}>Data masih kosong</h3>
             <p style={{ margin: 0, marginBottom: '20px' }}>Belum ada data {cfg.label.toLowerCase()} yang ditambahkan.</p>
             <Link className="btn" style={{ background: 'var(--navy)', color: '#fff' }} to={`/panel-rahasia/${res}/create`}>
@@ -75,7 +76,7 @@ export default function ResourceList() {
             </Link>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div className="table-wrap">
             <table>
               <thead>
                 <tr>

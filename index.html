@@ -3,11 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Beri tahu browser bahwa situs ini mengelola tema sendiri (light & dark).
+         Ini mencegah 'Auto Dark Mode for Web Contents' di Android Chrome
+         menggelapkan warna yang sudah dikontrol secara eksplisit. -->
+    <meta name="color-scheme" content="dark light" />
     <meta name="description" content="B3Matika — Platform belajar matematika interaktif. Belajar, Berlatih, Bermain dengan AI Tutor dan mini-games seru." />
-    <meta name="theme-color" content="#1b2468" />
+    <meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#1b2468" media="(prefers-color-scheme: light)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="B3Matika" />
     <meta name="format-detection" content="telephone=no" />
 

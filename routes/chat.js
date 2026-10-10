@@ -35,13 +35,23 @@ PENTING: Sambut pengguna dengan hangat di pesan pertama.`;
 export default async function handler(req, res) {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
+  
+  if (req.query.health) {
+    const key = env.GEMINI_API_KEY || '';
+    if (!key) return res.status(503).json({ status: 'down', message: 'API Key Gemini belum dikonfigurasi.' });
+    try {
+      await import('@google/genai');
+      return res.status(200).json({ status: 'ok', message: 'Layanan AI siap.' });
+    } catch (e) {
+      return res.status(500).json({ status: 'error', message: 'Gagal memuat SDK AI.' });
+    }
+  }
+
   if (req.method !== 'POST') return errorResponse(res, 'Method not allowed', 405);
 
-  const apiKeyStr = env.GEMINI_API_KEY;
-  if (!apiKeyStr) return errorResponse(res, 'API Key Gemini belum dikonfigurasi.', 500);
-  
-  // Memisahkan key berdasarkan koma untuk sistem rotasi (multi-key)
-  const apiKeys = apiKeyStr.split(',').map(k => k.trim()).filter(k => k);
+  const apiKeyStr = env.GEMINI_API_KEY || '';
+  const apiKeys = apiKeyStr.split(',').map(k => k.replace(/['"]/g, '').trim()).filter(k => k);
+  if (apiKeys.length === 0) return errorResponse(res, 'Layanan AI belum dikonfigurasi.', 500);
 
   const { messages } = req.body;
   if (!Array.isArray(messages) || messages.length === 0)
@@ -53,62 +63,106 @@ export default async function handler(req, res) {
   while (sanitized.length > 0 && sanitized[sanitized.length - 1].role !== 'user') sanitized.pop();
 
   if (sanitized.length === 0) return errorResponse(res, 'Pesan tidak valid. Silakan coba lagi.', 422);
-
-  const payload = {
-    system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-    contents: sanitized,
-    generationConfig: { temperature: 0.75 },
-  };
+  
+  // Batas panjang input dan pesan
+  if (sanitized.length > 20) sanitized = sanitized.slice(-20);
+  const totalLength = sanitized.reduce((acc, msg) => acc + (msg.parts[0].text || '').length, 0);
+  if (totalLength > 10000) return errorResponse(res, 'Pesan terlalu panjang.', 413);
 
   try {
     const { GoogleGenAI } = await import('@google/genai');
 
-    // Format chat history into a single string
-    let promptText = `SYSTEM INSTRUCTION:\n${SYSTEM_INSTRUCTION}\n\nCHAT HISTORY:\n`;
-    sanitized.forEach(msg => {
-      promptText += `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.parts[0].text}\n`;
-    });
-    promptText += 'AI:';
+    let promptText = "RIWAYAT PERCAKAPAN:\n";
+    if (sanitized.length > 1) {
+      sanitized.slice(0, -1).forEach(msg => {
+        promptText += `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.parts[0].text}\n`;
+      });
+      promptText += `\nPESAN USER TERBARU:\n${sanitized[sanitized.length - 1].parts[0].text}`;
+    } else {
+      promptText = sanitized[0].parts[0].text;
+    }
 
-    let fullText = "";
+    const modelName = env.GEMINI_MODEL || "gemini-3.8-flash";
     let lastError = null;
+    let stream;
+    let successfulKey = null;
 
-    // Loop mencoba setiap API Key yang tersedia satu per satu
     for (const currentKey of apiKeys) {
       try {
         const ai = new GoogleGenAI({ apiKey: currentKey });
-        const stream = await ai.interactions.create({
-          model: "gemini-3.8-flash",
+        stream = await ai.interactions.create({
+          model: modelName,
+          system_instruction: SYSTEM_INSTRUCTION,
           input: promptText,
           stream: true,
         });
-
-        fullText = ""; // reset untuk key ini
-        for await (const event of stream) {
-          if (event && event.output_text) {
-            fullText += event.output_text;
-          } else if (typeof event === 'string') {
-            fullText += event;
-          }
-        }
-        
-        // Jika berhasil mendapat teks, keluar dari loop (tidak perlu coba key lain)
-        if (fullText) break;
+        successfulKey = currentKey;
+        break; // berhasil mendapatkan stream
       } catch (err) {
         lastError = err;
-        console.warn(`⚠️ Error pada API Key saat ini: ${err.message}. Mencoba API Key berikutnya...`);
-        continue;
+        const status = err.status || 500;
+        const msg = err.message || '';
+        // Rotasi hanya jika error kunci atau kuota
+        if ([401, 403, 429].includes(status) || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('api key')) {
+          console.warn(`⚠️ Rotasi API Key (status ${status})`);
+          continue;
+        } else {
+          break; // error lain, jangan rotasi
+        }
       }
     }
 
-    if (fullText) {
-      return res.status(200).json({ text: fullText });
-    } else {
+    if (!stream) {
       const errMsg = lastError?.message || 'AI tidak memberikan respons.';
-      return errorResponse(res, `Gagal terhubung ke AI Tutor: ${errMsg}`, errMsg.toLowerCase().includes('quota') ? 429 : 500);
+      const status = lastError?.status || 500;
+      console.error(`API Error (${status}):`, errMsg);
+      if (status === 429 || errMsg.toLowerCase().includes('quota')) {
+        return errorResponse(res, 'Jatah AI sedang habis, coba lagi nanti.', 429);
+      }
+      return errorResponse(res, 'Gagal terhubung ke AI Tutor.', status);
     }
+
+    // Set headers untuk SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    let hasResponded = false;
+    for await (const chunk of stream) {
+      // Tangani event stream.delta dari Interactions API
+      if (chunk.event_type === 'step.delta' && chunk.delta?.type === 'text' && chunk.delta?.text) {
+        hasResponded = true;
+        const data = JSON.stringify({ text: chunk.delta.text });
+        res.write(`data: ${data}\n\n`);
+      }
+      // Atau jika SDK mereturn format fallback
+      else if (chunk.output_text && typeof chunk.output_text === 'string') {
+        hasResponded = true;
+        const data = JSON.stringify({ text: chunk.output_text });
+        res.write(`data: ${data}\n\n`);
+      }
+    }
+    
+    if (!hasResponded) {
+       // Interactions API object fallback for non-stream / complete
+       if (stream.output_text) {
+          const data = JSON.stringify({ text: stream.output_text });
+          res.write(`data: ${data}\n\n`);
+       } else {
+          // Empty response
+          res.write(`data: ${JSON.stringify({ error: 'AI tidak memberikan jawaban, coba kirim ulang.' })}\n\n`);
+       }
+    }
+    
+    res.end();
   } catch (err) {
-    console.error('API Error:', err);
-    return errorResponse(res, `Gagal terhubung ke AI Tutor: ${err.message || 'Kesalahan internal'}`, 500);
+    console.error('API Error (Stream):', err.status || 500, err.message);
+    if (!res.headersSent) {
+      return errorResponse(res, `Gagal terhubung ke AI Tutor: ${err.message || 'Kesalahan internal'}`, 500);
+    } else {
+      res.write(`data: ${JSON.stringify({ error: 'Permintaan ke AI terputus.' })}\n\n`);
+      res.end();
+    }
   }
 }

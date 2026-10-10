@@ -249,6 +249,15 @@
   }
 }
 
+@media (max-width: 600px) {
+  .admin-card {
+    padding: 16px;
+  }
+  .admin-content td, .admin-content th {
+    padding: 12px 10px;
+  }
+}
+
 /* Table overrides for clean SaaS look */
 .admin-content table {
   width: 100%;

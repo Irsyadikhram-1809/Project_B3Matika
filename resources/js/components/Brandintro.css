@@ -1,4 +1,10 @@
-/* BrandIntro: logo B3 lalu tulisan B3Matika. Semua waktu dikali --k (pace). */
+/* BrandIntro: logo B3 lalu tulisan B3Matika. Semua waktu dikali --k (pace).
+   PERBAIKAN KONTRAS:
+   - Huruf memakai color: var(--c) eksplisit (BUKAN background-clip:text)
+   - Ini memastikan teks tetap terbaca meski browser memaksa force-dark
+   - Efek kilau gradient dipertahankan HANYA via ::after overlay (@supports)
+     yang tidak pernah menyebabkan teks gelap bila gagal
+*/
 .bi{display:flex;flex-direction:column;align-items:center;cursor:default}
 .bi-logo{display:block;overflow:visible;width:var(--bi-size);height:var(--bi-size);filter:drop-shadow(0 26px 38px rgba(0,110,255,.28)) drop-shadow(0 8px 14px rgba(255,140,0,.2))}
 .bi-tile,.bi-breath,.bi-reveal{transform-origin:627px 622px}
@@ -14,16 +20,64 @@
 .bi-play .bi-breath{animation:biBreathe 5s ease-in-out calc(4.4s*var(--k)) infinite alternate}
 
 /* Tahap 2: tulisan di bawah logo (3.5 - 5.8 dtk) */
-.bi-word{display:inline-flex;perspective:700px;font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;letter-spacing:-.01em;line-height:1.1;font-size:calc(var(--bi-size)*.24);margin-top:calc(var(--bi-size)*.02);user-select:none}
-.bi-c{display:inline-block;transform-origin:50% 100%;--c:var(--bi-text,#ffffff);--hi:#fff}
+.bi-word{
+  display:inline-flex;perspective:700px;
+  font-family:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-weight:700;letter-spacing:-.01em;line-height:1.1;
+  font-size:calc(var(--bi-size)*.24);margin-top:calc(var(--bi-size)*.02);
+  user-select:none
+}
+
+/* --c default putih (#fff) untuk 'B' dan 'Matika' — kontras 21:1 vs latar #050507 */
+.bi-c{display:inline-block;transform-origin:50% 100%;--c:#ffffff;--hi:#ffffff}
 .bi-three{--c:#f7931e;--hi:#ffd9a0}
-.bi-l{display:inline-block;color:transparent;-webkit-text-fill-color:transparent;background:linear-gradient(105deg,var(--c) 40%,var(--hi) 50%,var(--c) 60%) 100% 0/300% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:biTextShine 4.5s ease-in-out calc((6s + var(--i)*.09s)*var(--k)) infinite}
-.bi-three .bi-l{animation:biTextShine 4.5s ease-in-out calc((6s + var(--i)*.09s)*var(--k)) infinite,biGlow 2.8s ease-in-out calc(5.8s*var(--k)) infinite alternate}
+
+/* INTI PERBAIKAN:
+   Gunakan color eksplisit, BUKAN transparent + background-clip.
+   Rasio kontras: putih (#fff) vs #050507 = ~21:1 (WCAG AAA)
+   Rasio kontras: oranye (#f7931e) vs #050507 = ~7.2:1 (WCAG AA)
+*/
+.bi-l{
+  display:inline-block;
+  position:relative;  /* untuk ::after overlay efek kilau */
+  color:var(--c);
+  /* Tidak ada background-clip:text — teks warna solid terbaca di semua kondisi */
+}
+
+/* Efek kilau HANYA sebagai progressive enhancement via ::after overlay.
+   Jika browser tidak mendukung atau force-dark mengubahnya, teks tetap solid. */
+@supports (-webkit-background-clip:text) {
+  .bi-l::after{
+    content:attr(data-char); /* diisi via JS/prop; fallback: konten kosong */
+    position:absolute;inset:0;
+    color:transparent;
+    -webkit-text-fill-color:transparent;
+    background:linear-gradient(105deg,var(--c) 40%,var(--hi) 50%,var(--c) 60%) 100% 0/300% 100% no-repeat;
+    -webkit-background-clip:text;
+    background-clip:text;
+    animation:biTextShine 4.5s ease-in-out calc((6s + var(--i)*.09s)*var(--k)) infinite;
+    pointer-events:none;
+    /* Se-isolasi dari force-dark dengan explicit color-scheme */
+    color-scheme:dark;
+  }
+  .bi-three .bi-l::after{
+    animation:biTextShine 4.5s ease-in-out calc((6s + var(--i)*.09s)*var(--k)) infinite,biGlow 2.8s ease-in-out calc(5.8s*var(--k)) infinite alternate;
+  }
+}
+
 .bi-play .bi-c{animation:biIn calc(1s*var(--k)) cubic-bezier(.16,1,.3,1) calc((3.5s + var(--i)*.09s)*var(--k)) both}
 .bi-play .bi-three{animation:biThree calc(1.2s*var(--k)) cubic-bezier(.2,.9,.3,1.2) calc(4.6s*var(--k)) both}
 
 /* Mode splash: menutupi halaman lalu memudar halus */
-.bi-splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bi-bg,#050507);opacity:1;transition:opacity var(--fade,.9s) ease}
+.bi-splash{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bi-bg,#050507);
+  /* Cegah force-dark mengubah warna splash */
+  color-scheme:dark;
+  opacity:1;
+  transition:opacity var(--fade,.9s) ease
+}
 .bi-splash.bi-out{opacity:0;pointer-events:none}
 
 @keyframes biTileIn{from{opacity:0;transform:scale(.55) rotate(-8deg)}to{opacity:1;transform:none}}
@@ -36,4 +90,10 @@
 @keyframes biThree{0%{opacity:0;transform:scale(.2) rotateY(-180deg);filter:blur(8px)}60%{opacity:1;transform:scale(1.3) rotateY(12deg);filter:blur(0)}100%{opacity:1;transform:none;filter:blur(0)}}
 @keyframes biTextShine{0%{background-position:100% 0}35%,100%{background-position:0 0}}
 @keyframes biGlow{from{filter:drop-shadow(0 0 0 rgba(247,147,30,0))}to{filter:drop-shadow(0 0 .2em rgba(247,147,30,.75))}}
-@media (prefers-reduced-motion:reduce){.bi *{animation:none!important}}
+
+/* Reduced motion: lewati semua animasi, tampilkan logo statis */
+@media (prefers-reduced-motion:reduce){
+  .bi *{animation:none!important;transition:none!important}
+  .bi-l::after{display:none} /* sembunyikan overlay kilau, teks solid tetap tampil */
+  .bi-splash{transition:none!important}
+}

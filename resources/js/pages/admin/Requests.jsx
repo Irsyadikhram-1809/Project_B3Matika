@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Mailbox, AlertTriangle, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminGuard from './AdminGuard';
 import { useAuth } from '@/context/AuthContext';
@@ -50,11 +51,11 @@ export default function Requests() {
         </div>
       </div>
 
-      {msg && <div className="alert" style={{ background: 'var(--ok-bg)', color: 'var(--ok-text)', border: '1px solid var(--ok-border)', marginBottom: '20px' }}>✅ {msg}</div>}
+      {msg && <div className="alert" style={{ background: 'var(--ok-bg)', color: 'var(--ok-text)', border: '1px solid var(--ok-border)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle size={18} /> {msg}</div>}
       
       {error && !loading && (
         <div className="admin-error-state" style={{ marginBottom: '24px' }}>
-          <span>⚠️</span> <div><strong>Terjadi Kesalahan</strong><br/>{error}</div>
+          <span><AlertTriangle size={24} color="var(--danger)" /></span> <div><strong>Terjadi Kesalahan</strong><br/>{error}</div>
           <button className="btn btn-sm" style={{ marginLeft: 'auto', background: '#fff', color: '#000' }} onClick={load}>Coba Lagi</button>
         </div>
       )}
@@ -66,7 +67,7 @@ export default function Requests() {
           </div>
         ) : requests.length === 0 && !error ? (
           <div className="admin-empty-state">
-            <div className="admin-empty-icon">📨</div>
+            <div className="admin-empty-icon" style={{ display: 'flex', justifyContent: 'center' }}><Mailbox size={48} color="var(--text-muted)" /></div>
             <h3 style={{ margin: '0 0 8px 0', color: 'var(--text)' }}>Belum ada pengajuan</h3>
             <p style={{ margin: 0 }}>Daftar pengajuan admin akan muncul di sini.</p>
           </div>

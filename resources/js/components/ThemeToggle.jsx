@@ -1,16 +1,17 @@
 import { useTheme } from '@/context/ThemeContext';
+import { Sun, Moon, Monitor } from 'lucide-react';
 
 const THEMES = [
-  { value: 'light', emoji: '☀️', label: 'Mode Terang' },
-  { value: 'dark',  emoji: '🌙', label: 'Mode Gelap'  },
-  { value: 'system',emoji: '💻', label: 'Ikuti Sistem' },
+  { value: 'light', icon: <Sun size={16} />, label: 'Mode Terang' },
+  { value: 'dark',  icon: <Moon size={16} />, label: 'Mode Gelap'  },
+  { value: 'system',icon: <Monitor size={16} />, label: 'Ikuti Sistem' },
 ];
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return (
     <div className="theme-toggle" role="group" aria-label="Pilih tema tampilan">
-      {THEMES.map(({ value, emoji, label }) => (
+      {THEMES.map(({ value, icon, label }) => (
         <button
           key={value}
           className={`theme-btn${theme === value ? ' active' : ''}`}
@@ -19,7 +20,7 @@ export default function ThemeToggle() {
           aria-label={label}
           aria-pressed={theme === value}
         >
-          {emoji}
+          {icon}
         </button>
       ))}
     </div>

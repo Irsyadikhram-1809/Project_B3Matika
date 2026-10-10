@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import NotFound from '@/components/NotFound';
 import WelcomeToast from '@/components/WelcomeToast';
 import BrandIntro from '@/components/Brandintro';
@@ -88,7 +89,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!isStandalonePage && <footer className="footer">© {new Date().getFullYear()} B3Matika — Belajar, Berlatih, Bermain</footer>}
+      {!isStandalonePage && <Footer />}
       {!isStandalonePage && <BackToTop />}
     </>
   );

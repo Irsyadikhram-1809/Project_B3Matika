@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { User, Pencil, Lock, Eye, EyeOff, Star, Trophy, CheckCircle, GraduationCap } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import AvatarUploader from '@/components/AvatarUploader';
@@ -32,7 +33,7 @@ export default function Profil() {
     try {
       const d = await api('/me/profile', { method: 'PUT', body: f });
       setUser(d.user);
-      setOk('Profil berhasil diperbarui! ✅');
+      setOk(<><CheckCircle size={16} /> Profil berhasil diperbarui!</>);
     } catch (ex) { setErr(ex.message); }
     setBusy(false);
   }
@@ -47,7 +48,7 @@ export default function Profil() {
     }
     try {
       await api('/me/password', { method: 'PUT', body: pw });
-      setOk('Password berhasil diubah! ✅');
+      setOk(<><CheckCircle size={16} /> Password berhasil diubah!</>);
       setPw({ current_password: '', password: '', password_confirmation: '' });
     } catch (ex) { setErr(ex.message); }
     setBusy(false);
@@ -55,7 +56,7 @@ export default function Profil() {
 
   return (
     <>
-      <h1>👤 Profil Saya</h1>
+      <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><User size={28} /> Profil Saya</h1>
       <div className="profil-wrap">
         {/* Kartu Info */}
         <div className="card profil-summary">
@@ -72,19 +73,19 @@ export default function Profil() {
             <p className="muted small">{user.email}</p>
           </div>
           <div className="profil-stats">
-            <div className="profil-stat"><span className="stat-val">⭐ {user.points}</span><span className="stat-key">Poin</span></div>
-            <div className="profil-stat"><span className="stat-val">🏆 {user.level}</span><span className="stat-key">Level</span></div>
+            <div className="profil-stat"><span className="stat-val" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Star size={20} fill="currentColor" color="var(--brand)" /> {user.points}</span><span className="stat-key">Poin</span></div>
+            <div className="profil-stat"><span className="stat-val" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Trophy size={20} fill="currentColor" color="var(--brand)" /> {user.level}</span><span className="stat-key">Level</span></div>
           </div>
         </div>
 
         {/* Form Tab */}
         <div className="card profil-form-card">
           <div className="profil-tabs">
-            <button className={tab === 'profil' ? 'active' : ''} onClick={() => { setTab('profil'); setErr(''); setOk(''); }}>
-              ✏️ Edit Profil
+            <button className={tab === 'profil' ? 'active' : ''} onClick={() => { setTab('profil'); setErr(''); setOk(''); }} style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+              <Pencil size={18} /> Edit Profil
             </button>
-            <button className={tab === 'password' ? 'active' : ''} onClick={() => { setTab('password'); setErr(''); setOk(''); }}>
-              🔒 Ubah Password
+            <button className={tab === 'password' ? 'active' : ''} onClick={() => { setTab('password'); setErr(''); setOk(''); }} style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+              <Lock size={18} /> Ubah Password
             </button>
           </div>
 
@@ -124,7 +125,7 @@ export default function Profil() {
               <label>Password Saat Ini
                 <div className="pw-wrapper">
                   <input type={showPw ? 'text' : 'password'} value={pw.current_password} onChange={setPwF('current_password')} required />
-                  <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex="-1">{showPw ? '🙈' : '👁️'}</button>
+                  <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex="-1">{showPw ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                 </div>
               </label>
               <label>Password Baru

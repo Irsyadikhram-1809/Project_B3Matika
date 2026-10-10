@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 
@@ -39,8 +40,8 @@ export default function ResetPassword() {
         <div className="center mb"><Logo size={52} tagline={false} /></div>
         <h2 className="center">Atur Ulang Password</h2>
         {ok ? (
-          <div className="notice" style={{ background: '#e7f7ec', color: '#146c2e' }}>
-            ✅ Password berhasil direset! Mengarahkan ke halaman masuk…
+          <div className="notice" style={{ background: '#e7f7ec', color: '#146c2e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle size={16} /> Password berhasil direset! Mengarahkan ke halaman masuk…
           </div>
         ) : (
           <>
@@ -53,7 +54,7 @@ export default function ResetPassword() {
               Password Baru
               <div className="pw-wrapper">
                 <input type={showPw ? 'text' : 'password'} value={f.password} onChange={e => setF({ ...f, password: e.target.value })} required minLength={6} />
-                <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex="-1">{showPw ? '🙈' : '👁️'}</button>
+                <button type="button" className="pw-toggle" onClick={() => setShowPw(!showPw)} tabIndex="-1">{showPw ? <EyeOff size={18} /> : <Eye size={18} />}</button>
               </div>
             </label>
             <label>

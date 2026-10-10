@@ -26,6 +26,7 @@
     "framer-motion": "^14.0.0",
     "jsonwebtoken": "^9.0.3",
     "ls": "^1.0.0",
+    "lucide-react": "^1.55.0",
     "nodemailer": "^10.0.15",
     "pg": "^8.23.1",
     "react": "^18.3.1",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "concurrently": "^10.0.5",
+    "sharp": "^0.35.5",
     "vite": "^5.4.0"
   }
 }

@@ -1231,6 +1231,9 @@ a.card:hover {
 .tutor-subtitle { margin: 2px 0 0; font-size: .82rem; color: rgba(255,255,255,.8); }
 .tutor-status { display: flex; align-items: center; gap: 6px; }
 .status-dot { width: 10px; height: 10px; background: #4ade80; border-radius: 50%; animation: pulse-dot 2s ease infinite; }
+.status-dot.status-connecting { background: #facc15; animation: pulse-dot-connecting 2s ease infinite; }
+.status-dot.status-offline { background: #f87171; animation: none; }
+@keyframes pulse-dot-connecting { 0%,100%{box-shadow:0 0 0 0 rgba(250,204,21,.4)} 50%{box-shadow:0 0 0 6px rgba(250,204,21,0)} }
 @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)} 50%{box-shadow:0 0 0 6px rgba(74,222,128,0)} }
 .status-text { font-size: .82rem; color: rgba(255,255,255,.9); }
 
@@ -1431,15 +1434,127 @@ td.aksi-cell {
 .auth { display: flex; justify-content: center; padding-top: 12px; }
 .auth-card { width: 100%; max-width: 400px; padding: 28px; }
 
-/* ─── 19. Footer ─────────────────────────────────────────────────────── */
-.footer {
-  text-align: center; color: var(--text-muted); font-size: .82rem; line-height: 1.5;
-  padding: 22px 16px; border-top: 1px solid var(--line); background: var(--surface);
-  margin-top: auto; width: 100%; flex-shrink: 0;
-}
+/* Layout shell: sticky footer — #root flex column, main tumbuh mengisi ruang */
 #root { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
 #root > main { flex: 1 0 auto; width: 100%; }
-#root > .page { min-height: 0; }
+
+/* Helper .container — max-width + padding horizontal */
+.container { max-width: 1100px; margin-inline: auto; padding-inline: clamp(16px, 4vw, 48px); }
+
+/* ─── 19. Footer (baru) ──────────────────────────────────────────────────── */
+
+/*
+  Menggantikan footer satu baris minimalis dengan desain tiga kolom.
+  Sticky footer dijamin oleh:
+    #root { display:flex; flex-direction:column; min-height:100dvh; }
+    #root > main { flex: 1; }
+  sehingga footer SELALU di dasar layar pada halaman pendek.
+*/
+.site-footer {
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  color: var(--text-muted);
+  /* Tidak ada pita abu mencolok — menggunakan --card (putih/dark) bukan --surface */
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.site-footer-inner {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr;
+  gap: 32px 24px;
+  padding-top: 40px;
+  padding-bottom: 32px;
+}
+
+/* Branding */
+.footer-brand { display: flex; flex-direction: column; gap: 8px; }
+
+.footer-logo-name {
+  font-size: 1.6rem; font-weight: 800;
+  color: var(--navy); letter-spacing: -0.5px;
+  line-height: 1;
+}
+.footer-logo-three { color: var(--orange); }
+
+.footer-tagline {
+  font-size: .82rem; font-weight: 600;
+  color: var(--orange); letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.footer-desc {
+  font-size: .82rem; color: var(--text-muted);
+  line-height: 1.65; margin: 4px 0 0;
+  max-width: 32ch;
+}
+
+/* Kolom navigasi */
+.footer-nav { display: flex; flex-direction: column; gap: 12px; }
+
+.footer-nav-title {
+  font-size: .78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text); margin: 0 0 4px;
+}
+
+.footer-nav-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.footer-nav-list a {
+  font-size: .88rem; color: var(--text-muted);
+  text-decoration: none; transition: color var(--dur-fast);
+  display: inline-block;
+}
+.footer-nav-list a:hover { color: var(--blue-d); }
+.footer-nav-list a:focus-visible { outline: 2px solid var(--blue-d); border-radius: 3px; }
+
+/* Baris hak cipta */
+.footer-copy {
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+  /* Padding bottom memperhitungkan safe-area (notch/home indicator) */
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.footer-copy p {
+  font-size: .78rem; color: var(--text-muted);
+  text-align: center; margin: 0;
+}
+
+/* Tablet: 2 kolom */
+@media (max-width: 768px) {
+  .site-footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 20px;
+    padding-top: 28px;
+    padding-bottom: 24px;
+  }
+  .footer-brand { grid-column: 1 / -1; } /* branding full lebar */
+  .footer-desc { max-width: 100%; }
+}
+
+/* Mobile: 1 kolom */
+@media (max-width: 480px) {
+  .site-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding-top: 24px;
+    padding-bottom: 20px;
+  }
+  .footer-brand { gap: 6px; }
+  .footer-logo-name { font-size: 1.4rem; }
+}
+
+/* Pertahankan kelas .footer lama untuk kompatibilitas mundur (admin fallback) */
+.footer {
+  text-align: center; color: var(--text-muted); font-size: .82rem; line-height: 1.5;
+  padding: 22px 16px; border-top: 1px solid var(--line); background: var(--card);
+  margin-top: auto; width: 100%; flex-shrink: 0;
+}
+
 
 /* ─── 20. Game Components ────────────────────────────────────────────── */
 .game { max-width: 460px; }
@@ -1723,13 +1838,6 @@ td.aksi-cell {
   /* Hamburger visible */
   .burger { display: flex; }
 
-  .navbar.scrolled,
-[data-theme="dark"] .navbar.scrolled {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  background: var(--card);
-}
-
   /* Logo tagline tersembunyi di navbar pada lebar ini */
   .logo-tag { display: none; }
 
@@ -1743,7 +1851,8 @@ td.aksi-cell {
   .nav-links {
     display: none;
     position: fixed;
-    top: var(--nav-bottom, var(--navbar-h)); left: 0; right: 0; bottom: 0;
+    top: var(--nav-bottom, var(--navbar-h)); left: 0; right: 0;
+    height: calc(100dvh - var(--nav-bottom, var(--navbar-h)));
     background: var(--card);
     flex-direction: column;
     align-items: stretch;
@@ -2241,13 +2350,4 @@ td.aksi-cell {
   input, select, textarea {
     font-size: max(16px, 1em);
   }
-}
-
-/* Perbaikan drawer mobile terpotong:
-backdrop-filter membuat .navbar menjadi containing block bagi elemen fixed
-  (.nav-links), sehingga drawer menyusut setinggi navbar saat halaman digulir.
-   Saat menu terbuka, matikan blur pada navbar. */
-.navbar.scrolled.menu-open {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
 }

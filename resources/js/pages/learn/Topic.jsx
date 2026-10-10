@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { School, Landmark, GraduationCap, BookOpen, Pencil, Target, Book, Brain, CheckCircle, Lightbulb, Lock, XCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import NotFound from '@/components/NotFound';
@@ -166,7 +167,7 @@ export default function Topic() {
 
       <div className="topic-hero">
         <div className="topic-hero-badge">
-          {topic.grade <= 6 ? '🏫 SD' : topic.grade <= 9 ? '🏛️ SMP' : '🎓 SMA/SMK'}
+          {topic.grade <= 6 ? <><School size={16} /> SD</> : topic.grade <= 9 ? <><Landmark size={16} /> SMP</> : <><GraduationCap size={16} /> SMA/SMK</>}
           <span className="topic-hero-grade">Kelas {topic.grade}</span>
         </div>
         <h1 className="topic-title">{topic.title}</h1>
@@ -180,7 +181,7 @@ export default function Topic() {
           onClick={() => switchTab('materi')}
           id="tab-materi"
         >
-          <span className="topic-tab-icon">📖</span>
+          <span className="topic-tab-icon"><BookOpen size={18} /></span>
           <span>Tutorial Materi</span>
         </button>
         <button
@@ -188,7 +189,7 @@ export default function Topic() {
           onClick={() => switchTab('latihan')}
           id="tab-latihan"
         >
-          <span className="topic-tab-icon">✏️</span>
+          <span className="topic-tab-icon"><Pencil size={18} /></span>
           <span>Latihan Soal</span>
           {answered > 0 && <span className="topic-tab-badge">{answered}</span>}
         </button>
@@ -202,18 +203,18 @@ export default function Topic() {
             {/* Learning objectives card */}
             <div className="materi-objectives">
               <div className="objectives-header">
-                <span>🎯</span>
+                <Target size={20} />
                 <strong>Tujuan Belajar</strong>
               </div>
               <p className="objectives-text">
                 Setelah mempelajari materi ini, kamu akan memahami konsep <strong>{topic.title}</strong> dan mampu mengerjakan soal-soal yang berkaitan dengan topik ini.
               </p>
               <div className="objectives-meta">
-                <span className="obj-chip">📚 Baca materi</span>
+                <span className="obj-chip" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}><Book size={14} /> Baca materi</span>
                 <span className="obj-arrow">→</span>
-                <span className="obj-chip">🧠 Pahami contoh</span>
+                <span className="obj-chip" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}><Brain size={14} /> Pahami contoh</span>
                 <span className="obj-arrow">→</span>
-                <span className="obj-chip">✏️ Latihan soal</span>
+                <span className="obj-chip" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}><Pencil size={14} /> Latihan soal</span>
               </div>
             </div>
 
@@ -224,8 +225,8 @@ export default function Topic() {
 
             {/* Proceed to latihan */}
             <div className="materi-cta">
-              <div className="materi-cta-text">
-                <span>✅</span>
+              <div className="materi-cta-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle size={20} />
                 <span>Sudah paham materinya? Ayo uji kemampuanmu!</span>
               </div>
               <button className="btn btn-lg materi-cta-btn" onClick={() => switchTab('latihan')}>
@@ -240,7 +241,7 @@ export default function Topic() {
           <div className="latihan-wrap">
             {/* Guidance banner */}
             <div className="latihan-guide">
-              <div className="guide-icon">💡</div>
+              <div className="guide-icon"><Lightbulb size={24} /></div>
               <div className="guide-body">
                 <strong>Petunjuk Mengerjakan Soal</strong>
                 <ul className="guide-list">
@@ -256,8 +257,8 @@ export default function Topic() {
             </div>
 
             {!user && (
-              <div className="notice latihan-login-notice">
-                <span>🔐</span> Masuk dulu untuk mengerjakan soal dan mendapatkan poin.{' '}
+              <div className="notice latihan-login-notice" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Lock size={16} /> Masuk dulu untuk mengerjakan soal dan mendapatkan poin.{' '}
                 <Link to="/masuk" className="notice-link">Masuk sekarang</Link>
               </div>
             )}
@@ -267,8 +268,8 @@ export default function Topic() {
               <div className="latihan-progress-wrap">
                 <ProgressBar answered={answered} total={questions.length} />
                 {answered > 0 && (
-                  <span className="score-summary">
-                    ✅ {correct} benar · ❌ {answered - correct} salah
+                  <span className="score-summary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle size={14} /> {correct} benar <span style={{ opacity: 0.5 }}>·</span> <XCircle size={14} /> {answered - correct} salah
                   </span>
                 )}
               </div>

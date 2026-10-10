@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Users, FileText, BookOpen, Puzzle, BarChart3, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminGuard from './AdminGuard';
 
@@ -34,11 +35,11 @@ export default function Dashboard() {
 
   const getIconForStat = (key) => {
     const k = key.toLowerCase();
-    if (k.includes('user') || k.includes('pengguna')) return '👤';
-    if (k.includes('soal') || k.includes('question')) return '📝';
-    if (k.includes('materi') || k.includes('topic')) return '📚';
-    if (k.includes('puzzle')) return '🧩';
-    return '📊';
+    if (k.includes('user') || k.includes('pengguna')) return <Users size={24} />;
+    if (k.includes('soal') || k.includes('question')) return <FileText size={24} />;
+    if (k.includes('materi') || k.includes('topic')) return <BookOpen size={24} />;
+    if (k.includes('puzzle')) return <Puzzle size={24} />;
+    return <BarChart3 size={24} />;
   };
 
   return (
@@ -54,7 +55,7 @@ export default function Dashboard() {
 
       {error && !loading && (
         <div className="admin-error-state" style={{ marginBottom: '24px' }}>
-          <span>⚠️</span> <div><strong>Terjadi Kesalahan</strong><br/>{error}</div>
+          <span><AlertTriangle size={24} color="var(--danger)" /></span> <div><strong>Terjadi Kesalahan</strong><br/>{error}</div>
           <button className="btn btn-sm" style={{ marginLeft: 'auto', background: '#fff', color: '#000' }} onClick={loadData}>Coba Lagi</button>
         </div>
       )}

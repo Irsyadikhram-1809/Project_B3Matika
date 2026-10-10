@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Settings, User, Lock, BookOpen, LogOut, Star, Trophy, Menu, X, ChevronDown, GraduationCap } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -160,11 +161,13 @@ useEffect(() => {
                     {user.avatar?.startsWith('http') || user.avatar?.startsWith('data:') ? (
                       <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      user.avatar || '🎓'
+                      user.avatar || <GraduationCap size={20} />
                     )}
                   </div>
                   <span className="who">{user.username || user.name}</span>
-                  <span aria-hidden="true" style={{ fontSize: '.7rem', color: 'var(--text-muted)' }}>▾</span>
+                  <span aria-hidden="true" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                    <ChevronDown size={14} />
+                  </span>
                 </button>
 
                 <div className="nav-dropdown-menu" id="user-dropdown" role="menu">
@@ -172,24 +175,28 @@ useEffect(() => {
                     <span className="name">{user.name}</span>
                     <span className="username">@{user.username || 'user'}</span>
                     <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
-                      <span className="chip">⭐ {user.points ?? 0} poin</span>
-                      <span className="chip">🏆 Lv {user.level ?? 1}</span>
+                      <span className="chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Star size={14} fill="currentColor" /> {user.points ?? 0} poin
+                      </span>
+                      <span className="chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Trophy size={14} fill="currentColor" /> Lv {user.level ?? 1}
+                      </span>
                     </div>
                   </div>
 
                   {(user.role === 'admin' || user.role === 'superadmin') && (
                     <Link to="/panel-rahasia" onClick={close} className="dropdown-item" role="menuitem">
-                      <span className="dropdown-icon">⚙️</span> Panel Admin
+                      <span className="dropdown-icon" style={{ display: 'flex' }}><Settings size={18} /></span> Panel Admin
                     </Link>
                   )}
                   <Link to="/profil" onClick={close} className="dropdown-item" role="menuitem">
-                    <span className="dropdown-icon">👤</span> Profil Saya
+                    <span className="dropdown-icon" style={{ display: 'flex' }}><User size={18} /></span> Profil Saya
                   </Link>
                   <Link to="/profil?tab=password" onClick={close} className="dropdown-item" role="menuitem">
-                    <span className="dropdown-icon">🔒</span> Ubah Sandi
+                    <span className="dropdown-icon" style={{ display: 'flex' }}><Lock size={18} /></span> Ubah Sandi
                   </Link>
                   <Link to="/riwayat" onClick={close} className="dropdown-item" role="menuitem">
-                    <span className="dropdown-icon">📚</span> Riwayat Belajar
+                    <span className="dropdown-icon" style={{ display: 'flex' }}><BookOpen size={18} /></span> Riwayat Belajar
                   </Link>
                   <div className="dropdown-divider" role="separator" />
                   <button
@@ -197,7 +204,7 @@ useEffect(() => {
                     role="menuitem"
                     onClick={() => { logout(); close(); nav('/'); }}
                   >
-                    <span className="dropdown-icon">🚪</span> Keluar
+                    <span className="dropdown-icon" style={{ display: 'flex' }}><LogOut size={18} /></span> Keluar
                   </button>
                 </div>
               </div>
@@ -213,7 +220,7 @@ useEffect(() => {
               aria-expanded={open}
               aria-controls="main-nav"
             >
-              {open ? '✕' : '☰'}
+              {open ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import Logo from '@/components/Logo';
 
@@ -26,9 +27,12 @@ export default function ForgotPassword() {
         <h2 className="center">Lupa Password</h2>
         {ok ? (
           <>
-            <div className="notice" style={{ background: '#e7f7ec', color: '#146c2e' }}>
-              ✅ Link reset password telah dikirim ke <b>{email}</b>.<br />
-              Silakan cek inbox (dan folder Spam) emailmu.
+            <div className="notice" style={{ background: '#e7f7ec', color: '#146c2e', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+              <CheckCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                Link reset password telah dikirim ke <b>{email}</b>.<br />
+                Silakan cek inbox (dan folder Spam) emailmu.
+              </div>
             </div>
             <p className="center small muted mt">
               <Link to="/masuk">← Kembali ke Masuk</Link>

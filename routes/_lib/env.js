@@ -78,6 +78,7 @@ try {
     FRONTEND_URL: process.env.FRONTEND_URL || '*',
     PORT: process.env.PORT || 3000,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY || null, // Optional
+    GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
     
     // Limits
     LOGIN_MAX_ATTEMPTS: parseInt(process.env.LOGIN_MAX_ATTEMPTS || '5', 10),

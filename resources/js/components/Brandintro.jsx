@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
-import logo from "../assets/logo-b3.jpeg"; // sesuaikan path-nya
-import "@fontsource/poppins/700.css"; // npm i @fontsource/poppins
+import logo from "../assets/logo-b3.jpeg";
+import "@fontsource/poppins/700.css";
 import "./Brandintro.css";
 
 // [x, y, lebar, tinggi] tiap simbol di kanvas 1254x1254
@@ -11,6 +11,11 @@ const SYMBOLS = [
 const WORD = "B3Matika";
 const ENTRANCE_S = 5.8; // durasi animasi masuk (detik) pada pace = 1
 const SEEN_KEY = "b3-intro-seen";
+
+// Deteksi prefers-reduced-motion secara aman (SSR-safe)
+const prefersReducedMotion = () => {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+};
 
 const seen = () => { try { return sessionStorage.getItem(SEEN_KEY) === "1"; } catch { return false; } };
 const mark = () => { try { sessionStorage.setItem(SEEN_KEY, "1"); } catch { /* abaikan */ } };
@@ -34,16 +39,27 @@ export default function BrandIntro({
   const id = (n) => `${n}-${uid}`;
   const ref = (n) => `url(#${id(n)})`;
   const [run, setRun] = useState(0);
-  const [phase, setPhase] = useState(() => (splash && once && seen() ? "gone" : "play"));
+  // Jika prefers-reduced-motion aktif, splash langsung selesai tanpa animasi
+  const reducedMotion = prefersReducedMotion();
+  const [phase, setPhase] = useState(() => {
+    if (splash && once && seen()) return "gone";
+    if (reducedMotion) return "play"; // akan langsung di-timeout cepat
+    return "play";
+  });
   const done = useRef(onFinish);
   done.current = onFinish;
 
   useEffect(() => {
     if (!splash) return;
     if (phase === "gone") { done.current?.(); return; }
-    const total = ENTRANCE_S * 1000 * pace + holdMs;
-    const t1 = setTimeout(() => setPhase("out"), total);
-    const t2 = setTimeout(() => { mark(); setPhase("gone"); done.current?.(); }, total + fadeMs);
+
+    // Jika pengguna prefer-reduced-motion: tampilkan logo statis ~600ms lalu selesai
+    const rm = prefersReducedMotion();
+    const totalMs = rm
+      ? 600
+      : Math.min(ENTRANCE_S * 1000 * pace + holdMs, 3000); // maks 3 detik di mobile
+    const t1 = setTimeout(() => setPhase("out"), totalMs);
+    const t2 = setTimeout(() => { mark(); setPhase("gone"); done.current?.(); }, totalMs + (rm ? 0 : fadeMs));
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [splash, pace, holdMs, fadeMs, run]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -100,7 +116,8 @@ export default function BrandIntro({
       <div className="bi-word" role="img" aria-label="B3Matika">
         {[...WORD].map((ch, i) => (
           <span key={i} aria-hidden="true" className={`bi-c${ch === "3" ? " bi-three" : ""}`} style={{ "--i": i }}>
-            <span className="bi-l">{ch}</span>
+            {/* data-char dipakai oleh CSS ::after untuk efek kilau di atas teks solid */}
+            <span className="bi-l" data-char={ch}>{ch}</span>
           </span>
         ))}
       </div>
