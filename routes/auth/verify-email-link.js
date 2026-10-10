@@ -91,7 +91,6 @@ export default async function handler(req, res) {
         role,
         points:    0,
         is_active: true,
-        avatar:    '🎓',
       }, { onConflict: 'id' });
 
       if (role === 'admin') {

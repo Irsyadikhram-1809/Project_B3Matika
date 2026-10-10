@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, CheckCircle, User, Shield, KeyRound, Mail } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
+import SegmentedControl from '@/components/SegmentedControl';
+import BrandWordmark from '@/components/BrandWordmark';
 
 export default function AuthForm({ mode, admin = false }) {
   const { user, login } = useAuth();
@@ -221,16 +223,35 @@ export default function AuthForm({ mode, admin = false }) {
         {err && <div className="alert">{err}</div>}
         
         {!otpMode && mode === 'register' && (
-          <div className="game-filter" style={{ marginBottom: '1rem', justifyContent: 'center' }}>
-            <button type="button" className={`chip ${regType === 'user' ? 'chip-active' : ''}`} onClick={() => setRegType('user')}>Akun User</button>
-            <button type="button" className={`chip ${regType === 'admin' ? 'chip-active' : ''}`} onClick={() => setRegType('admin')}>Akun Admin</button>
+          <div style={{ marginBottom: '1rem' }}>
+            <SegmentedControl 
+              size="primary"
+              value={regType}
+              onChange={setRegType}
+              options={[
+                { value: 'user', label: 'Akun User', icon: <User size={16} /> },
+                { value: 'admin', label: 'Akun Admin', icon: <Shield size={16} /> }
+              ]}
+            />
           </div>
         )}
 
         {!otpMode && mode === 'register' && regType === 'admin' && (
-          <div className="game-filter" style={{ marginBottom: '1rem', justifyContent: 'center' }}>
-             <button type="button" className={`chip ${adminFlow === 'input_token' ? 'chip-active' : ''}`} onClick={() => setAdminFlow('input_token')}>Punya Token</button>
-             <button type="button" className={`chip ${adminFlow === 'request_token' ? 'chip-active' : ''}`} onClick={() => setAdminFlow('request_token')}>Minta Token</button>
+          <div style={{ marginBottom: '1rem' }}>
+            <SegmentedControl 
+              size="compact"
+              value={adminFlow}
+              onChange={setAdminFlow}
+              options={[
+                { value: 'input_token', label: 'Punya Token', icon: <KeyRound size={14} /> },
+                { value: 'request_token', label: 'Minta Token', icon: <Mail size={14} /> }
+              ]}
+            />
+            <p className="small muted center mt" style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+              {adminFlow === 'input_token' 
+                ? 'Saya sudah menerima token dari superadmin.' 
+                : 'Kirim permintaan token ke superadmin lewat email.'}
+            </p>
           </div>
         )}
 

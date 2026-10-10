@@ -59,7 +59,6 @@ async function buatAkun(rec, email, name) {
       role,
       points:    0,
       is_active: true,
-      avatar:    '🎓',
     }, { onConflict: 'id' });
 
     // Jika admin: update used_by di admin_invites

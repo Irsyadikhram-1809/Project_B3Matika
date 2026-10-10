@@ -1,5 +1,5 @@
 import { supabase } from './_lib/supabase.js';
-import { setCors, errorResponse } from './_lib/auth.js';
+import { setCors, errorResponse, normalizeUser } from './_lib/auth.js';
 
 export default async function handler(req, res) {
   setCors(res);
@@ -26,13 +26,13 @@ export default async function handler(req, res) {
 
     // Kalkulasi level: tiap 100 poin = 1 level
     const formattedUsers = rows.map(u => {
-      const profile = u.profiles?.[0] || {};
+      const norm = normalizeUser(u);
       return {
-        id: u.id,
-        name: profile.name || u.email.split('@')[0], // Extract name from email as fallback
-        points: u.points || 0,
-        avatar: profile.avatar || null,
-        level: Math.floor((u.points || 0) / 100) + 1
+        id: norm.id,
+        name: norm.name,
+        points: norm.points,
+        avatar: norm.avatar || null,
+        level: Math.floor(norm.points / 100) + 1
       };
     });
 

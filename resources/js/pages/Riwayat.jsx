@@ -2,12 +2,38 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { BookOpen, Gamepad2, Zap, Grid3x3, Grip, MessageCircleQuestion, KeyRound, LayoutGrid, TableCellsMerge, Calculator, ShieldQuestion } from 'lucide-react';
+import IconTile from '@/components/IconTile';
 
 const GAME_LABELS = {
-  kilat: '⚡ Kilat Hitung', '2048': '🎯 2048', threes: '🎲 Threes!',
-  riddle: '🧩 Math Riddles', crypt_basic: '🔤 Cryptarithm Dasar',
-  sudoku: '🟦 Sudoku', kenken: '🔢 KenKen', calculords: '🃏 Calculords',
-  crypt_adv: '🔐 Cryptarithm Lanjutan',
+  kilat: 'Kilat Hitung', '2048': '2048', threes: 'Threes!',
+  riddle: 'Math Riddles', crypt_basic: 'Cryptarithm Dasar',
+  sudoku: 'Sudoku', kenken: 'KenKen', calculords: 'Calculords',
+  crypt_adv: 'Cryptarithm Lanjutan',
+};
+
+const GAME_ICON_MAP = {
+  'kilat': Zap,
+  '2048': Grid3x3,
+  'threes': Grip,
+  'riddle': MessageCircleQuestion,
+  'crypt_basic': KeyRound,
+  'sudoku': LayoutGrid,
+  'kenken': TableCellsMerge,
+  'calculords': Calculator,
+  'crypt_adv': ShieldQuestion,
+};
+
+const GAME_COLOR_MAP = {
+  'kilat': 'orange',
+  '2048': 'blue',
+  'threes': 'green',
+  'riddle': 'red',
+  'crypt_basic': 'purple',
+  'sudoku': 'blue',
+  'kenken': 'green',
+  'calculords': 'orange',
+  'crypt_adv': 'purple',
 };
 
 function gradeLabel(g) {
@@ -97,15 +123,15 @@ export default function Riwayat() {
       </div>
 
       <div className="profil-tabs mt">
-        <button className={tab === 'materi' ? 'active' : ''} onClick={() => setTab('materi')}>📖 Riwayat Materi</button>
-        <button className={tab === 'game' ? 'active' : ''} onClick={() => setTab('game')}>🎮 Riwayat Game</button>
+        <button className={tab === 'materi' ? 'active' : ''} onClick={() => setTab('materi')} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><BookOpen size={16} /> Riwayat Materi</button>
+        <button className={tab === 'game' ? 'active' : ''} onClick={() => setTab('game')} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Gamepad2 size={16} /> Riwayat Game</button>
       </div>
 
       {tab === 'materi' && (
         <>
           {!topics.length && (
             <div className="center card mt" style={{ padding: '60px 20px' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '10px' }}>📖</div>
+              <div style={{ marginBottom: '16px' }}><IconTile icon={BookOpen} color="blue" /></div>
               <h3>Belum ada riwayat belajar</h3>
               <p className="muted mt" style={{ marginBottom: '20px' }}>Ayo mulai petualangan belajarmu sekarang!</p>
               <Link to="/materi" className="btn">Mulai Belajar</Link>
@@ -155,7 +181,7 @@ export default function Riwayat() {
         <>
           {!games.length && (
              <div className="center card mt" style={{ padding: '60px 20px' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '10px' }}>🎮</div>
+              <div style={{ marginBottom: '16px' }}><IconTile icon={Gamepad2} color="green" /></div>
               <h3>Belum pernah main game</h3>
               <p className="muted mt" style={{ marginBottom: '20px' }}>Asah otakmu dengan berbagai game matematika!</p>
               <Link to="/games" className="btn">Main Games</Link>
@@ -174,15 +200,23 @@ export default function Riwayat() {
                   </tr>
                 </thead>
                 <tbody>
-                  {games.map(g => (
+                  {games.map(g => {
+                    const GI = GAME_ICON_MAP[g.game_type] || Gamepad2;
+                    const gc = GAME_COLOR_MAP[g.game_type] || 'blue';
+                    return (
                     <tr key={g.game_type}>
-                      <td>{GAME_LABELS[g.game_type] || g.game_type}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <IconTile icon={GI} color={gc} className="riwayat-game-icon" />
+                          <span>{GAME_LABELS[g.game_type] || g.game_type}</span>
+                        </div>
+                      </td>
                       <td><b>{g.best_score}</b></td>
                       <td><span className="pts">+{g.total_points} poin</span></td>
                       <td>{g.plays}×</td>
                       <td className="small muted">{fmtDate(g.last_played)}</td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>

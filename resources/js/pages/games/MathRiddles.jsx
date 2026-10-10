@@ -62,7 +62,7 @@ export default function MathRiddles({ user, submitScore, bestScore }) {
 
   if (done) return (
     <>
-      <h1>🧩 Math Riddles</h1>
+      <h1>Math Riddles</h1>
       <div className="card game">
         <h2 className="center">Selesai! 🎉</h2>
         <p className="center">Skor kamu: <b>{score}</b> / {pool.length}</p>
@@ -75,7 +75,7 @@ export default function MathRiddles({ user, submitScore, bestScore }) {
 
   return (
     <>
-      <h1>🧩 Math Riddles</h1>
+      <h1>Math Riddles</h1>
       <p className="muted mb">Jawab semua teka-teki! Soal {idx + 1} dari {pool.length}</p>
       <div className="card game" style={{ maxWidth: 560 }}>
         <div className="game-bar">

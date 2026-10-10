@@ -3,6 +3,28 @@ import { supabase } from './supabase.js';
 import env from './env.js';
 
 /**
+ * Helper untuk normalisasi data profil dari relasi one-to-one atau array
+ */
+export function normalizeUser(u) {
+  if (!u) return null;
+  const profile = (Array.isArray(u.profiles) ? u.profiles[0] : u.profiles) || {};
+  return {
+    id: u.id,
+    email: u.email,
+    role: u.role,
+    is_verified: u.is_verified,
+    is_blocked: u.is_blocked,
+    created_at: u.created_at,
+    name: profile.name || u.email.split('@')[0],
+    username: profile.username || null,
+    avatar: profile.avatar || null,
+    points: parseInt(profile.points || 0, 10),
+    is_active: profile.is_active ?? true,
+    last_seen: profile.last_seen || null,
+  };
+}
+
+/**
  * Validasi token JWT dan kembalikan { user, profile }
  */
 export async function requireAuth(req) {
@@ -19,7 +41,7 @@ export async function requireAuth(req) {
     const { id } = jwt.verify(token, env.JWT_SECRET);
     
     // Ambil user dan profile dari database
-    const { data: user, error } = await supabase
+    const { data: userRaw, error } = await supabase
       .from('users')
       .select(`
         id, email, role, is_verified, is_blocked, created_at,
@@ -28,20 +50,13 @@ export async function requireAuth(req) {
       .eq('id', id)
       .single();
 
-    if (error || !user) {
+    if (error || !userRaw) {
       const err = new Error('Pengguna tidak ditemukan.');
       err.status = 401;
       throw err;
     }
-    
-    const profile = (Array.isArray(user.profiles) ? user.profiles[0] : user.profiles) || {};
-    
-    // Fallback jika tidak ada di tabel profiles
-    user.name = profile.name || user.email.split('@')[0];
-    user.points = profile.points || 0;
-    user.avatar = profile.avatar || '🎓';
-    user.username = profile.username || null;
-    user.last_seen = profile.last_seen || null;
+
+    const user = normalizeUser(userRaw);
 
     if (user.is_blocked) {
       const err = new Error('Akun diblokir oleh admin.');

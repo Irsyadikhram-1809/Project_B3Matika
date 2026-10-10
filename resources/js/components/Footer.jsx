@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import BrandWordmark from './BrandWordmark';
 
 /**
  * Footer — komponen tersendiri untuk B3Matika.
@@ -14,8 +15,8 @@ export default function Footer() {
       <div className="container site-footer-inner">
         {/* Kolom 1: Branding */}
         <div className="footer-brand">
-          <span className="footer-logo-name">
-            B<span className="footer-logo-three">3</span>Matika
+          <span className="footer-logo-name" style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+            <BrandWordmark />
           </span>
           <p className="footer-tagline">Belajar, Berlatih, Bermain</p>
           <p className="footer-desc">

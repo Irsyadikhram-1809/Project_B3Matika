@@ -74,6 +74,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
 }
 
 /* Topbar */
@@ -259,6 +260,12 @@
 }
 
 /* Table overrides for clean SaaS look */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .admin-content table {
   width: 100%;
   border-collapse: collapse;

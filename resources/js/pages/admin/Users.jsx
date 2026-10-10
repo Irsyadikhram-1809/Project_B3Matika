@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Users as UsersIcon, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Users as UsersIcon, AlertTriangle, CheckCircle, Trash2, Ban, UserCheck } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminGuard from './AdminGuard';
 import { useAuth } from '@/context/AuthContext';
+import ActionButton from '@/components/ActionButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import Avatar from '@/components/Avatar';
 
 export default function Users() {
   const { user: currentUser } = useAuth();
@@ -10,6 +13,7 @@ export default function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [msg, setMsg] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, user: null });
 
   const load = async () => {
     setLoading(true);
@@ -97,16 +101,21 @@ export default function Users() {
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td>
-                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {u.name}
-                        <span
-                          className={`user-status-dot ${isOnline(u.last_seen) ? 'online' : 'offline'}`}
-                          aria-label={isOnline(u.last_seen) ? 'Sedang online' : 'Offline'}
-                          title={isOnline(u.last_seen) ? 'Online' : 'Offline'}
-                          role="img"
-                        />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Avatar user={u} size={36} />
+                        <div>
+                          <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {u.name}
+                            <span
+                              className={`user-status-dot ${isOnline(u.last_seen) ? 'online' : 'offline'}`}
+                              aria-label={isOnline(u.last_seen) ? 'Sedang online' : 'Offline'}
+                              title={isOnline(u.last_seen) ? 'Online' : 'Offline'}
+                              role="img"
+                            />
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
                     </td>
                     <td>
                       {currentUser?.role === 'superadmin' && u.role !== 'superadmin' ? (
@@ -133,23 +142,19 @@ export default function Users() {
                     </td>
                     <td className="aksi-cell">
                       {u.role !== 'superadmin' ? (
-                        <div className="aksi-cell-inner">
-                          <button 
-                            className="btn btn-sm btn-outline" 
+                        <div className="aksi-cell-inner" style={{ display: 'flex', gap: '8px' }}>
+                          <ActionButton 
+                            icon={u.is_active ? Ban : UserCheck}
+                            label={u.is_active ? 'Blokir' : 'Aktifkan'}
+                            variant="secondary"
                             onClick={() => act(() => api(`/admin/users/${u.id}/block`, { method: 'PATCH', body: { blocked: u.is_active } }))}
-                          >
-                            {u.is_active ? 'Blokir' : 'Aktifkan'}
-                          </button>
-                          <button 
-                            className="btn btn-sm btn-danger" 
-                            onClick={() => {
-                              if(confirm('Hapus pengguna ini secara permanen?')) {
-                                act(() => api(`/admin/users/${u.id}`, { method: 'DELETE' }));
-                              }
-                            }}
-                          >
-                            Hapus
-                          </button>
+                          />
+                          <ActionButton 
+                            icon={Trash2}
+                            label="Hapus"
+                            variant="danger"
+                            onClick={() => setConfirmDialog({ isOpen: true, user: u })}
+                          />
                         </div>
                       ) : (
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Protected</span>
@@ -162,6 +167,22 @@ export default function Users() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Hapus Pengguna"
+        description={confirmDialog.user ? `Apakah Anda yakin ingin menghapus pengguna "${confirmDialog.user.name}" secara permanen? Tindakan ini tidak dapat dibatalkan dan semua data terkait pengguna ini akan hilang.` : ''}
+        confirmLabel="Hapus Permanen"
+        cancelLabel="Batal"
+        confirmVariant="danger"
+        onConfirm={() => {
+          if (confirmDialog.user) {
+            act(() => api(`/admin/users/${confirmDialog.user.id}`, { method: 'DELETE' }));
+          }
+          setConfirmDialog({ isOpen: false, user: null });
+        }}
+        onCancel={() => setConfirmDialog({ isOpen: false, user: null })}
+      />
     </AdminGuard>
   );
 }

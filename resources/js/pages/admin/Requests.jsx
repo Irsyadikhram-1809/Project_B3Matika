@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Mailbox, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Mailbox, AlertTriangle, CheckCircle, Check, X } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminGuard from './AdminGuard';
 import { useAuth } from '@/context/AuthContext';
+import ActionButton from '@/components/ActionButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function Requests() {
   const { user: currentUser } = useAuth();
@@ -10,6 +12,7 @@ export default function Requests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [msg, setMsg] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: null, request: null });
 
   const load = async () => {
     setLoading(true);
@@ -102,27 +105,18 @@ export default function Requests() {
                     <td style={{ display: 'flex', gap: '8px' }}>
                       {r.status === 'pending' && currentUser?.role === 'superadmin' ? (
                         <>
-                          <button 
-                            className="btn btn-sm" 
-                            style={{ background: 'var(--ok)', color: '#fff', border: 'none' }}
-                            onClick={() => {
-                              if (confirm('Setujui pengajuan ini? Pengguna akan menjadi Admin.')) {
-                                act(r.id, 'approve');
-                              }
-                            }}
-                          >
-                            Setujui
-                          </button>
-                          <button 
-                            className="btn btn-sm btn-danger" 
-                            onClick={() => {
-                              if (confirm('Tolak pengajuan ini?')) {
-                                act(r.id, 'reject');
-                              }
-                            }}
-                          >
-                            Tolak
-                          </button>
+                          <ActionButton 
+                            icon={Check}
+                            label="Setujui"
+                            variant="success"
+                            onClick={() => setConfirmDialog({ isOpen: true, type: 'approve', request: r })}
+                          />
+                          <ActionButton 
+                            icon={X}
+                            label="Tolak"
+                            variant="danger"
+                            onClick={() => setConfirmDialog({ isOpen: true, type: 'reject', request: r })}
+                          />
                         </>
                       ) : (
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
@@ -137,6 +131,28 @@ export default function Requests() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.type === 'approve' ? 'Setujui Pengajuan' : 'Tolak Pengajuan'}
+        description={
+          confirmDialog.request 
+            ? confirmDialog.type === 'approve' 
+              ? `Apakah Anda yakin ingin menyetujui pengajuan dari "${confirmDialog.request.name}"? Pengguna ini akan menjadi Admin.`
+              : `Apakah Anda yakin ingin menolak pengajuan dari "${confirmDialog.request.name}"?`
+            : ''
+        }
+        confirmLabel={confirmDialog.type === 'approve' ? 'Setujui' : 'Tolak'}
+        cancelLabel="Batal"
+        confirmVariant={confirmDialog.type === 'approve' ? 'success' : 'danger'}
+        onConfirm={() => {
+          if (confirmDialog.request) {
+            act(confirmDialog.request.id, confirmDialog.type);
+          }
+          setConfirmDialog({ isOpen: false, type: null, request: null });
+        }}
+        onCancel={() => setConfirmDialog({ isOpen: false, type: null, request: null })}
+      />
     </AdminGuard>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import Avatar from '@/components/Avatar';
 
 export default function Board() {
   const [users, setUsers] = useState(null);
@@ -15,7 +16,17 @@ export default function Board() {
             <thead><tr><th>#</th><th>Nama</th><th>Level</th><th>Poin</th></tr></thead>
             <tbody>
               {(users || []).map((u, i) => (
-                <tr key={u.id}><td>{medal[i] || i + 1}</td><td>{u.name}</td><td>Lv {u.level}</td><td><b>{u.points}</b></td></tr>
+                <tr key={u.id}>
+                  <td>{medal[i] || i + 1}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Avatar user={u} size={32} />
+                      {u.name}
+                    </div>
+                  </td>
+                  <td>Lv {u.level}</td>
+                  <td><b>{u.points}</b></td>
+                </tr>
               ))}
               {users && !users.length && <tr><td colSpan="4" className="muted">Belum ada pemain.</td></tr>}
             </tbody>

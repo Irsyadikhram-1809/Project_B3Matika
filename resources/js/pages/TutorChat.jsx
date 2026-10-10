@@ -16,7 +16,7 @@ const QUICK_PROMPTS = [
   { label: '📐 Materi SD', text: 'Saya ingin belajar materi matematika SD kelas 4 tentang pecahan' },
   { label: '📏 Materi SMP', text: 'Jelaskan Teorema Pythagoras untuk kelas 8 SMP' },
   { label: '📊 Materi SMA', text: 'Ajari saya tentang turunan fungsi untuk kelas 11 SMA' },
-  { label: '🧩 Main Teka-teki', text: 'Ayo bermain teka-teki matematika! Saya mau yang tingkat sederhana' },
+  { label: 'Main Teka-teki', text: 'Ayo bermain teka-teki matematika! Saya mau yang tingkat sederhana' },
   { label: '🔢 Cryptarithm', text: 'Buatkan soal Cryptarithm dasar yang baru untuk saya coba' },
   { label: '🎯 Sudoku Mini', text: 'Saya ingin bermain Sudoku Mini 4x4, tolong buatkan soalnya' },
 ];
@@ -201,7 +201,7 @@ export default function TutorChat() {
     const fetchHistory = async () => {
       const defaultGreeting = {
         role: 'model',
-        parts: [{ text: `Halo ${user ? user.name : 'Siswa'}! 👋 Saya **MathTutor AI** — tutor matematika dan *Game Master* teka-teki logikamu.\n\nAku bisa membantu kamu dengan:\n- 📚 **Belajar materi** matematika SD, SMP, hingga SMA/SMK\n- 🧩 **Bermain teka-teki** seperti Cryptarithm, Math Riddles, Sudoku Mini, dan lainnya\n- 💡 **Memandu penyelesaian soal** langkah demi langkah\n\nMau mulai dari mana? Pilih topik di bawah atau ketik pertanyaanmu!` }]
+        parts: [{ text: `Halo ${user ? user.name : 'Siswa'}! 👋 Saya **MathTutor AI** — tutor matematika dan *Game Master* teka-teki logikamu.\n\nAku bisa membantu kamu dengan:\n- 📚 **Belajar materi** matematika SD, SMP, hingga SMA/SMK\n- **Bermain teka-teki** seperti Cryptarithm, Math Riddles, Sudoku Mini, dan lainnya\n- 💡 **Memandu penyelesaian soal** langkah demi langkah\n\nMau mulai dari mana? Pilih topik di bawah atau ketik pertanyaanmu!` }]
       };
 
       if (!user) {

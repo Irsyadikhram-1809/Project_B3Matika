@@ -4,6 +4,7 @@ import { Settings, User, Lock, BookOpen, LogOut, Star, Trophy, Menu, X, ChevronD
 import Logo from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
+import Avatar from '@/components/Avatar';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -151,19 +152,7 @@ useEffect(() => {
                   aria-haspopup="menu"
                   aria-controls="user-dropdown"
                 >
-                  <div style={{
-                    width: '34px', height: '34px', borderRadius: '50%',
-                    overflow: 'hidden', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', background: 'var(--surface)',
-                    fontSize: '1.25rem', border: '2px solid var(--line)',
-                    flexShrink: 0
-                  }}>
-                    {user.avatar?.startsWith('http') || user.avatar?.startsWith('data:') ? (
-                      <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      user.avatar || <GraduationCap size={20} />
-                    )}
-                  </div>
+                  <Avatar user={user} size={34} />
                   <span className="who">{user.username || user.name}</span>
                   <span aria-hidden="true" style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
                     <ChevronDown size={14} />

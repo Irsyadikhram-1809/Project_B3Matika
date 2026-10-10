@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import Avatar from '@/components/Avatar';
 
 export default function AvatarUploader({ currentAvatar, onAvatarSelect, onError }) {
   const fileInput = useRef(null);
@@ -33,16 +34,8 @@ export default function AvatarUploader({ currentAvatar, onAvatarSelect, onError 
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-      <div 
-        style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', cursor: 'pointer' }}
-        onClick={() => fileInput.current?.click()}
-        title="Klik untuk mengubah foto"
-      >
-        {currentAvatar?.startsWith('http') || currentAvatar?.startsWith('data:') ? (
-          <img src={currentAvatar} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          currentAvatar || '🎓'
-        )}
+      <div onClick={() => fileInput.current?.click()} style={{ cursor: 'pointer' }} title="Klik untuk mengubah foto">
+        <Avatar user={{ avatar: currentAvatar }} size={48} />
       </div>
       <div>
         <button type="button" className="btn btn-sm btn-outline" onClick={() => fileInput.current?.click()}>

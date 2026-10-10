@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { supabase } from '../_lib/supabase.js';
-import { setCors, errorResponse } from '../_lib/auth.js';
+import { setCors, errorResponse, normalizeUser } from '../_lib/auth.js';
 import env from '../_lib/env.js';
 
 const norm = (v) => String(v || "").toLowerCase().trim();
@@ -57,19 +57,7 @@ export default async function handler(req, res) {
     }
 
     const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: '7d' });
-
-    const profileData = user.profiles?.[0] || {};
-    
-    const profile = {
-      id: user.id,
-      email: user.email,
-      name: profileData.name || user.email.split('@')[0],
-      username: profileData.username,
-      role: user.role,
-      points: profileData.points || 0,
-      avatar: profileData.avatar || '🎓',
-      is_active: !user.is_blocked,
-    };
+    const profile = normalizeUser(user);
 
     return res.status(200).json({
       token,

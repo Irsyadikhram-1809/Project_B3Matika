@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import ThemeToggle from '@/components/ThemeToggle';
 import NotFound from '@/components/NotFound';
+import Avatar from '@/components/Avatar';
 import { useState, useEffect } from 'react';
 import { Settings, LayoutDashboard, BookOpen, FileText, Puzzle, Users, Menu, X, ArrowLeft } from 'lucide-react';
 import './AdminGuard.css';
@@ -28,7 +29,6 @@ export default function AdminGuard({ children }) {
   }, [sidebarOpen]);
 
   if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <NotFound />;
-  const isImg = user.avatar?.startsWith('http') || user.avatar?.startsWith('data:');
   const isActive = (path) => loc.pathname === path ? 'active' : '';
 
   const closeSidebar = () => setSidebarOpen(false);
@@ -90,15 +90,7 @@ export default function AdminGuard({ children }) {
             <ThemeToggle />
             
             <div className="admin-user-info">
-              <div className="admin-user-avatar">
-                {isImg ? (
-                  <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : user.avatar && user.avatar !== '🎓' ? (
-                  user.avatar
-                ) : (
-                  user.name.charAt(0).toUpperCase()
-                )}
-              </div>
+              <Avatar user={user} size={36} className="admin-user-avatar" />
               <div>
                 <div style={{ fontWeight: 600 }}>{user.name}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.email}</div>

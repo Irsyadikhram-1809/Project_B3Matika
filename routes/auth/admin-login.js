@@ -10,7 +10,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { supabase } from '../_lib/supabase.js';
-import { setCors, errorResponse } from '../_lib/auth.js';
+import { setCors, errorResponse, normalizeUser } from '../_lib/auth.js';
 import env from '../_lib/env.js';
 
 const norm = (v) => String(v || '').toLowerCase().trim();
@@ -47,25 +47,16 @@ export default async function handler(req, res) {
 
     const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: '7d' });
 
-    // Normalisasi profil — kompatibel dengan profiles sebagai object atau array
-    const profileData = Array.isArray(user.profiles) ? (user.profiles[0] || {}) : (user.profiles || {});
-    const prevLastSeen = profileData.last_seen || null;
+    // Normalisasi profil
+    const profile = normalizeUser(user);
+    const prevLastSeen = profile.last_seen;
 
     // Update last_seen asinkron
     supabase.from('profiles').update({ last_seen: new Date().toISOString() })
       .eq('id', user.id).then(() => {});
 
-    const profile = {
-      id:         user.id,
-      email:      user.email,
-      role:       user.role,
-      name:       profileData.name       || user.email.split('@')[0],
-      username:   profileData.username   || null,
-      avatar:     profileData.avatar     || '🎓',
-      points:     profileData.points     || 0,
-      is_active:  profileData.is_active  !== undefined ? profileData.is_active : true,
-      last_seen:  prevLastSeen,
-    };
+    // Overwrite the returned last_seen to be prevLastSeen to match old logic, though they are usually both the same
+    profile.last_seen = prevLastSeen;
 
     return res.status(200).json({
       token,

@@ -4,6 +4,7 @@ import { User, Pencil, Lock, Eye, EyeOff, Star, Trophy, CheckCircle, GraduationC
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import AvatarUploader from '@/components/AvatarUploader';
+import Avatar from '@/components/Avatar';
 
 const AVATARS = ['🎓', '🦊', '🐧', '🦁', '🐉', '🚀', '🌟', '🎯', '🧠', '⚡', '🔥', '🌈'];
 
@@ -61,12 +62,8 @@ export default function Profil() {
         {/* Kartu Info */}
         <div className="card profil-summary">
           <div className="center mb">
-            <div className="avatar-display">
-              {user.avatar?.startsWith('http') || user.avatar?.startsWith('data:') ? (
-                <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
-              ) : (
-                user.avatar || '🎓'
-              )}
+            <div className="avatar-display" style={{ display: 'flex', justifyContent: 'center' }}>
+              <Avatar user={user} size={80} />
             </div>
             <h2 style={{ margin: '8px 0 2px' }}>{user.name}</h2>
             <p className="muted small" style={{ fontWeight: 600 }}>@{user.username}</p>

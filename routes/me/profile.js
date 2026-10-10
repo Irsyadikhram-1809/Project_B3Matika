@@ -46,16 +46,14 @@ export default async function handler(req, res) {
       if (profiles && profiles.length) return errorResponse(res, 'Nama pengguna sudah dipakai.', 400);
     }
     
+    let finalAvatar = avatar || profile.avatar;
+
     if (email && email !== profile.email) {
       const { data: users } = await supabase.from('users').select('id').eq('email', email);
       if (users && users.length) return errorResponse(res, 'Email sudah dipakai pengguna lain.', 400);
       
-      await supabase.from('profiles').upsert({
-  id: profile.id, name, email, avatar: finalAvatar, username
-});
+      await supabase.from('users').update({ email }).eq('id', profile.id);
     }
-
-    let finalAvatar = avatar || profile.avatar;
 
     if (avatar && avatar.startsWith('data:image/')) {
       const parsed = getMimeFromBase64(avatar);
@@ -87,7 +85,7 @@ export default async function handler(req, res) {
     }
 
     await supabase.from('profiles').update({
-      name, email, avatar: finalAvatar, username
+      name, username, avatar: finalAvatar
     }).eq('id', profile.id);
 
     const updated = {

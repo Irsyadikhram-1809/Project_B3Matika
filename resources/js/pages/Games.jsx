@@ -11,29 +11,58 @@ import Sudoku from './games/Sudoku';
 import KenKen from './games/KenKen';
 import Calculords from './games/Calculords';
 import CryptarithmAdvanced from './games/CryptarithmAdvanced';
+import IconTile from '@/components/IconTile';
+import SegmentedControl from '@/components/SegmentedControl';
+import { Gamepad2, Info, GraduationCap, Lightbulb, Zap, Grid3x3, Grip, MessageCircleQuestion, KeyRound, LayoutGrid, TableCellsMerge, Calculator, ShieldQuestion, Trophy } from 'lucide-react';
+
+const GAME_ICON_MAP = {
+  'kilat': Zap,
+  '2048': Grid3x3,
+  'threes': Grip,
+  'riddle': MessageCircleQuestion,
+  'crypt_basic': KeyRound,
+  'sudoku': LayoutGrid,
+  'kenken': TableCellsMerge,
+  'calculords': Calculator,
+  'crypt_adv': ShieldQuestion,
+};
+
+const GAME_COLOR_MAP = {
+  'kilat': 'orange',
+  '2048': 'blue',
+  'threes': 'green',
+  'riddle': 'red',
+  'crypt_basic': 'purple',
+  'sudoku': 'blue',
+  'kenken': 'green',
+  'calculords': 'orange',
+  'crypt_adv': 'purple',
+};
 
 function GameTutorialPanel({ game }) {
   const [open, setOpen] = useState(true);
+  const GameIcon = GAME_ICON_MAP[game.id] || Gamepad2;
+  const gameColor = GAME_COLOR_MAP[game.id] || 'blue';
   return (
     <div className={`game-tutorial-panel ${open ? 'open' : ''}`}>
       <button className="game-tutorial-toggle" onClick={() => setOpen(o => !o)}>
-        <span className="tutorial-toggle-icon">{game.emoji}</span>
-        <span className="tutorial-toggle-title">ℹ️ Cara Bermain & Tujuan Belajar</span>
+        <span className="tutorial-toggle-icon"><IconTile icon={GameIcon} color={gameColor} /></span>
+        <span className="tutorial-toggle-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Info size={16} /> Cara Bermain & Tujuan Belajar</span>
         <span className="tutorial-chevron">{open ? '▲' : '▼'}</span>
       </button>
       {open && (
         <div className="game-tutorial-body">
           <div className="game-tutorial-section">
-            <h4>🕹️ Cara Bermain</h4>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Gamepad2 size={16} /> Cara Bermain</h4>
             <p>{game.tutorial}</p>
           </div>
           <div className="game-tutorial-section">
-            <h4>🎓 Tujuan Belajar</h4>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><GraduationCap size={16} /> Tujuan Belajar</h4>
             <p>{game.learningGoal}</p>
           </div>
           {game.tips && (
             <div className="game-tutorial-section">
-              <h4>💡 Tips Strategi</h4>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Lightbulb size={16} /> Tips Strategi</h4>
               <ul className="tutorial-tips-list">
                 {game.tips.map((t, i) => <li key={i}>{t}</li>)}
               </ul>
@@ -128,7 +157,7 @@ export default function Games() {
   return (
     <>
       <div className="games-page-header">
-        <h1>🎮 Game Matematika</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconTile icon={Gamepad2} color="blue" /> Game Matematika</h1>
         <p className="muted">Latih kemampuan matematika dan logikamu sambil bermain! Setiap game dirancang untuk mengasah konsep matematika tertentu.</p>
       </div>
 
@@ -143,18 +172,21 @@ export default function Games() {
         </div>
       </div>
 
-      <div className="game-filter">
-        {levels.map(l => (
-          <button key={l} className={`chip-filter${filter === l ? ' chip-active' : ''}`} onClick={() => setFilter(l)} aria-pressed={filter === l}>
-            {l}
-          </button>
-        ))}
+      <div className="game-filter" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+        <SegmentedControl
+          value={filter}
+          onChange={setFilter}
+          options={levels.map(l => ({ value: l, label: l }))}
+        />
       </div>
 
       <div className="game-hub">
-        {shown.map(g => (
+        {shown.map(g => {
+          const GI = GAME_ICON_MAP[g.id] || Gamepad2;
+          const gc = GAME_COLOR_MAP[g.id] || 'blue';
+          return (
           <button key={g.id} className="game-card" onClick={() => setSearchParams({ game: g.id })} aria-label={`Mainkan ${g.label}`}>
-            <span className="game-card-emoji">{g.emoji}</span>
+            <span className="game-card-emoji"><IconTile icon={GI} color={gc} /></span>
             <div className="game-card-info">
               <h3>{g.label}</h3>
               <p className="game-card-desc">{g.desc}</p>
@@ -162,11 +194,11 @@ export default function Games() {
             <div className="game-card-meta">
               <span className={`tag tag-level-${g.level === 'Sulit' ? 'hard' : 'easy'}`}>{g.level}</span>
               {myScores[g.id] && (
-                <span className="pts">🏆 {myScores[g.id].best_score}</span>
+                <span className="pts" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Trophy size={14} className="text-orange" /> {myScores[g.id].best_score}</span>
               )}
             </div>
           </button>
-        ))}
+        )})}
       </div>
     </>
   );

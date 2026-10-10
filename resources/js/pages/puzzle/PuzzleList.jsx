@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Package, CheckCircle, Target, Puzzle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import SegmentedControl from '@/components/SegmentedControl';
 
 /* Utilitas: tentukan warna banner berdasarkan tipe puzzle */
 function getBannerClass(type = '') {
@@ -11,15 +13,15 @@ function getBannerClass(type = '') {
   return 'puzzle-banner-default';
 }
 
-/* Utilitas: tentukan emoji representatif per tipe */
-function getPuzzleEmoji(type = '') {
+/* Utilitas: Icon component mapping per tipe */
+function getPuzzleIcon(type = '') {
   const t = type.toLowerCase();
-  if (t.includes('cryptarithm') || t.includes('crypto')) return '🔢';
-  if (t.includes('riddle') || t.includes('teka')) return '🤔';
-  if (t.includes('sudoku')) return '🔲';
-  if (t.includes('kenken')) return '🧮';
-  if (t.includes('logic')) return '💡';
-  return '🧩';
+  if (t.includes('cryptarithm') || t.includes('crypto')) return <div className="puzzle-emoji"><Puzzle size={32} /></div>;
+  if (t.includes('riddle') || t.includes('teka')) return <div className="puzzle-emoji"><Puzzle size={32} /></div>;
+  if (t.includes('sudoku')) return <div className="puzzle-emoji"><Puzzle size={32} /></div>;
+  if (t.includes('kenken')) return <div className="puzzle-emoji"><Puzzle size={32} /></div>;
+  if (t.includes('logic')) return <div className="puzzle-emoji"><Puzzle size={32} /></div>;
+  return <div className="puzzle-emoji"><Puzzle size={32} /></div>;
 }
 
 /* Label badge yang lebih bersih */
@@ -96,7 +98,9 @@ export default function PuzzleList() {
     <>
       {/* Page header dengan gradient */}
       <div className="puzzle-page-header">
-        <span className="puzzle-header-icon">🧩</span>
+        <span className="puzzle-header-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Puzzle size={40} />
+        </span>
         <div className="puzzle-header-text">
           <h1>Puzzle Matematika</h1>
           <p className="puzzle-header-subtitle">
@@ -104,13 +108,17 @@ export default function PuzzleList() {
           </p>
           {data && (
             <div className="puzzle-header-stats">
-              <span className="puzzle-stat-chip">📦 {totalCount} puzzle tersedia</span>
+              <span className="puzzle-stat-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Package size={14} /> {totalCount} puzzle tersedia
+              </span>
               {user && (
-                <span className="puzzle-stat-chip">✅ {solvedCount} selesai</span>
+                <span className="puzzle-stat-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle size={14} /> {solvedCount} selesai
+                </span>
               )}
               {user && totalCount > 0 && (
-                <span className="puzzle-stat-chip">
-                  🎯 {Math.round((solvedCount / totalCount) * 100)}% selesai
+                <span className="puzzle-stat-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Target size={14} /> {Math.round((solvedCount / totalCount) * 100)}% selesai
                 </span>
               )}
             </div>
@@ -120,17 +128,12 @@ export default function PuzzleList() {
 
       {/* Filter chips */}
       {!loading && !error && (
-        <div className="puzzle-filter">
-          {types.map((t) => (
-            <button
-              key={t}
-              className={`chip-filter${filter === t ? ' chip-active' : ''}`}
-              onClick={() => setFilter(t)}
-              aria-pressed={filter === t}
-            >
-              {t}
-            </button>
-          ))}
+        <div className="puzzle-filter" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+          <SegmentedControl
+            value={filter}
+            onChange={setFilter}
+            options={types.map(t => ({ value: t, label: t }))}
+          />
         </div>
       )}
 
@@ -164,7 +167,7 @@ export default function PuzzleList() {
         <>
           {shown.length === 0 ? (
             <div className="puzzle-empty">
-              <div className="puzzle-empty-icon">🧩</div>
+              <div className="puzzle-empty-icon"><Puzzle size={40} /></div>
               <h3>Tidak ada puzzle</h3>
               <p>Coba pilih kategori lain.</p>
             </div>
@@ -173,7 +176,6 @@ export default function PuzzleList() {
               {shown.map((p) => {
                 const solved = data.solved?.includes(p.id);
                 const bannerClass = getBannerClass(p.type);
-                const emoji = getPuzzleEmoji(p.type);
                 const typeLabel = formatType(p.type);
                 const badgeClass = getBadgeClass(p.type);
                 const diffClass = getDiffBadgeClass(p.difficulty);
@@ -187,7 +189,7 @@ export default function PuzzleList() {
                   >
                     {/* Banner ikon */}
                     <div className={`puzzle-card-banner ${bannerClass}`}>
-                      <span style={{ fontSize: '2.8rem' }}>{emoji}</span>
+                      {getPuzzleIcon(p.type)}
                     </div>
 
                     {/* Body */}

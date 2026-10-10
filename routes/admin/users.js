@@ -1,5 +1,5 @@
 import { supabase } from '../_lib/supabase.js';
-import { requireAuth, setCors, errorResponse } from '../_lib/auth.js';
+import { requireAuth, setCors, errorResponse, normalizeUser } from '../_lib/auth.js';
 
 export default async function handler(req, res) {
   setCors(res);
@@ -28,17 +28,20 @@ export default async function handler(req, res) {
       const { data: rows, error } = await query;
       if (error) throw error;
       
-      const formatted = (rows || []).map(u => ({
-        id: u.id,
-        email: u.email,
-        name: u.profiles?.[0]?.name || u.email.split('@')[0],
-        points: parseInt(u.profiles?.[0]?.points || 0, 10),
-        role: u.role,
-        is_active: !u.is_blocked,
-        is_verified: u.is_verified,
-        last_seen: u.profiles?.[0]?.last_seen,
-        created_at: u.created_at
-      }));
+      const formatted = (rows || []).map(u => {
+        const norm = normalizeUser(u);
+        return {
+          id: norm.id,
+          email: norm.email,
+          name: norm.name,
+          points: norm.points,
+          role: norm.role,
+          is_active: !norm.is_blocked,
+          is_verified: norm.is_verified,
+          last_seen: norm.last_seen,
+          created_at: norm.created_at
+        };
+      });
 
       return res.status(200).json({ users: formatted });
     }

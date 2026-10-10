@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '@/components/Logo';
 import Reveal from '@/components/Reveal';
+import IconTile from '@/components/IconTile';
+import { BookOpen, PencilLine, Gamepad2 } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export default function Home() {
@@ -26,13 +28,13 @@ export default function Home() {
 
       <section className="grid-3">
         <Reveal delay={0.1}>
-          <Link to="/materi" className="card feature"><span className="emoji">📘</span><h3>Belajar</h3><p>Materi ringkas untuk setiap kelas, mudah dipahami.</p></Link>
+          <Link to="/materi" className="card feature"><IconTile icon={BookOpen} color="blue" /><h3>Belajar</h3><p>Materi ringkas untuk setiap kelas, mudah dipahami.</p></Link>
         </Reveal>
         <Reveal delay={0.2}>
-          <Link to="/materi" className="card feature"><span className="emoji">✏️</span><h3>Berlatih</h3><p>Latihan soal pilihan ganda lengkap dengan penjelasan.</p></Link>
+          <Link to="/materi" className="card feature"><IconTile icon={PencilLine} color="orange" /><h3>Berlatih</h3><p>Latihan soal pilihan ganda lengkap dengan penjelasan.</p></Link>
         </Reveal>
         <Reveal delay={0.3}>
-          <Link to="/games" className="card feature"><span className="emoji">🎮</span><h3>Bermain</h3><p>Game kilat hitung dan puzzle untuk mengasah otak.</p></Link>
+          <Link to="/games" className="card feature"><IconTile icon={Gamepad2} color="green" /><h3>Bermain</h3><p>Game kilat hitung dan puzzle untuk mengasah otak.</p></Link>
         </Reveal>
       </section>
 

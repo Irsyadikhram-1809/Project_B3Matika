@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { AlertTriangle, FolderOpen, Pencil, Trash2, Plus } from 'lucide-react';
+import { AlertTriangle, FolderOpen, Pencil, Trash2, Plus, Edit } from 'lucide-react';
 import { api } from '@/lib/api';
 import NotFound from '@/components/NotFound';
 import AdminGuard from './AdminGuard';
+import ActionButton from '@/components/ActionButton';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { RESOURCES } from './config';
 
 export default function ResourceList() {
@@ -13,6 +15,7 @@ export default function ResourceList() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, item: null });
 
   const load = async () => {
     if (!cfg) return;
@@ -101,22 +104,15 @@ export default function ResourceList() {
                       </td>
                     ))}
                     <td style={{ display: 'flex', gap: '8px' }}>
-                      <Link className="btn btn-sm btn-outline" to={`/panel-rahasia/${res}/${r.id}/edit`}>Ubah</Link>
-                      <button 
-                        className="btn btn-sm btn-danger" 
-                        onClick={async () => { 
-                          if (confirm('Hapus data ini secara permanen?')) { 
-                            try {
-                              await api(`/admin/${res}/${r.id}`, { method: 'DELETE' }); 
-                              load(); 
-                            } catch (e) {
-                              setError(e.message);
-                            }
-                          } 
-                        }}
-                      >
-                        Hapus
-                      </button>
+                      <Link to={`/panel-rahasia/${res}/${r.id}/edit`} style={{ textDecoration: 'none' }}>
+                        <ActionButton icon={Edit} label="Ubah" variant="secondary" />
+                      </Link>
+                      <ActionButton 
+                        icon={Trash2} 
+                        label="Hapus" 
+                        variant="danger" 
+                        onClick={() => setConfirmDialog({ isOpen: true, item: r })}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -125,6 +121,27 @@ export default function ResourceList() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={`Hapus ${cfg?.label}`}
+        description={confirmDialog.item ? `Apakah Anda yakin ingin menghapus data ini secara permanen? Tindakan ini tidak dapat dibatalkan.` : ''}
+        confirmLabel="Hapus Permanen"
+        cancelLabel="Batal"
+        confirmVariant="danger"
+        onConfirm={async () => {
+          if (confirmDialog.item) {
+            try {
+              await api(`/admin/${res}/${confirmDialog.item.id}`, { method: 'DELETE' }); 
+              load(); 
+            } catch (e) {
+              setError(e.message);
+            }
+          }
+          setConfirmDialog({ isOpen: false, item: null });
+        }}
+        onCancel={() => setConfirmDialog({ isOpen: false, item: null })}
+      />
     </AdminGuard>
   );
 }
