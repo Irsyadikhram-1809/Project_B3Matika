@@ -9,11 +9,30 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem(TOKEN_KEY)) return setReady(true);
-    api('/me')
-      .then((d) => setUser(d.user))
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
-      .finally(() => setReady(true));
+    const fetchUser = () => {
+      if (!localStorage.getItem(TOKEN_KEY)) {
+        setUser(null);
+        setReady(true);
+        return;
+      }
+      api('/me')
+        .then((d) => setUser(d.user))
+        .catch(() => {
+          localStorage.removeItem(TOKEN_KEY);
+          setUser(null);
+        })
+        .finally(() => setReady(true));
+    };
+
+    fetchUser();
+
+    const handleStorage = (e) => {
+      if (e.key === TOKEN_KEY) {
+        fetchUser();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const login = (token, u) => {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, ShieldCheck, CheckCircle, User, Shield, KeyRound, Mail } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -10,7 +10,15 @@ import BrandWordmark from '@/components/BrandWordmark';
 export default function AuthForm({ mode, admin = false }) {
   const { user, login } = useAuth();
   const nav = useNavigate();
-  const [f, setF] = useState({ name: '', username: '', email: '', password: '', password2: '', adminToken: '' });
+  const location = useLocation();
+  const [f, setF] = useState({ 
+    name: '', 
+    username: '', 
+    email: location.state?.email || '', 
+    password: '', 
+    password2: '', 
+    adminToken: '' 
+  });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPw, setShowPw] = useState(false);
@@ -27,6 +35,16 @@ export default function AuthForm({ mode, admin = false }) {
   const [countdown, setCountdown] = useState(0);
   const countdownRef = useRef(null);
   const mountedRef = useRef(true);
+
+  // Auto-login deteksi dari tab lain (storage event -> context update)
+  useEffect(() => {
+    if (user && otpMode) {
+      // Tunggu sebentar lalu redirect jika akun sudah terverifikasi di tab lain
+      setTimeout(() => {
+        nav(user.role === 'admin' ? '/panel-rahasia' : '/');
+      }, 500);
+    }
+  }, [user, otpMode, nav]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -138,11 +156,18 @@ export default function AuthForm({ mode, admin = false }) {
           method: 'POST',
           body: { email: f.email, code: f.otp, name: f.name },
         });
+        
+        if (d.token && d.user) {
+          login(d.token, d.user);
+        }
+
         // Tujuan pengalihan ditentukan server
-        const redirectTo = d.redirectTo || '/masuk';
+        const redirectTo = d.redirectTo || '/';
         const role = d.role || 'user';
-        setVerifySuccess({ role, redirectTo, message: d.message });
-        startCountdown(4, redirectTo);
+        setVerifySuccess({ role, redirectTo, message: d.message || 'Akun berhasil dibuat.' });
+        
+        // Cukup tunggu 1 detik agar transisi mulus dan tidak terkesan lambat
+        startCountdown(1, redirectTo);
       } else {
         // Login biasa
         const path = admin ? '/auth/admin-login' : '/auth/login';

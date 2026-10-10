@@ -13,11 +13,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ShieldCheck, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/Logo';
 
 export default function VerifyEmailLink() {
   const [params] = useSearchParams();
   const nav = useNavigate();
+  const { login } = useAuth();
   const token = params.get('token');
   const email = params.get('email');
   const [state, setState] = useState('loading'); // loading | success | error
@@ -65,18 +67,22 @@ export default function VerifyEmailLink() {
       `/auth/verify-email-link?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
     )
       .then((res) => {
-        // Tujuan pengalihan ditentukan server berdasarkan role akun yang baru dibuat
         const dest = res.redirectTo || '/masuk';
         const r    = res.role || 'user';
         setRedirectTo(dest);
         setRole(r);
-        setMsg(res.message || 'Email berhasil diverifikasi! Silakan masuk ke akun Anda.');
+        setMsg(res.message || 'Email berhasil diverifikasi! Mengalihkan...');
         setState('success');
-        // Mulai hitung mundur otomatis (5 detik) — tidak berlaku jika pengguna sudah pindah
-        startCountdown(5, dest);
+        
+        if (res.token && res.user) {
+          login(res.token, res.user);
+        }
+
+        // Mulai hitung mundur singkat agar transisi mulus
+        startCountdown(2, dest);
       })
       .catch((err) => {
-        setMsg(err.message || 'Gagal memverifikasi email. Tautan mungkin sudah kedaluwarsa atau sudah pernah dipakai.');
+        setMsg(err.message || 'Gagal memverifikasi email. Tautan mungkin sudah kedaluwarsa atau sudah dipakai.');
         setState('error');
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +90,8 @@ export default function VerifyEmailLink() {
 
   const handleManualNav = () => {
     if (countdownRef.current) clearInterval(countdownRef.current);
-    nav(redirectTo, { replace: true });
+    // Bila tidak dapat login otomatis (cross-device/tab), arahkan ke halaman masuk dengan email terisi
+    nav(redirectTo, { replace: true, state: { email } });
   };
 
   const isAdmin = role === 'admin';

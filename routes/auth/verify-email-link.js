@@ -10,8 +10,10 @@
  * Gagal:  status 4xx + { error: '...' }
  */
 import { supabase } from '../_lib/supabase.js';
-import { setCors, errorResponse } from '../_lib/auth.js';
+import { setCors, errorResponse, normalizeUser } from '../_lib/auth.js';
 import { sha256, safeEqual, kirimEmailKonfirmasiAdmin } from '../_lib/otp.js';
+import env from '../_lib/env.js';
+import jwt from 'jsonwebtoken';
 
 const norm = (v) => String(v || '').toLowerCase().trim();
 
@@ -82,8 +84,9 @@ export default async function handler(req, res) {
 
     if (userErr) throw userErr;
 
+    let profile;
     if (userData?.id) {
-      await supabase.from('profiles').upsert({
+      const { data: profData } = await supabase.from('profiles').upsert({
         id:        userData.id,
         email,
         name,
@@ -91,7 +94,8 @@ export default async function handler(req, res) {
         role,
         points:    0,
         is_active: true,
-      }, { onConflict: 'id' });
+      }, { onConflict: 'id' }).select('*').single();
+      profile = profData;
 
       if (role === 'admin') {
         await supabase
@@ -106,7 +110,11 @@ export default async function handler(req, res) {
     await supabase.from('otps').delete().eq('id', rec.id);
 
     const isAdmin    = role === 'admin';
-    const redirectTo = isAdmin ? '/panel-rahasia/login' : '/masuk';
+    const redirectTo = isAdmin ? '/panel-rahasia' : '/';
+    
+    const token = jwt.sign({ id: userData.id }, env.JWT_SECRET, { expiresIn: '7d' });
+    const fullUser = { ...userData, profiles: profile };
+    const user = normalizeUser(fullUser);
 
     // Kirim email konfirmasi pasca-verifikasi untuk admin
     if (isAdmin) {
@@ -119,9 +127,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: isAdmin
-        ? 'Akun admin berhasil diverifikasi. Silakan masuk melalui halaman login admin.'
+        ? 'Akun admin berhasil diverifikasi.'
         : 'Email berhasil diverifikasi! Akun Anda sudah aktif.',
       role,
+      token,
+      user,
       redirectTo,
     });
   } catch (error) {

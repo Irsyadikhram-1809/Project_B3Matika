@@ -6,8 +6,10 @@
  * Untuk verifikasi lewat tautan, gunakan GET /api/auth/verify-email-link
  */
 import { supabase } from '../../_lib/supabase.js';
-import { setCors, errorResponse } from '../../_lib/auth.js';
+import { setCors, errorResponse, normalizeUser } from '../../_lib/auth.js';
 import { hmac, safeEqual, kirimEmailKonfirmasiAdmin } from '../../_lib/otp.js';
+import env from '../../_lib/env.js';
+import jwt from 'jsonwebtoken';
 
 const norm = (v) => String(v || '').toLowerCase().trim();
 
@@ -50,8 +52,9 @@ async function buatAkun(rec, email, name) {
 
   if (userErr) throw userErr;
 
+  let profile;
   if (userData?.id) {
-    await supabase.from('profiles').upsert({
+    const { data: profData } = await supabase.from('profiles').upsert({
       id:        userData.id,
       email,
       name:      name || username,
@@ -59,7 +62,8 @@ async function buatAkun(rec, email, name) {
       role,
       points:    0,
       is_active: true,
-    }, { onConflict: 'id' });
+    }, { onConflict: 'id' }).select('*').single();
+    profile = profData;
 
     // Jika admin: update used_by di admin_invites
     if (role === 'admin') {
@@ -72,7 +76,10 @@ async function buatAkun(rec, email, name) {
   }
 
   await supabase.from('otps').delete().eq('id', rec.id);
-  return { userId: userData?.id, role };
+  
+  const token = jwt.sign({ id: userData.id }, env.JWT_SECRET, { expiresIn: '7d' });
+  const fullUser = { ...userData, profiles: profile };
+  return { userId: userData?.id, role, token, user: normalizeUser(fullUser) };
 }
 
 export default async function handler(req, res) {
@@ -90,9 +97,10 @@ export default async function handler(req, res) {
     const { rec, err } = await cekOtp(email, 'register', code);
     if (!rec) return errorResponse(res, err, 400);
 
-    const { role } = await buatAkun(rec, email, name);
+    const { role, token, user } = await buatAkun(rec, email, name);
     const isAdmin   = role === 'admin';
-    const redirectTo = isAdmin ? '/panel-rahasia/login' : '/masuk';
+    // Kita arahkan ke /panel-rahasia (untuk admin) atau / (beranda user) jika auto-login sukses
+    const redirectTo = isAdmin ? '/panel-rahasia' : '/';
 
     // Kirim email konfirmasi pasca-verifikasi untuk admin
     if (isAdmin) {
@@ -104,8 +112,10 @@ export default async function handler(req, res) {
     return res.status(200).json({
       message: isAdmin
         ? 'Akun admin berhasil dibuat dan diverifikasi.'
-        : 'Akun berhasil dibuat. Silakan login.',
+        : 'Akun berhasil dibuat.',
       role,
+      token,
+      user,
       redirectTo,
     });
   } catch (error) {

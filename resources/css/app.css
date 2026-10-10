@@ -8,6 +8,7 @@
   /* Brand */
   --navy: #1b2468;
   --orange: #c2410c;
+  --brand-accent: var(--orange);
   --blue: #0284c7;
   --blue-d: #1d4ed8;
 
@@ -65,6 +66,8 @@
 
 [data-theme="dark"] {
   --navy: #e5e7eb;
+  --orange: #f97316;
+  --brand-accent: #f7931e;
   --blue: #3b82f6;
   --blue-d: #60a5fa;
 
@@ -448,13 +451,11 @@ h3 { margin: .4rem 0; color: var(--navy); }
 .logo { display: inline-flex; align-items: center; gap: 10px; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.05; }
 .logo-name { font-size: 2rem; font-weight: 700; color: var(--navy); letter-spacing: -.5px; }
-.logo-name .three { color: var(--orange); }
 [data-theme="dark"] .logo-name { color: #ffffff; }
-[data-theme="dark"] .logo-name .three { color: #f7931e; }
-.logo-tag { font-size: .72rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; white-space: nowrap; }
+.logo-tag { font-size: .72rem; color: var(--brand-accent); font-weight: 600; margin-top: 2px; white-space: nowrap; }
 .logo-big { gap: 22px; }
 .logo-big .logo-name { font-size: clamp(2.8rem, 8vw, 5.4rem); font-weight: 800; }
-.logo-big .logo-tag { font-size: clamp(.9rem, 2.6vw, 1.7rem); margin-top: 10px; color: var(--text-muted); }
+.logo-big .logo-tag { font-size: clamp(.9rem, 2.6vw, 1.7rem); margin-top: 10px; color: var(--brand-accent); font-weight: 600; }
 
 /* ─── 8. Buttons & Forms ─────────────────────────────────────────────── */
 .btn {
@@ -819,7 +820,8 @@ a.card:hover {
 }
 
 .confirm-card-subtitle {
-  color: var(--text-muted);
+  color: var(--brand-accent);
+  font-weight: 600;
   font-size: .88rem;
   margin: 0;
 }
@@ -1496,7 +1498,7 @@ td.aksi-cell {
 
 .footer-tagline {
   font-size: .82rem; font-weight: 600;
-  color: var(--orange); letter-spacing: 0.03em;
+  color: var(--brand-accent); letter-spacing: 0.03em;
   margin: 0;
 }
 
@@ -2373,8 +2375,7 @@ td.aksi-cell {
   
   /* BrandWordmark */
   .brand-wordmark { font-weight: 700; font-family: 'Poppins', sans-serif; letter-spacing: -0.5px; color: var(--text); }
-  .brand-wordmark-3 { color: var(--brand-3, #c2410c); }
-  [data-theme="dark"] .brand-wordmark-3 { --brand-3: #f97316; }
+  .brand-wordmark-3 { color: var(--brand-accent); }
   .brand-wordmark.size-sm { font-size: 1.2rem; }
   .brand-wordmark.size-md { font-size: 1.6rem; }
   .brand-wordmark.size-lg { font-size: 2.2rem; }
