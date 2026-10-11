@@ -57,7 +57,7 @@ export default function BrandIntro({
     const rm = prefersReducedMotion();
     const totalMs = rm
       ? 600
-      : Math.min(ENTRANCE_S * 1000 * pace + holdMs, 3000); // maks 3 detik di mobile
+      : ENTRANCE_S * 1000 * pace + holdMs;
     const t1 = setTimeout(() => setPhase("out"), totalMs);
     const t2 = setTimeout(() => { mark(); setPhase("gone"); done.current?.(); }, totalMs + (rm ? 0 : fadeMs));
     return () => { clearTimeout(t1); clearTimeout(t2); };

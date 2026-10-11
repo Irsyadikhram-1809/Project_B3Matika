@@ -1,10 +1,10 @@
-/* B3Matika Service Worker — v2.0
+/* B3Matika Service Worker — v2.1
    Strategi: Network-first untuk API, Cache-first untuk aset statis.
    Tidak meng-cache data sensitif (auth, chat, supabase).
-   v2.0: dinaikkan versi agar aset baru dipakai setelah deploy
+   v2.1: dinaikkan versi agar aset baru dipakai setelah deploy
 */
 
-const CACHE_NAME = 'b3matika-v2';
+const CACHE_NAME = 'b3matika-v2.1';
 const OFFLINE_URL = '/';
 
 // Aset yang penting untuk offline shell
@@ -12,6 +12,7 @@ const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
   '/images/icon-192.png',
+  '/images/logo.png',
 ];
 
 // ─── Install: pre-cache shell ───────────────────────────────────────────────

@@ -448,317 +448,16 @@ h3 { margin: .4rem 0; color: var(--navy); }
 .nav-dropdown-header .username { font-size: .8rem; color: var(--text-muted); font-weight: 600; display: block; }
 
 /* ─── 7. Logo ────────────────────────────────────────────────────────── */
-.logo { display: inline-flex; align-items: center; justify-content: center; gap: 14px; }
-.logo-text { display: flex; flex-direction: column; justify-content: center; line-height: 1; }
-.logo-name { font-size: 2.2rem; font-weight: 800; color: var(--navy); letter-spacing: -0.8px; display: flex; align-items: center; }
-.logo-name .brand-wordmark { font-size: 1em; font-weight: 800; letter-spacing: inherit; }
+.logo { display: inline-flex; align-items: center; gap: 10px; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.05; }
+.logo-name { font-size: 2rem; font-weight: 700; color: var(--navy); letter-spacing: -.5px; display: flex; align-items: center; }
+.logo-name .brand-wordmark { font-size: 1em; font-weight: inherit; letter-spacing: inherit; }
 [data-theme="dark"] .logo-name { color: #ffffff; }
-.logo-tag { font-size: .8rem; color: var(--brand-accent); font-weight: 700; margin-top: 4px; white-space: nowrap; }
-.logo-big { gap: 24px; }
-.logo-big .logo-name { font-size: clamp(3.5rem, 8vw, 5.5rem); }
-.logo-big .logo-tag { font-size: clamp(1.1rem, 2.6vw, 1.8rem); margin-top: 8px; font-weight: 600; color: var(--brand-accent); }
+.logo-tag { font-size: .72rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; white-space: nowrap; }
+.logo-big { gap: 22px; }
+.logo-big .logo-name { font-size: clamp(2.8rem, 8vw, 5.4rem); font-weight: 800; }
+.logo-big .logo-tag { font-size: clamp(.9rem, 2.6vw, 1.7rem); margin-top: 10px; color: var(--text-muted); }
 
-/* ─── 8. Buttons & Forms ─────────────────────────────────────────────── */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  border: 0;
-  padding: 10px 20px; border-radius: var(--radius);
-  font: 600 .92rem 'Poppins', sans-serif; cursor: pointer;
-  transition: background-color var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
-  text-decoration: none;
-  white-space: nowrap;
-}
-.btn:hover { transform: translateY(-1px); }
-.btn:active { transform: translateY(1px); }
-.btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--blue); }
-.btn:disabled { opacity: .6; pointer-events: none; }
-.btn-block { width: 100%; display: flex; }
-.btn-lg { padding: 13px 28px; font-size: 1rem; }
-.btn-sm { padding: 5px 12px; font-size: .8rem; }
-
-/* Primary Button (Merek) */
-.btn, .btn-primary { background: var(--blue-d); color: #ffffff; }
-.btn:hover, .btn-primary:hover { background: var(--blue); color: #ffffff; }
-[data-theme="dark"] .btn, [data-theme="dark"] .btn-primary { background: var(--blue-d); color: #ffffff; }
-[data-theme="dark"] .btn:hover, [data-theme="dark"] .btn-primary:hover { background: var(--blue); color: #ffffff; }
-
-/* Outline Button */
-.btn-outline { background: transparent; color: var(--blue-d); box-shadow: inset 0 0 0 2px var(--blue-d); }
-.btn-outline:hover { background: var(--blue-d); color: #ffffff; }
-[data-theme="dark"] .btn-outline { background: transparent; color: var(--blue-d); box-shadow: inset 0 0 0 2px var(--blue-d); }
-[data-theme="dark"] .btn-outline:hover { background: var(--blue-d); color: #ffffff; }
-
-/* Ghost Button */
-.btn-ghost { background: transparent; color: var(--text-muted); padding: 6px 10px; }
-.btn-ghost:hover { background: var(--surface-hover); color: var(--text); }
-
-/* Danger Button */
-.btn-danger { background: var(--bad); color: #ffffff; }
-.btn-danger:hover { background: #b91c1c; color: #ffffff; }
-[data-theme="dark"] .btn-danger { background: var(--bad); color: #ffffff; }
-[data-theme="dark"] .btn-danger:hover { background: #fca5a5; color: #7f1d1d; }
-
-/* Success Button */
-.btn-success { background: var(--ok); color: #ffffff; }
-.btn-success:hover { background: #059669; color: #ffffff; }
-[data-theme="dark"] .btn-success { background: var(--ok); color: #1f2937; }
-[data-theme="dark"] .btn-success:hover { background: #6ee7b7; color: #064e3b; }
-
-label { display: block; font-size: .85rem; font-weight: 500; margin-bottom: 12px; }
-input, select, textarea {
-  display: block; width: 100%; margin-top: 4px;
-  padding: 10px 12px; border: 1.5px solid var(--line);
-  border-radius: var(--radius); font: inherit;
-  background: var(--card); color: var(--text);
-  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
-}
-input:focus, select:focus, textarea:focus {
-  outline: none; border-color: var(--blue);
-  box-shadow: 0 0 0 4px rgba(31,162,232,.15);
-}
-
-.pw-wrapper { position: relative; width: 100%; margin-top: 4px; }
-.pw-wrapper input { margin-top: 0; padding-right: 48px; }
-.pw-toggle {
-  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; font-size: 1.25rem; cursor: pointer;
-  padding: 6px; opacity: .7; transition: opacity var(--dur-fast);
-  display: flex; align-items: center; justify-content: center;
-}
-.pw-toggle:hover { opacity: 1; }
-
-.mono { font-family: ui-monospace, Menlo, monospace; font-size: .85rem; }
-.alert { background: var(--bad-bg); color: var(--bad-text); padding: 10px 14px; border-radius: var(--radius); margin-bottom: 12px; font-size: .9rem; }
-.notice { background: var(--warn-bg); color: var(--warn-text); padding: 10px 14px; border-radius: var(--radius); margin-bottom: 14px; font-size: .9rem; }
-.good-box { background: var(--ok-bg); color: var(--ok-text); }
-
-/* ─── 9. Cards & Grids ───────────────────────────────────────────────── */
-.card {
-  background: var(--card-bg); backdrop-filter: blur(12px);
-  border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 20px; border: 1px solid var(--border-light);
-}
-
-/* Reveal — progressive enhancement */
-/* Kartu yang bisa diklik */
-a.card {
-  color: inherit;
-  transition: transform var(--dur-med) var(--ease-out),
-              box-shadow var(--dur-med) var(--ease-out),
-              border-color var(--dur-fast);
-}
-a.card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 12px 28px rgba(27,36,104,.12);
-  border-color: rgba(31,162,232,.4);
-}
-[data-theme="dark"] a.card:hover { box-shadow: 0 12px 28px rgba(0,0,0,.5); }
-
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-
-/* ─── 10. Hero (Beranda) ─────────────────────────────────────────────── */
-/* Definisi lengkap ada di section 10b di bawah — ini placeholder agar urutan
-   komentar section tetap terbaca. Properti di sini tetap bisa berfungsi
-   sebagai fallback minimal. */
-.hero {
-  text-align: center;
-  display: flex; flex-direction: column;
-  align-items: center;
-}
-.hero-sub {
-  text-align: center;
-  margin-inline: auto;
-}
-
-/* Feature cards — perbaiki layout agar tidak ada overlap */
-.feature {
-  display: flex; flex-direction: column;
-  align-items: flex-start; gap: 8px;
-  text-decoration: none;
-  /* Pastikan height konsisten */
-  height: 100%;
-  overflow: hidden; /* tidak ada overflow */
-  position: relative; /* pseudo-element tidak keluar */
-}
-.feature .emoji { font-size: 2rem; line-height: 1; }
-.feature h3 { margin: 0; }
-.feature p { margin: 0; color: var(--text-muted); font-size: .9rem; line-height: 1.6; }
-
-/* Grades */
-.grades { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
-.grade-card {
-  text-align: center; display: flex; flex-direction: column;
-  align-items: center; gap: 4px; padding: 18px 10px;
-  background: var(--card-bg); border: 1px solid var(--border-light);
-  border-radius: var(--radius);
-}
-.grade-card-icon {
-  display: flex; align-items: center; justify-content: center;
-  width: 48px; height: 48px; border-radius: 50%;
-  margin-bottom: 6px;
-}
-.grade-num { font-size: 2.2rem; font-weight: 700; color: var(--orange); line-height: 1.1; }
-.grade-label { font-weight: 600; color: var(--navy); font-size: .85rem; }
-.topic-card h3 { margin-bottom: 2px; }
-.tag { background: var(--ai-sys-bg); color: var(--blue-d); padding: 2px 10px; border-radius: 99px; font-size: .75rem; font-weight: 600; }
-.tag-ok { background: var(--ok-bg); color: var(--ok-text); }
-.pts { color: var(--warn-text); font-size: .75rem; font-weight: 600; }
-
-/* ─── 11. Reveal Component (Progressive Enhancement) ─────────────────── */
-/*
-  Elemen reveal HARUS visible secara default (tanpa JS).
-  JS/IntersectionObserver akan menambahkan class 'reveal-pending' saat mount
-  dan 'reveal-done' saat terlihat.
-*/
-.reveal-item {
-  opacity: 1;
-  transform: none;
-  transition: opacity var(--dur-slow) var(--ease-out),
-              transform var(--dur-slow) var(--ease-out);
-}
-
-.reveal-item.reveal-pending {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.reveal-item.reveal-done {
-  opacity: 1;
-  transform: none;
-}
-
-/* ─── 12. Scroll Effects ─────────────────────────────────────────────── */
-/* Back to top button */
-.back-to-top {
-  position: fixed;
-  bottom: 28px; right: 24px;
-  width: 44px; height: 44px;
-  background: var(--blue-d);
-  color: #fff; border: none;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; cursor: pointer;
-  box-shadow: var(--shadow-lg);
-  z-index: 90;
-  opacity: 0; pointer-events: none;
-  transform: translateY(10px);
-  transition: opacity var(--dur-med) var(--ease-out),
-              transform var(--dur-med) var(--ease-out);
-}
-.back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.back-to-top:hover { filter: brightness(1.1); transform: translateY(-2px); }
-.back-to-top:focus-visible { outline: 2px solid var(--blue-d); outline-offset: 3px; }
-
-/* ─── 10b. Hero — Perbaikan Sumbu Tengah ────────────────────────────── */
-/*
-  Masalah: elemen di dalam <Reveal> dibungkus div dengan width: 100% default,
-  menyebabkan hero-sub ditampilkan dengan lebar penuh → text-align: center
-  tidak cukup karena blok tidak terpusat di sumbu.
-
-  Fix: .hero menggunakan align-items: center (sudah ada), dan setiap anak
-  langsung harus menggunakan margin-inline: auto. .reveal-item di dalam .hero
-  juga dibatasi agar terpusat.
-*/
-.hero {
-  text-align: center; padding: clamp(28px, 6vw, 56px) 0 clamp(32px, 7vw, 60px);
-  display: flex; flex-direction: column;
-  align-items: center; gap: 20px;
-  position: relative; /* pastikan di atas math-bg */
-  isolation: isolate;
-}
-
-/* Isolasi hero dari MathBackground yang melintas di tengah */
-.hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  /* Gradient mask: hanya tengah yang bersih, tepi biarkan watermark terlihat */
-  background: radial-gradient(
-    ellipse 70% 80% at 50% 50%,
-    var(--bg) 55%,
-    transparent 100%
-  );
-  z-index: -1;
-  pointer-events: none;
-}
-
-.hero-sub {
-  /* max-width + margin-inline: auto = selalu terpusat, apapun lebar parent */
-  max-width: 58ch;
-  margin-inline: auto;
-  color: var(--text-muted);
-  font-size: clamp(.95rem, 2.2vw, 1.1rem);
-  line-height: 1.75;
-  text-align: center;
-  /* Pastikan teks tidak terpotong di layar sempit */
-  padding: 0 4px;
-}
-
-/* .reveal-item di dalam .hero: pastikan tidak melebihi lebar konten */
-.hero .reveal-item {
-  display: flex;
-  justify-content: center;
-  /* Lebar max mengikuti konten, bukan parent full-width */
-  max-width: 100%;
-}
-
-/* Tombol di hero: gunakan center-row agar terpusat */
-.hero .center-row {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* Logo hero besar */
-.logo-big .logo-name {
-  font-size: clamp(2.4rem, 7vw, 5rem);
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-.logo-big .logo-tag {
-  font-size: clamp(.85rem, 2.4vw, 1.55rem);
-  margin-top: 8px;
-  color: var(--brand-accent);
-}
-
-/* ─── 6c. Navbar Active Link — Pseudo-element Indicator ──────────────── */
-/*
-  Masalah: border-bottom: 2px solid pada .nav-links > a menambah tinggi visual
-  pada link aktif → link tidak sejajar vertical dengan link lain.
-
-  Fix: gunakan ::after pseudo-element absolut di dasar item, sehingga garis
-  tidak menambah box model sama sekali.
-*/
-.nav-links > a {
-  /* Override: hapus border-bottom dari box model */
-  border-bottom: none;
-  /* Perlu position: relative untuk ::after */
-  position: relative;
-}
-
-.nav-links > a::after {
-  content: '';
-  position: absolute;
-  bottom: 2px; left: 10px; right: 10px;
-  height: 2px;
-  background: var(--orange);
-  border-radius: 1px;
-  opacity: 0;
-  transform: scaleX(0);
-  transition: opacity var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out);
-}
-
-.nav-links > a.active::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
-.nav-links > a:hover::after {
-  opacity: .4;
-  transform: scaleX(1);
-}
 
 /* ─── 12b. Math Background — Kurangi Opacity & Mask Tengah ───────────── */
 /*
@@ -892,6 +591,13 @@ a.card:hover {
 }
 
 /* Tombol setujui — warna berbeda dari btn biasa agar tidak bergantung pada --blue-d */
+.btn-primary {
+  background: var(--navy);
+  color: #fff;
+}
+.btn-primary:hover {
+  filter: brightness(1.15);
+}
 .btn-ok-action {
   background: #16a34a;
   color: #fff;
@@ -2588,3 +2294,7 @@ td.aksi-cell {
 .game-card-footer, .puzzle-card-footer {
   margin-top: auto;
 }
+
+.btn-primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+.btn-primary:hover { filter: brightness(1.15); }
+[data-theme='dark'] .btn-primary { color: #fff; }

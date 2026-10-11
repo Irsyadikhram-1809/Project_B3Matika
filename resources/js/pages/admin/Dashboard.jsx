@@ -46,9 +46,9 @@ export default function Dashboard() {
     <AdminGuard>
       <div className="admin-page-header">
         <div>
-          <h1 className="admin-page-title">Dashboard</h1>
+          <h1 className="admin-page-title">Selamat Datang, {user?.name || 'Admin'}!</h1>
           <p style={{ color: 'var(--text-muted)', margin: '8px 0 0 0', fontSize: '0.9rem' }}>
-            Ringkasan data dan evaluasi performa aplikasi B3Matika.
+            Ini adalah ringkasan data dan evaluasi performa aplikasi B3Matika.
           </p>
         </div>
       </div>

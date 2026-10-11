@@ -46,7 +46,7 @@ export default function ResourceList() {
             Kelola daftar {cfg.label.toLowerCase()} dalam sistem.
           </p>
         </div>
-        <Link className="btn" style={{ background: 'var(--navy)', color: '#fff' }} to={`/panel-rahasia/${res}/create`}>
+        <Link className="btn btn-primary" to={`/panel-rahasia/${res}/create`}>
           + Tambah Data
         </Link>
       </div>
@@ -74,7 +74,7 @@ export default function ResourceList() {
             <div className="admin-empty-icon" style={{ display: 'flex', justifyContent: 'center' }}><FolderOpen size={48} color="var(--text-muted)" /></div>
             <h3 style={{ margin: '0 0 8px 0', color: 'var(--text)' }}>Data masih kosong</h3>
             <p style={{ margin: 0, marginBottom: '20px' }}>Belum ada data {cfg.label.toLowerCase()} yang ditambahkan.</p>
-            <Link className="btn" style={{ background: 'var(--navy)', color: '#fff' }} to={`/panel-rahasia/${res}/create`}>
+            <Link className="btn btn-primary" to={`/panel-rahasia/${res}/create`}>
               Mulai Tambah Data
             </Link>
           </div>
@@ -83,9 +83,17 @@ export default function ResourceList() {
             <table>
               <thead>
                 <tr>
-                  {cfg.cols.map((c) => (
-                    <th key={c} style={{ textTransform: 'capitalize' }}>{c.replace(/_/g, ' ')}</th>
-                  ))}
+                  {cfg.cols.map((c) => {
+                    const labelMap = {
+                      title: 'Judul', description: 'Deskripsi', order_num: 'Urutan',
+                      created_at: 'Dibuat Pada', updated_at: 'Diperbarui Pada',
+                      is_active: 'Status', role: 'Peran', email: 'Email', name: 'Nama',
+                      topic_id: 'ID Materi'
+                    };
+                    return (
+                      <th key={c} style={{ textTransform: 'capitalize' }}>{labelMap[c] || c.replace(/_/g, ' ')}</th>
+                    );
+                  })}
                   <th style={{ width: '160px' }}>Aksi</th>
                 </tr>
               </thead>
