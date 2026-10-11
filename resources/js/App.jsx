@@ -1,4 +1,5 @@
 import { Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
@@ -59,35 +60,46 @@ export default function App() {
       {!isStandalonePage && <MathBackground />}
       {!isStandalonePage && <Navbar />}
       <main className={isStandalonePage ? "" : "container page"}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/materi" element={<Materi />} />
-          <Route path="/kelas/:g" element={<Grade />} />
-          <Route path="/materi/:id" element={<Topic />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/puzzle" element={<PuzzleList />} />
-          <Route path="/puzzle/:id" element={<PuzzleDetail />} />
-          <Route path="/ai-tutor" element={<TutorChat />} />
-          <Route path="/papan-skor" element={<Board />} />
-          <Route path="/masuk" element={<AuthForm mode="login" />} />
-          <Route path="/daftar" element={<AuthForm mode="register" />} />
-          <Route path="/lupa-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/profil" element={<Profil />} />
-          <Route path="/riwayat" element={<Riwayat />} />
-          <Route path="/verifikasi-email" element={<VerifyEmailLink />} />
-          <Route path="/konfirmasi-admin" element={<AdminTokenConfirm />} />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={loc.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            style={{ width: '100%' }}
+          >
+            <Routes location={loc}>
+              <Route path="/" element={<Home />} />
+              <Route path="/materi" element={<Materi />} />
+              <Route path="/kelas/:g" element={<Grade />} />
+              <Route path="/materi/:id" element={<Topic />} />
+              <Route path="/games" element={<Games />} />
+              <Route path="/puzzle" element={<PuzzleList />} />
+              <Route path="/puzzle/:id" element={<PuzzleDetail />} />
+              <Route path="/ai-tutor" element={<TutorChat />} />
+              <Route path="/papan-skor" element={<Board />} />
+              <Route path="/masuk" element={<AuthForm mode="login" />} />
+              <Route path="/daftar" element={<AuthForm mode="register" />} />
+              <Route path="/lupa-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/profil" element={<Profil />} />
+              <Route path="/riwayat" element={<Riwayat />} />
+              <Route path="/verifikasi-email" element={<VerifyEmailLink />} />
+              <Route path="/konfirmasi-admin" element={<AdminTokenConfirm />} />
 
-          {/* Admin: URL tersembunyi, tidak ditautkan di situs; non-admin melihat 404 */}
-          <Route path="/panel-rahasia/login" element={<AdminLogin />} />
-          <Route path="/panel-rahasia" element={<AdminDashboard />} />
-          <Route path="/panel-rahasia/users" element={<AdminUsers />} />
-          <Route path="/panel-rahasia/:res" element={<AdminList />} />
-          <Route path="/panel-rahasia/:res/create" element={<AdminForm />} />
-          <Route path="/panel-rahasia/:res/:id/edit" element={<AdminForm />} />
+              {/* Admin: URL tersembunyi, tidak ditautkan di situs; non-admin melihat 404 */}
+              <Route path="/panel-rahasia/login" element={<AdminLogin />} />
+              <Route path="/panel-rahasia" element={<AdminDashboard />} />
+              <Route path="/panel-rahasia/users" element={<AdminUsers />} />
+              <Route path="/panel-rahasia/:res" element={<AdminList />} />
+              <Route path="/panel-rahasia/:res/create" element={<AdminForm />} />
+              <Route path="/panel-rahasia/:res/:id/edit" element={<AdminForm />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
       </main>
       {!isStandalonePage && <Footer />}
       {!isStandalonePage && <BackToTop />}
