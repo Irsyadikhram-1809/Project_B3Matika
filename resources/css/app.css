@@ -7,7 +7,8 @@
 :root {
   /* Brand */
   --navy: #1b2468;
-  --orange: #c2410c;
+  --orange: #f7931e;
+  --orange-brand: #f7931e;
   --blue: #0284c7;
   --blue-d: #1d4ed8;
 
@@ -130,6 +131,18 @@ body {
 }
 
 [data-theme="dark"] body { background-image: none; }
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+#root > main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
 
 a { color: var(--blue-d); text-decoration: none; }
 h1 { font-size: 1.9rem; margin: .2rem 0 .4rem; color: var(--navy); }
@@ -450,11 +463,29 @@ h3 { margin: .4rem 0; color: var(--navy); }
 .logo { display: inline-flex; align-items: center; gap: 10px; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.05; }
 .logo-name { font-size: 2rem; font-weight: 700; color: var(--navy); letter-spacing: -.5px; }
-.logo-name .three { color: var(--orange); }
+.logo-name .three { color: #f7931e; }
 .logo-tag { font-size: .72rem; color: var(--text-muted); font-weight: 400; margin-top: 2px; white-space: nowrap; }
 .logo-big { gap: 22px; }
 .logo-big .logo-name { font-size: clamp(2.8rem, 8vw, 5.4rem); font-weight: 800; }
 .logo-big .logo-tag { font-size: clamp(.9rem, 2.6vw, 1.7rem); margin-top: 10px; color: var(--text-muted); }
+
+/* Brand Wordmark & 3 Color */
+.brand-wordmark {
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.5px;
+  display: inline-flex;
+  align-items: baseline;
+}
+.brand-wordmark-3,
+.footer-logo-three {
+  color: #f7931e;
+}
+.brand-wordmark.size-sm { font-size: 1.1rem; }
+.brand-wordmark.size-md { font-size: 1.6rem; }
+.brand-wordmark.size-lg { font-size: 2.2rem; }
+.brand-wordmark.size-xl { font-size: 3rem; }
 
 /* ─── 8. Buttons & Forms ─────────────────────────────────────────────── */
 .btn {
@@ -1425,12 +1456,275 @@ td.aksi-cell {
 .user-status-dot.online { background: var(--ok); box-shadow: 0 0 0 2px rgba(16,185,129,.25); }
 .user-status-dot.offline { background: var(--text-muted); }
 
-/* ─── 18. Auth ───────────────────────────────────────────────────────── */
-.auth { display: flex; justify-content: center; padding-top: 12px; }
-.auth-card { width: 100%; max-width: 400px; padding: 28px; }
+/* ─── 18. Auth & Segmented Control ─────────────────────────────────────── */
+.auth {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 48px;
+  min-height: calc(100vh - var(--navbar-h) - 200px);
+}
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* SegmentedControl — Pill switcher modern dan presisi */
+.segmented-control {
+  position: relative;
+  display: flex;
+  background-color: var(--surface);
+  border-radius: 9999px;
+  padding: 4px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--line);
+  width: 100%;
+  user-select: none;
+}
+[data-theme="dark"] .segmented-control {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.segmented-control.size-compact {
+  padding: 2px;
+}
+
+.sc-button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+  outline: none;
+  font-family: inherit;
+}
+.segmented-control.size-compact .sc-button {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  gap: 6px;
+}
+.sc-button:hover {
+  color: var(--text);
+}
+.sc-button[aria-selected="true"] {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+.sc-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--blue);
+}
+
+.sc-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  background: #2563eb;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 9999px;
+  transition: transform var(--dur-med) var(--ease-out), width var(--dur-med) var(--ease-out);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  z-index: 0;
+  pointer-events: none;
+}
+[data-theme="dark"] .sc-indicator {
+  background: #2563eb;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.5);
+}
+.segmented-control.size-compact .sc-indicator {
+  top: 2px;
+  bottom: 2px;
+}
+
+@media (max-width: 480px) {
+  .sc-button {
+    padding: 10px 8px;
+    font-size: 0.88rem;
+    gap: 6px;
+  }
+  .segmented-control.size-compact .sc-button {
+    padding: 6px 6px;
+    font-size: 0.78rem;
+  }
+}
 
 /* ─── 19. Footer ─────────────────────────────────────────────────────── */
-.footer { text-align: center; color: var(--text-muted); font-size: .82rem; padding: 26px 0; border-top: 1px solid var(--line); background: var(--surface); }
+.site-footer {
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-top: auto;
+  width: 100%;
+}
+
+.site-footer-inner {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr;
+  gap: 32px 24px;
+  padding-top: 40px;
+  padding-bottom: 32px;
+}
+
+/* Branding */
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.footer-logo-name {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.footer-logo-three {
+  color: #f7931e;
+}
+
+.footer-tagline {
+  font-size: .84rem;
+  font-weight: 600;
+  color: #f7931e;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.footer-desc {
+  font-size: .84rem;
+  color: var(--text-muted);
+  text-align: left;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 360px;
+}
+
+/* Kolom navigasi */
+.footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer-nav-title {
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.footer-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-nav-list a {
+  font-size: .88rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--dur-fast);
+  display: inline-block;
+}
+
+.footer-nav-list a:hover {
+  color: var(--blue-d);
+}
+
+.footer-nav-list a:focus-visible {
+  outline: 2px solid var(--blue-d);
+  border-radius: 3px;
+}
+
+/* Baris hak cipta */
+.footer-copy {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}
+
+.footer-copy p {
+  font-size: .8rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+/* Tablet: 2 kolom */
+@media (max-width: 768px) {
+  .site-footer-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 20px;
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+  .footer-desc {
+    max-width: 100%;
+  }
+}
+
+/* Mobile: 1 kolom */
+@media (max-width: 480px) {
+  .site-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding-top: 28px;
+    padding-bottom: 20px;
+  }
+  .footer-brand {
+    gap: 6px;
+  }
+  .footer-logo-name {
+    font-size: 1.4rem;
+  }
+}
+
+/* Kompatibilitas mundur dengan kelas .footer sederhana */
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .82rem;
+  line-height: 1.5;
+  padding: 22px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--card);
+  margin-top: auto;
+  width: 100%;
+  flex-shrink: 0;
+}
 
 /* ─── 20. Game Components ────────────────────────────────────────────── */
 .game { max-width: 460px; }

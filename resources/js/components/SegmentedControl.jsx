@@ -5,9 +5,7 @@ export default function SegmentedControl({ options, value, onChange, size = 'pri
   const [indicatorStyle, setIndicatorStyle] = useState({});
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    // Pindahkan kalkulasi ke setTimeout kecil untuk memastikan DOM paint selesai (mis. saat awal render)
-    setTimeout(() => {
+    const updateIndicator = () => {
       if (!containerRef.current) return;
       const activeEl = containerRef.current.querySelector('[aria-selected="true"]');
       if (activeEl) {
@@ -16,7 +14,15 @@ export default function SegmentedControl({ options, value, onChange, size = 'pri
           transform: `translateX(${activeEl.offsetLeft}px)`
         });
       }
-    }, 10);
+    };
+
+    updateIndicator();
+    const timer = setTimeout(updateIndicator, 20);
+    window.addEventListener('resize', updateIndicator);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateIndicator);
+    };
   }, [value, options]);
 
   const handleKeyDown = (e, index) => {
