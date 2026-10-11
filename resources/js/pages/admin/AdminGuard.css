@@ -295,6 +295,19 @@
   background-color: var(--surface-hover);
 }
 
+.admin-content td.aksi-cell {
+  white-space: nowrap;
+  width: 1%;
+  vertical-align: middle;
+}
+
+.aksi-cell-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
 .badge {
   display: inline-block;
   padding: 4px 10px;

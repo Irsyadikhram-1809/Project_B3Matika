@@ -226,6 +226,14 @@ h3 { margin: .4rem 0; color: var(--navy); }
   background: rgba(31,41,55,.92);
 }
 
+/* Matikan backdrop-filter saat menu-open agar tidak mengunci fixed containing-block pada mobile drawer */
+.navbar.menu-open,
+.navbar.scrolled.menu-open {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--card);
+}
+
 .nav-inner {
   display: flex;
   align-items: center;
@@ -1436,9 +1444,15 @@ tr:last-child td { border-bottom: 0; }
 /* Sel Aksi — flex tapi tidak mempengaruhi tinggi baris */
 td.aksi-cell {
   display: table-cell; /* bukan flex agar border sejajar */
+  white-space: nowrap;
+  width: 1%;
+  vertical-align: middle;
 }
 .aksi-cell-inner {
-  display: flex; gap: 8px; align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
 }
 
 .admin-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -1682,6 +1696,9 @@ td.aksi-cell {
 
 /* Tablet: 2 kolom */
 @media (max-width: 768px) {
+  .site-footer {
+    margin-top: 56px;
+  }
   .site-footer-inner {
     grid-template-columns: 1fr 1fr;
     gap: 28px 20px;
@@ -1698,6 +1715,9 @@ td.aksi-cell {
 
 /* Mobile: 1 kolom */
 @media (max-width: 480px) {
+  .site-footer {
+    margin-top: 48px;
+  }
   .site-footer-inner {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -1724,6 +1744,16 @@ td.aksi-cell {
   margin-top: auto;
   width: 100%;
   flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .footer {
+    margin-top: 48px;
+  }
+}
+@media (max-width: 480px) {
+  .footer {
+    margin-top: 40px;
+  }
 }
 
 /* ─── 20. Game Components ────────────────────────────────────────────── */
@@ -2021,31 +2051,51 @@ td.aksi-cell {
   .nav-links {
     display: none;
     position: fixed;
-    top: var(--navbar-h); left: 0; right: 0; bottom: 0;
+    top: var(--nav-bottom, var(--navbar-h, 60px));
+    left: 0; right: 0; bottom: 0;
+    width: 100%;
+    width: 100vw;
+    height: calc(100dvh - var(--nav-bottom, var(--navbar-h, 60px)));
+    max-height: calc(100dvh - var(--nav-bottom, var(--navbar-h, 60px)));
     background: var(--card);
     flex-direction: column;
     align-items: stretch;
-    padding: 20px 20px 0;
-    gap: 4px;
+    padding: 16px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    gap: 6px;
     overflow-y: auto;
-    z-index: var(--z-overlay);
-    box-shadow: 0 10px 40px rgba(0,0,0,.15);
+    -webkit-overflow-scrolling: touch;
+    z-index: calc(var(--z-navbar) + 10);
+    box-shadow: 0 10px 40px rgba(0,0,0,.2);
     /* Reset flex nowrap untuk mode vertikal */
     flex-wrap: nowrap;
+    border-top: 1px solid var(--line);
   }
   .nav-links.open { display: flex; }
 
-  /* NavLink mobile — lebih besar, border bawah */
+  /* NavLink mobile — lega, nyaman disentuh */
   .nav-links > a {
-    width: 100%; padding: 14px 16px;
-    font-size: 1.05rem;
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 1.02rem;
+    font-weight: 500;
     border-bottom: 1px solid var(--line);
-    border-radius: 8px; border-left: 3px solid transparent;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    color: var(--text);
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+  .nav-links > a::after {
+    display: none;
   }
   .nav-links > a.active {
     border-left-color: var(--orange);
     background: var(--surface);
     border-bottom: 1px solid var(--line);
+    color: var(--blue-d);
+    font-weight: 600;
   }
 
   /* Drawer bottom area: ThemeToggle + user */
@@ -2085,11 +2135,15 @@ td.aksi-cell {
 @media (max-width: 768px) {
   h1 { font-size: 1.55rem; }
   h2 { font-size: 1.25rem; }
-  .page { padding-top: 18px; padding-bottom: 40px; }
+  .page { padding-top: 18px; padding-bottom: 56px; }
   .container { padding: 0 18px; }
 
   .nav-inner { height: 60px; }
-  .nav-links { top: 60px; }
+  .nav-links {
+    top: var(--nav-bottom, 60px);
+    height: calc(100dvh - var(--nav-bottom, 60px));
+    max-height: calc(100dvh - var(--nav-bottom, 60px));
+  }
 
   /* Home hero */
   .logo-big { flex-direction: column; text-align: center; gap: 10px; }
@@ -2174,10 +2228,14 @@ td.aksi-cell {
 @media (max-width: 600px) {
   h1 { font-size: 1.35rem; }
   .container { padding: 0 12px; }
-  .page { padding-top: 14px; padding-bottom: 32px; }
+  .page { padding-top: 14px; padding-bottom: 48px; }
 
   .nav-inner { height: 56px; }
-  .nav-links { top: 56px; }
+  .nav-links {
+    top: var(--nav-bottom, 56px);
+    height: calc(100dvh - var(--nav-bottom, 56px));
+    max-height: calc(100dvh - var(--nav-bottom, 56px));
+  }
 
   .grades { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .grade-card { padding: 14px 8px; }
@@ -2217,6 +2275,7 @@ td.aksi-cell {
 @media (max-width: 480px) {
   h1 { font-size: 1.2rem; }
   .container { padding: 0 10px; }
+  .page { padding-bottom: 40px; }
 
   .grades { grid-template-columns: repeat(2, 1fr); }
   .row.center-row { flex-direction: column; align-items: stretch; }

@@ -102,9 +102,9 @@ export default function Requests() {
                         {r.status === 'pending' ? 'Menunggu' : r.status === 'approved' ? 'Disetujui' : 'Ditolak'}
                       </span>
                     </td>
-                    <td style={{ display: 'flex', gap: '8px' }}>
+                    <td className="aksi-cell">
                       {r.status === 'pending' && currentUser?.role === 'superadmin' ? (
-                        <>
+                        <div className="aksi-cell-inner action-group">
                           <ActionButton 
                             icon={Check}
                             label="Setujui"
@@ -117,7 +117,7 @@ export default function Requests() {
                             variant="danger"
                             onClick={() => setConfirmDialog({ isOpen: true, type: 'reject', request: r })}
                           />
-                        </>
+                        </div>
                       ) : (
                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                           {r.status !== 'pending' ? 'Selesai' : 'Hanya Superadmin'}

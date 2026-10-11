@@ -111,16 +111,18 @@ export default function ResourceList() {
                         )}
                       </td>
                     ))}
-                    <td style={{ display: 'flex', gap: '8px' }}>
-                      <Link to={`/panel-rahasia/${res}/${r.id}/edit`} style={{ textDecoration: 'none' }}>
-                        <ActionButton icon={Edit} label="Ubah" variant="secondary" />
-                      </Link>
-                      <ActionButton 
-                        icon={Trash2} 
-                        label="Hapus" 
-                        variant="danger" 
-                        onClick={() => setConfirmDialog({ isOpen: true, item: r })}
-                      />
+                    <td className="aksi-cell">
+                      <div className="aksi-cell-inner action-group">
+                        <Link to={`/panel-rahasia/${res}/${r.id}/edit`} style={{ textDecoration: 'none' }}>
+                          <ActionButton icon={Edit} label="Ubah" variant="secondary" />
+                        </Link>
+                        <ActionButton 
+                          icon={Trash2} 
+                          label="Hapus" 
+                          variant="danger" 
+                          onClick={() => setConfirmDialog({ isOpen: true, item: r })}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

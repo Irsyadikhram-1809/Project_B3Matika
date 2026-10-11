@@ -1,4 +1,5 @@
 import React from 'react';
+import './ActionButton.css';
 
 export default function ActionButton({ 
   icon: Icon, 
@@ -18,8 +19,8 @@ export default function ActionButton({
       title={title || label}
       aria-label={label}
     >
-      {Icon && <Icon size={18} className="action-btn-icon" />}
-      <span className="action-btn-label">{label}</span>
+      {Icon && <Icon size={14} className="action-btn-icon" />}
+      {label && <span className="action-btn-label">{label}</span>}
     </button>
   );
 }

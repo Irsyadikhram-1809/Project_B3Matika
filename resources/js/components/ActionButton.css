@@ -1,0 +1,199 @@
+/* =====================================================================
+   ActionButton Component Styles
+   Used for table row actions, quick actions, and admin control buttons.
+   ===================================================================== */
+
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.action-group > a,
+.aksi-cell-inner > a {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.action-btn {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  outline: none;
+  background: transparent;
+  transition: all var(--dur-fast, 180ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
+}
+
+.action-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg, #ffffff), 0 0 0 4px var(--blue, #0284c7);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.action-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.action-btn-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform var(--dur-fast, 180ms) var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.action-btn:hover:not(:disabled) .action-btn-icon {
+  transform: translateY(-0.5px);
+}
+
+.action-btn-label {
+  display: inline-block;
+  line-height: 1;
+}
+
+/* ── Secondary Variant (e.g. Ubah / Edit) ── */
+.action-btn-secondary {
+  background: var(--surface, #f3f4f6);
+  color: var(--text, #111827);
+  border-color: var(--line, #e5e7eb);
+}
+
+.action-btn-secondary .action-btn-icon {
+  color: var(--text-muted, #6b7280);
+}
+
+.action-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-hover, #e5e7eb);
+  color: var(--blue-d, #1d4ed8);
+  border-color: var(--blue, #0284c7);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.action-btn-secondary:hover:not(:disabled) .action-btn-icon {
+  color: var(--blue-d, #1d4ed8);
+}
+
+[data-theme="dark"] .action-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme="dark"] .action-btn-secondary .action-btn-icon {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .action-btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .action-btn-secondary:hover:not(:disabled) .action-btn-icon {
+  color: #60a5fa;
+}
+
+/* ── Danger Variant (e.g. Hapus / Tolak) ── */
+.action-btn-danger {
+  background: var(--bad-bg, #fef2f2);
+  color: var(--bad-text, #b91c1c);
+  border-color: var(--bad-border, #fecaca);
+}
+
+.action-btn-danger .action-btn-icon {
+  color: var(--bad, #ef4444);
+}
+
+.action-btn-danger:hover:not(:disabled) {
+  background: var(--bad, #ef4444);
+  color: #ffffff;
+  border-color: var(--bad, #ef4444);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+}
+
+.action-btn-danger:hover:not(:disabled) .action-btn-icon {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .action-btn-danger {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+[data-theme="dark"] .action-btn-danger:hover:not(:disabled) {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.45);
+}
+
+/* ── Success Variant (e.g. Setujui / Aktifkan) ── */
+.action-btn-success {
+  background: var(--ok-bg, #ecfdf5);
+  color: var(--ok-text, #047857);
+  border-color: var(--ok-border, #a7f3d0);
+}
+
+.action-btn-success .action-btn-icon {
+  color: var(--ok, #10b981);
+}
+
+.action-btn-success:hover:not(:disabled) {
+  background: var(--ok, #10b981);
+  color: #ffffff;
+  border-color: var(--ok, #10b981);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.action-btn-success:hover:not(:disabled) .action-btn-icon {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .action-btn-success {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+[data-theme="dark"] .action-btn-success:hover:not(:disabled) {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.45);
+}
+
+/* ── Warning Variant ── */
+.action-btn-warning {
+  background: var(--warn-bg, #fffbeb);
+  color: var(--warn-text, #b45309);
+  border-color: var(--warn-border, #fde68a);
+}
+
+.action-btn-warning:hover:not(:disabled) {
+  background: var(--warn, #f59e0b);
+  color: #ffffff;
+  border-color: var(--warn, #f59e0b);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+}

@@ -142,7 +142,7 @@ export default function Users() {
                     </td>
                     <td className="aksi-cell">
                       {u.role !== 'superadmin' ? (
-                        <div className="aksi-cell-inner" style={{ display: 'flex', gap: '8px' }}>
+                        <div className="aksi-cell-inner action-group">
                           <ActionButton 
                             icon={u.is_active ? Ban : UserCheck}
                             label={u.is_active ? 'Blokir' : 'Aktifkan'}
