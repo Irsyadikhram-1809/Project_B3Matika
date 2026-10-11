@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Users, FileText, BookOpen, Puzzle, BarChart3, AlertTriangle } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import AdminGuard from './AdminGuard';
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -81,7 +83,7 @@ export default function Dashboard() {
       ) : data ? (
         <>
           <div className="dashboard-stats-grid">
-            {Object.entries(data.stats).map(([k, v], i) => {
+            {data?.stats && Object.entries(data.stats).map(([k, v], i) => {
               const gradients = [
                 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
                 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
@@ -122,7 +124,7 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.evaluation.length > 0 ? (
+                  {data?.evaluation && Array.isArray(data.evaluation) && data.evaluation.length > 0 ? (
                     data.evaluation.map((r) => (
                       <tr key={r.id} style={{ borderBottom: '1px solid var(--line)' }}>
                         <td style={{ padding: '16px 24px', maxWidth: '300px' }}>
