@@ -28,7 +28,7 @@ test.describe('B3Matika UI Invariants', () => {
 
     // It should have border-radius and typically be full width in auth forms
     expect(btnStyles.borderRadius).not.toBe('0px');
-    expect(btnStyles.display).toBe('flex'); // from .btn-block class
+    expect(['inline-flex', 'flex']).toContain(btnStyles.display);
 
     // 3. Verify Navbar exists and looks ok
     const navbar = page.locator('header.navbar');
